@@ -64,7 +64,7 @@ export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: L
       <p className="copy copy--block" ref={set("block1")}>
         {COPY.block1}
       </p>
-      <p className="copy copy--block copy--right" ref={set("block2")}>
+      <p className="copy copy--block" ref={set("block2")}>
         {COPY.block2}
       </p>
       <p className="copy copy--block" ref={set("block3")}>
