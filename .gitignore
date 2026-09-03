@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# asset pipeline: raw downloads and intermediates stay local, exported models are committed
+assets/raw/
+assets/clean/
+assets/bake/
+assets/export/
+assets/*.log
+
+# regenerable point buffers (tools/blender/03_sample_points.py), 15 MB
+public/points/*.bin

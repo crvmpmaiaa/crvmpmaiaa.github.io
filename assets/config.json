@@ -1,0 +1,53 @@
+{
+  "statue": {
+    "name": "hercules",
+    "source": "assets/raw/hercules/scene.gltf",
+    "format": "gltf",
+    "height": 1.8,
+    "yaw_degrees": 0,
+    "head_fraction": 0.22,
+    "lod0_triangles": 90000,
+    "lod1_triangles": 25000,
+    "texture_size": 2048,
+    "pitch_degrees": 0,
+    "placeholder": false,
+    "credit": "This work is based on \"The Punishment- A study of Farnese Hercules\" (https://sketchfab.com/3d-models/the-punishment-a-study-of-farnese-hercules-0b36d63fd4e44ab6b59088438d4da441) by Deepak C C (https://sketchfab.com/DeepakCC) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/). Marble material, drape and decimation added by Build Different.",
+    "textured": false,
+    "head_weight": 0.0,
+    "drop_islands": false,
+    "drape": {
+      "top": 0.585,
+      "bottom": 0.43,
+      "front_drop": 0.06,
+      "offset": 0.01,
+      "thickness": 0.008,
+      "fold_strength": 0.012,
+      "body_x_max": 0.12
+    }
+  },
+  "column": {
+    "name": "column",
+    "source": "assets/raw/marble_pillar/scene.gltf",
+    "format": "gltf",
+    "textured": true,
+    "height": 1.2,
+    "triangles": 15000,
+    "texture_size": 1024,
+    "credit": "This work is based on \"Marble Pillar\" (https://sketchfab.com/3d-models/marble-pillar-9ef9d44ee3624b32a62cd5ba7ab20cbf) by Louqeekon (https://sketchfab.com/Louqeekon) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)"
+  },
+  "laptop": {
+    "name": "laptop",
+    "source": "assets/raw/macbook_laptop/scene.gltf",
+    "format": "gltf",
+    "width": 0.31,
+    "triangles": 40000,
+    "lid_open_degrees": 110,
+    "screen_material": "Material.003",
+    "credit": "This work is based on \"MacBook Laptop\" (https://sketchfab.com/3d-models/macbook-laptop-7ceb46a1425b475fa7f6bf192e01ed74) by Issac Ghazanfar (https://sketchfab.com/sheshhh) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)"
+  },
+  "points": {
+    "desktop": 150000,
+    "mobile": 45000,
+    "seed": 7
+  }
+}

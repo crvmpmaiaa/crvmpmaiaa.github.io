@@ -1,0 +1,230 @@
+{
+  "column_raw": {
+    "triangles": 34560,
+    "vertices": 17282,
+    "size": [
+      0.483,
+      0.483,
+      1.2
+    ]
+  },
+  "laptop_raw": {
+    "parts": {
+      "Cube.001_Material.002_0": [
+        9152,
+        [
+          "Material.002"
+        ]
+      ],
+      "Cube_Material.004_0": [
+        64,
+        [
+          "Material.004"
+        ]
+      ],
+      "Cube_Material.002_0": [
+        72,
+        [
+          "Material.002"
+        ]
+      ],
+      "Cube_Material.003_0": [
+        2,
+        [
+          "Material.003"
+        ]
+      ],
+      "Keyboard_Material.001_0": [
+        14980,
+        [
+          "Material.001"
+        ]
+      ],
+      "Cube.002_Material.002_0": [
+        188,
+        [
+          "Material.002"
+        ]
+      ]
+    },
+    "triangles": 24458,
+    "size": [
+      0.31,
+      0.262,
+      0.216
+    ]
+  },
+  "statue_raw": {
+    "triangles": 970342,
+    "vertices": 485175,
+    "size": [
+      0.921,
+      0.757,
+      1.8
+    ]
+  },
+  "laptop": {
+    "triangles": {
+      "Base": 24320,
+      "Lid": 136,
+      "ScreenSurface": 2
+    },
+    "screen_aspect": 1.4747,
+    "screen_size": [
+      0.2864,
+      0.1942
+    ],
+    "closed_size": [
+      0.31,
+      0.233,
+      0.0124
+    ],
+    "hinge": [
+      0.0,
+      0.0872,
+      0.0083
+    ],
+    "source_open_angle": 100.8,
+    "glb": 1199932
+  },
+  "column": {
+    "triangles": 15000,
+    "textured_source": true,
+    "glb": 9410212
+  },
+  "statue": {
+    "lod0_triangles": 90000,
+    "lod1_triangles": 24999,
+    "textures": {
+      "StatueLOD0": {
+        "normal": {
+          "size": 2048,
+          "bytes": 3774843
+        },
+        "albedo": {
+          "size": 2048,
+          "bytes": 3772762
+        },
+        "rough": {
+          "size": 2048,
+          "bytes": 1936275
+        },
+        "ao": {
+          "size": 2048,
+          "bytes": 2936983
+        }
+      },
+      "StatueLOD1": {
+        "normal": {
+          "size": 1024,
+          "bytes": 1326449
+        },
+        "albedo": {
+          "size": 1024,
+          "bytes": 1234845
+        },
+        "rough": {
+          "size": 1024,
+          "bytes": 583793
+        },
+        "ao": {
+          "size": 1024,
+          "bytes": 1012354
+        }
+      }
+    },
+    "lod0_glb": 12773108,
+    "lod1_glb": 4054100
+  },
+  "points": {
+    "desktop": {
+      "count": 150000,
+      "floatsPerPoint": 19,
+      "seed": 7,
+      "layout": [
+        "posA",
+        "nrmA",
+        "colA",
+        "posB",
+        "nrmB",
+        "colB",
+        "delay"
+      ],
+      "up": "Y",
+      "boundsA": [
+        [
+          -0.4599144160747528,
+          4.30981490353588e-05,
+          0.37824973464012146
+        ],
+        [
+          0.4605686068534851,
+          1.7998422384262085,
+          -0.3852992355823517
+        ]
+      ],
+      "boundsB": [
+        [
+          -0.2411212921142578,
+          4.979524874215713e-06,
+          0.24121755361557007
+        ],
+        [
+          0.24114876985549927,
+          1.2123767137527466,
+          -0.24143148958683014
+        ]
+      ],
+      "columnTop": 1.2000036239624023,
+      "bytes": 11400000
+    },
+    "mobile": {
+      "count": 45000,
+      "floatsPerPoint": 19,
+      "seed": 7,
+      "layout": [
+        "posA",
+        "nrmA",
+        "colA",
+        "posB",
+        "nrmB",
+        "colB",
+        "delay"
+      ],
+      "up": "Y",
+      "boundsA": [
+        [
+          -0.4602155089378357,
+          0.000220138332224451,
+          0.37786364555358887
+        ],
+        [
+          0.45900779962539673,
+          1.7996054887771606,
+          -0.3855409622192383
+        ]
+      ],
+      "boundsB": [
+        [
+          -0.24102221429347992,
+          5.037021310272394e-06,
+          0.24132198095321655
+        ],
+        [
+          0.2407791018486023,
+          1.212376594543457,
+          -0.2409316450357437
+        ]
+      ],
+      "columnTop": 1.2000036239624023,
+      "bytes": 3420000
+    }
+  },
+  "drape": {
+    "triangles_added": 87552,
+    "slab": [
+      0.774,
+      1.053
+    ]
+  }
+}
