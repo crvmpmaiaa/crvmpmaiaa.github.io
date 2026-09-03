@@ -100,37 +100,37 @@
         "body": {
           "normal": {
             "size": 2048,
-            "bytes": 3261930
+            "bytes": 3127731
           },
           "albedo": {
             "size": 2048,
-            "bytes": 3837833
+            "bytes": 3573448
           },
           "rough": {
             "size": 2048,
-            "bytes": 1796668
+            "bytes": 1543909
           },
           "ao": {
             "size": 2048,
-            "bytes": 2296658
+            "bytes": 2366387
           }
         },
         "head": {
           "normal": {
             "size": 2048,
-            "bytes": 2935204
+            "bytes": 2947990
           },
           "albedo": {
             "size": 2048,
-            "bytes": 4499064
+            "bytes": 4309343
           },
           "rough": {
             "size": 2048,
-            "bytes": 1495271
+            "bytes": 1374288
           },
           "ao": {
             "size": 2048,
-            "bytes": 3017017
+            "bytes": 3087099
           }
         }
       },
@@ -138,25 +138,25 @@
         "body": {
           "normal": {
             "size": 1024,
-            "bytes": 1167608
+            "bytes": 1124144
           },
           "albedo": {
             "size": 1024,
-            "bytes": 1343644
+            "bytes": 1238486
           },
           "rough": {
             "size": 1024,
-            "bytes": 561639
+            "bytes": 508267
           },
           "ao": {
             "size": 1024,
-            "bytes": 812996
+            "bytes": 819048
           }
         }
       }
     },
-    "lod0_glb": 23945292,
-    "lod1_glb": 4452736
+    "lod0_glb": 23027292,
+    "lod1_glb": 4268616
   },
   "points": {
     "desktop": {

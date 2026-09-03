@@ -49,10 +49,10 @@ def marble_material(name, scale=2.2, vein_scale=1.0, seed=0.0):
     links.new(noise.outputs["Fac"], mix.inputs[0])
     links.new(wave.outputs["Fac"], mix.inputs[1])
     ramp = nodes.new("ShaderNodeValToRGB")
-    ramp.color_ramp.elements[0].position = 0.18
-    ramp.color_ramp.elements[0].color = (0.30, 0.31, 0.33, 1)  # vein grey
-    ramp.color_ramp.elements[1].position = 0.42
-    ramp.color_ramp.elements[1].color = (0.88, 0.86, 0.82, 1)  # marble body
+    ramp.color_ramp.elements[0].position = 0.24
+    ramp.color_ramp.elements[0].color = (0.62, 0.63, 0.65, 1)  # vein grey, light
+    ramp.color_ramp.elements[1].position = 0.34
+    ramp.color_ramp.elements[1].color = (0.91, 0.90, 0.88, 1)  # statuary body
     links.new(mix.outputs["Value"], ramp.inputs["Fac"])
     # fine grain
     grain = nodes.new("ShaderNodeTexNoise")
@@ -61,7 +61,7 @@ def marble_material(name, scale=2.2, vein_scale=1.0, seed=0.0):
     links.new(mapping.outputs["Vector"], grain.inputs["Vector"])
     grain_mix = nodes.new("ShaderNodeMix")
     grain_mix.data_type = "RGBA"
-    grain_mix.inputs["Factor"].default_value = 0.12
+    grain_mix.inputs["Factor"].default_value = 0.06
     links.new(ramp.outputs["Color"], grain_mix.inputs["A"])
     links.new(grain.outputs["Color"], grain_mix.inputs["B"])
     links.new(grain_mix.outputs["Result"], bsdf.inputs["Base Color"])
@@ -69,8 +69,8 @@ def marble_material(name, scale=2.2, vein_scale=1.0, seed=0.0):
     rough = nodes.new("ShaderNodeMapRange")
     rough.inputs["From Min"].default_value = 0.0
     rough.inputs["From Max"].default_value = 1.0
-    rough.inputs["To Min"].default_value = 0.42
-    rough.inputs["To Max"].default_value = 0.30
+    rough.inputs["To Min"].default_value = 0.52
+    rough.inputs["To Max"].default_value = 0.40
     links.new(mix.outputs["Value"], rough.inputs["Value"])
     rough_add = nodes.new("ShaderNodeMath")
     rough_add.operation = "MULTIPLY_ADD"
@@ -179,7 +179,7 @@ def new_image(name, size, color=False):
     return img
 
 
-def bake(low, high, img, kind, size, samples, extrusion=0.02, ray_distance=0.06, pass_filter=None, margin=16):
+def bake(low, high, img, kind, size, samples, extrusion=0.008, ray_distance=0.03, pass_filter=None, margin=32):
     """Selected to active bake from high onto low. img is one image, or a list with one image per material slot."""
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
