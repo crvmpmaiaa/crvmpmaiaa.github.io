@@ -1,0 +1,10 @@
+import puppeteer from "puppeteer-core";
+const b = await puppeteer.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: "new", args: ["--use-angle=metal", "--window-size=1440,900"] });
+const pg = await b.newPage(); await pg.setViewport({ width: 1440, height: 900 });
+const logs = []; pg.on("console", (m) => logs.push(m.type() + ": " + m.text().slice(0, 300)));
+await pg.goto("http://localhost:3000", { waitUntil: "networkidle0" }); await pg.waitForSelector("canvas"); await new Promise((r) => setTimeout(r, 3500));
+await pg.evaluate(() => { const hero = document.querySelector(".hero"); const end = hero.offsetTop + hero.offsetHeight - innerHeight; scrollTo(0, hero.offsetTop + (end - hero.offsetTop) * 0.6); });
+await new Promise((r) => setTimeout(r, 1500));
+console.log(await pg.evaluate(() => ({ morph: window.__bdMorph, u: window.__bdMorphU, p: window.__bdProgress })));
+console.log(logs.filter((l) => !l.startsWith("log: [HMR]")).slice(0, 15).join("\n"));
+await b.close();

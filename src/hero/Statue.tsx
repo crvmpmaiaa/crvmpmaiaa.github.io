@@ -4,6 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { BEATS, ease, remap } from "./beats";
+import { VAPORISE } from "./Morph";
 import { progress } from "./progress";
 
 // the version stamp defeats browser caching whenever the bake changes
@@ -30,6 +31,8 @@ function prepare(scene: THREE.Group) {
       m.frustumCulled = false;
       const mat = m.material as THREE.MeshStandardMaterial;
       if (mat && "envMapIntensity" in mat) mat.envMapIntensity = 0.7;
+      mat.transparent = true;
+      mat.depthWrite = true;
       for (const t of [mat.map, mat.normalMap, mat.roughnessMap]) if (t) t.anisotropy = 8;
     }
   });
@@ -61,9 +64,18 @@ export function Statue({ frozen = false }: { frozen?: boolean }) {
     if (!frozen) idle.current += STATUE.idleRadPerSec * Math.min(dt, 0.05);
     const w = 1 - ease.inOut(remap(p, BEATS.reveal[0], BEATS.reveal[1]));
     g.rotation.y = idle.current * w;
+    // the mesh leaves over the first part of the vaporise while the points take over
+    const u = ease.smooth(remap(p, VAPORISE.start, VAPORISE.end));
+    const opacity = 1 - remap(u, 0.02, 0.2);
     const useLod0 = p < STATUE.lodSwapAt;
-    scenes.a.visible = useLod0;
-    scenes.b.visible = !useLod0;
+    scenes.a.visible = useLod0 && opacity > 0;
+    scenes.b.visible = !useLod0 && opacity > 0;
+    for (const sc of [scenes.a, scenes.b]) {
+      sc.traverse((o) => {
+        const mm = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+        if (mm && mm.opacity !== opacity) mm.opacity = opacity;
+      });
+    }
   });
 
   return (

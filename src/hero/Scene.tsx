@@ -8,6 +8,7 @@ import { progress } from "./progress";
 import { CameraRig } from "./CameraRig";
 import { Sky } from "./Sky";
 import { Statue } from "./Statue";
+import { Morph } from "./Morph";
 
 /** Key light orbits the statue through the hold, so the light moves instead of the model. */
 function Lights() {
@@ -71,6 +72,7 @@ export function Scene({
   frozen?: boolean;
   onReady?: () => void;
 }) {
+  const mobile = typeof window !== "undefined" && window.innerWidth < 820;
   return (
     <div className="hero__canvas hero__canvas--statue">
       <Canvas
@@ -98,6 +100,9 @@ export function Scene({
             environmentIntensity={0.5}
           />
           <Statue frozen={frozen} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <Morph set={mobile ? "mobile" : "desktop"} frozen={frozen} />
         </Suspense>
         <Lights />
         <CameraRig frozen={frozen} />

@@ -17,6 +17,8 @@ const page = await browser.newPage();
 await page.setViewport({ width: W, height: H, deviceScaleFactor: 1 });
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
+page.on("requestfailed", (r) => errors.push("request failed " + r.url()));
+page.on("response", (r) => { if (r.status() >= 400) errors.push(`${r.status()} ${r.url()}`); });
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
 await page.goto(base, { waitUntil: "networkidle0", timeout: 60000 });
 await page.waitForSelector("canvas", { timeout: 20000 });
