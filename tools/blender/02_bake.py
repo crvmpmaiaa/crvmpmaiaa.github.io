@@ -324,15 +324,26 @@ def statue():
             lod.data.materials[k] = m
         # AO from the low poly itself as well
         bpy.context.scene.world.light_settings.distance = 0.25
-        ao = bake(lod, None, mk("ao"), "AO", s, samples)
-        # any normal texel the projection missed is black: make it flat rather than a hole
+        ao = bake(lod, None, mk("ao"), "AO", s, samples * 4)
         import numpy as np
+
+        def blur(img, passes=2):
+            # small separable blur to take the sampling noise out of the occlusion in tight crevices
+            w, h = img.size
+            a = np.array(img.pixels[:], np.float32).reshape(h, w, 4)
+            for _ in range(passes):
+                a = (a + np.roll(a, 1, 0) + np.roll(a, -1, 0)) / 3.0
+                a = (a + np.roll(a, 1, 1) + np.roll(a, -1, 1)) / 3.0
+            img.pixels = a.ravel().tolist()
+
         for k in range(slots):
+            blur(ao[k])
+            # missed normal texels are black, back face hits point away: both become flat
             px = np.array(nrm[k].pixels[:], np.float32).reshape(-1, 4)
-            miss = px[:, :3].sum(axis=1) < 0.15
-            px[miss, 0] = 0.5; px[miss, 1] = 0.5; px[miss, 2] = 1.0
+            bad = (px[:, :3].sum(axis=1) < 0.15) | (px[:, 2] < 0.62)
+            px[bad, 0] = 0.5; px[bad, 1] = 0.5; px[bad, 2] = 1.0
             nrm[k].pixels = px.ravel().tolist()
-            log(f"normal {names[k]}: filled {int(miss.sum())} missed texels")
+            log(f"normal {names[k]}: flattened {int(bad.sum())} texels")
         lod_stats = {}
         mats = []
         for k in range(slots):
@@ -340,7 +351,7 @@ def statue():
             import numpy as np
             a_px = np.array(alb[k].pixels[:], np.float32).reshape(-1, 4)
             o_px = np.array(ao[k].pixels[:], np.float32).reshape(-1, 4)
-            occ = 1.0 - 0.75 * (1.0 - o_px[:, :1])
+            occ = 1.0 - 0.6 * (1.0 - o_px[:, :1])
             a_px[:, :3] *= occ
             alb[k].pixels = a_px.ravel().tolist()
             paths = {kind: save_image(i[k], f"{lod.name.lower()}_{names[k]}_{kind}") for kind, i in (("normal", nrm), ("albedo", alb), ("rough", rgh), ("ao", ao))}
