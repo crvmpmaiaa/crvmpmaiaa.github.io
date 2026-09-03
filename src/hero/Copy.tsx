@@ -14,10 +14,11 @@ export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: L
   useEffect(() => {
     if (isStatic) return;
     const apply = (p: number) => {
-      for (const key of Object.keys(COPY_WINDOWS) as (keyof typeof COPY_WINDOWS)[]) {
+      for (const key of Object.keys(refs.current)) {
         const el = refs.current[key];
-        if (!el) continue;
-        const o = COPY_WINDOWS[key](p);
+        const win = COPY_WINDOWS[key.replace(/-front$/, "") as keyof typeof COPY_WINDOWS];
+        if (!el || !win) continue;
+        const o = win(p);
         el.style.opacity = o.toFixed(3);
         el.style.visibility = o < 0.01 ? "hidden" : "visible";
       }
@@ -40,17 +41,26 @@ export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: L
       ))}
     </span>
   );
+  // BUILD sits behind the statue, DIFFERENT in front of it. The h1 keeps both words for assistive tech;
+  // the front copy of DIFFERENT is a purely visual duplicate.
   const wordmark = (
     <h1 className="copy copy--wordmark" ref={set("headline1")} style={isStatic ? undefined : { opacity: 1, inset: 0 }}>
       {word(COPY.wordmark[0], "word--top", 150)}
-      {word(COPY.wordmark[1], "word--bottom", 450)}
+      <span className={layer === "behind" ? "sr-only" : "word word--bottom"}>{layer === "behind" ? COPY.wordmark[1] : null}</span>
+      {layer !== "behind" && word(COPY.wordmark[1], "word--bottom", 450)}
     </h1>
+  );
+  const different = (
+    <div className="copy copy--wordmark" ref={set("headline1-front")} style={{ opacity: 1, inset: 0 }} aria-hidden="true">
+      {word(COPY.wordmark[1], "word--bottom", 450)}
+    </div>
   );
   if (layer === "behind") return <div className="hero__layer hero__layer--behind">{wordmark}</div>;
 
   return (
     <div className={isStatic ? "hero__copy-stack" : "hero__layer hero__layer--front"}>
       {layer === "all" && wordmark}
+      {layer === "front" && different}
       <p className="copy copy--block" ref={set("block1")}>
         {COPY.block1}
       </p>
