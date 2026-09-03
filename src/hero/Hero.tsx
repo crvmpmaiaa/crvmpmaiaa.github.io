@@ -9,7 +9,7 @@ import { SCROLL_LENGTH_VH } from "./beats";
 import { setProgress } from "./progress";
 
 const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false });
-const SkyScene = dynamic(() => import("./Scene").then((m) => m.SkyScene), { ssr: false });
+import { SkyVideo } from "./SkyVideo";
 
 type Mode = "pending" | "scroll" | "reduced" | "static";
 
@@ -78,7 +78,7 @@ export function Hero() {
           <img className="hero__still" src="/hero-still.png" alt="A marble figure of Hercules, leaning on his club" width={1280} height={1280} />
         ) : (
           <>
-            <SkyScene frozen={frozen} />
+            <SkyVideo frozen={frozen} />
             <Copy isStatic={false} layer="behind" />
             <Scene frozen={frozen} />
           </>
