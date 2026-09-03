@@ -29,6 +29,8 @@ def frame_objects(objs, cam, yaw, elev, fov, target_frac):
     cam.location = pos
     cam.rotation_euler = (centre - pos).to_track_quat("-Z", "Y").to_euler()
     cam.data.angle = math.radians(fov)
+    cam.data.clip_start = max(dist * 0.001, 0.001)
+    cam.data.clip_end = dist * 10
 
 
 def main():

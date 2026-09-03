@@ -1,0 +1,67 @@
+"use client";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Environment } from "@react-three/drei";
+import { Suspense, useRef } from "react";
+import * as THREE from "three";
+import { BEATS, remap } from "./beats";
+import { progress } from "./progress";
+import { CameraRig } from "./CameraRig";
+import { Sky } from "./Sky";
+import { Statue } from "./Statue";
+
+/** Key light orbits the statue through the hold, so the light moves instead of the model. */
+function Lights() {
+  const key = useRef<THREE.DirectionalLight>(null);
+  useFrame(() => {
+    if (!key.current) return;
+    const hold = remap(progress.p, BEATS.hold[0], BEATS.hold[1]);
+    const a = -0.6 + hold * 1.9;
+    key.current.position.set(Math.sin(a) * 3.2, 3.4, Math.cos(a) * 3.2);
+    key.current.target.position.set(0, 1.0, 0);
+    key.current.target.updateMatrixWorld();
+  });
+  return (
+    <>
+      <directionalLight
+        ref={key}
+        intensity={2.6}
+        color="#fff6ea"
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.02}
+        position={[-1.8, 3.4, 2.6]}
+      >
+        <orthographicCamera attach="shadow-camera" args={[-1.5, 1.5, 2.4, -0.4, 0.5, 8]} />
+      </directionalLight>
+      <hemisphereLight args={["#bcd6f2", "#7a7368", 0.55]} />
+    </>
+  );
+}
+
+export function Scene({ frozen = false, onReady }: { frozen?: boolean; onReady?: () => void }) {
+  return (
+    <Canvas
+      className="hero__canvas"
+      dpr={[1, 1.75]}
+      gl={{ antialias: true, powerPreference: "high-performance", alpha: false }}
+      shadows
+      camera={{ fov: 32, near: 0.05, far: 60, position: [0.3, 1.6, 0.6] }}
+      frameloop="always"
+      onCreated={({ gl }) => {
+        gl.toneMapping = THREE.ACESFilmicToneMapping;
+        gl.toneMappingExposure = 1.0;
+        gl.outputColorSpace = THREE.SRGBColorSpace;
+        onReady?.();
+      }}
+    >
+      <Sky frozen={frozen} />
+      <Suspense fallback={null}>
+        <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.7} />
+        <Statue frozen={frozen} />
+      </Suspense>
+      <Lights />
+      <CameraRig frozen={frozen} />
+    </Canvas>
+  );
+}

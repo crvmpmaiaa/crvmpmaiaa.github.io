@@ -30,10 +30,12 @@ def triangles_world(obj, depsgraph):
     P = np.empty((n_tri, 3, 3), np.float64)
     N = np.empty((n_tri, 3, 3), np.float64)
     UV = np.zeros((n_tri, 3, 2), np.float64)
+    MI = np.zeros(n_tri, np.int32)
     uv_layer = me.uv_layers.active
     verts = me.vertices
     loops = me.loops
     for i, t in enumerate(me.loop_triangles):
+        MI[i] = t.material_index
         for k in range(3):
             v = verts[t.vertices[k]]
             P[i, k] = mw @ v.co
@@ -41,12 +43,12 @@ def triangles_world(obj, depsgraph):
             if uv_layer:
                 UV[i, k] = uv_layer.data[t.loops[k]].uv
     ev.to_mesh_clear()
-    return P, N, UV
+    return P, N, UV, MI
 
 
-def albedo_pixels(obj):
+def albedo_pixels(obj, slot=0):
     """(H, W, 3) float array of the material's base colour texture, or a flat colour."""
-    mat = obj.data.materials[0] if obj.data.materials else None
+    mat = obj.data.materials[slot] if len(obj.data.materials) > slot else None
     if mat and mat.use_nodes:
         bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
         if bsdf:
@@ -73,15 +75,15 @@ def sample_surface(objs, n, rng):
     deps = bpy.context.evaluated_depsgraph_get()
     parts = []
     for o in objs:
-        P, N, UV = triangles_world(o, deps)
+        P, N, UV, MI = triangles_world(o, deps)
         area = 0.5 * np.linalg.norm(np.cross(P[:, 1] - P[:, 0], P[:, 2] - P[:, 0]), axis=1)
-        parts.append((P, N, UV, area, albedo_pixels(o)))
+        parts.append((P, N, UV, area, [albedo_pixels(o, k) for k in range(max(1, len(o.data.materials)))], MI))
     total = sum(p[3].sum() for p in parts)
     pos = np.empty((n, 3), np.float32); nrm = np.empty((n, 3), np.float32); col = np.empty((n, 3), np.float32)
     counts = [int(round(n * p[3].sum() / total)) for p in parts]
     counts[-1] = n - sum(counts[:-1])
     at = 0
-    for (P, N, UV, area, px), cnt in zip(parts, counts):
+    for (P, N, UV, area, pxs, MI), cnt in zip(parts, counts):
         if cnt <= 0:
             continue
         tri = rng.choice(len(area), size=cnt, p=area / area.sum())
@@ -93,10 +95,16 @@ def sample_surface(objs, n, rng):
         nn = (N[tri] * w).sum(axis=1)
         nn /= np.maximum(np.linalg.norm(nn, axis=1, keepdims=True), 1e-9)
         uv = (UV[tri] * w).sum(axis=1)
-        h, wd = px.shape[0], px.shape[1]
-        ix = np.clip((uv[:, 0] % 1.0 * wd).astype(int), 0, wd - 1)
-        iy = np.clip((uv[:, 1] % 1.0 * h).astype(int), 0, h - 1)
-        c = px[iy, ix]
+        c = np.empty((cnt, 3), np.float32)
+        mi = MI[tri]
+        for k, px in enumerate(pxs):
+            sel = mi == k
+            if not sel.any():
+                continue
+            h, wd = px.shape[0], px.shape[1]
+            ix = np.clip((uv[sel, 0] % 1.0 * wd).astype(int), 0, wd - 1)
+            iy = np.clip((uv[sel, 1] % 1.0 * h).astype(int), 0, h - 1)
+            c[sel] = px[iy, ix]
         pos[at:at + cnt] = p; nrm[at:at + cnt] = nn; col[at:at + cnt] = c
         at += cnt
     return pos, nrm, col

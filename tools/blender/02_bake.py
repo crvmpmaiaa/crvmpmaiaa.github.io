@@ -128,6 +128,12 @@ def decimate_to(obj, target_tris, head_weight=None):
     total = tri_count(obj)
     mod.ratio = min(1.0, target_tris / total)
     bpy.ops.object.modifier_apply(modifier="Decimate")
+    # decimation on a dense shell leaves a few flipped and degenerate faces: clean them up
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.dissolve_degenerate(threshold=1e-5)
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
     got = tri_count(obj)
     # second pass to land near the target when weighting pushed it over
     if got > target_tris * 1.12:
@@ -138,12 +144,32 @@ def decimate_to(obj, target_tris, head_weight=None):
     log(f"decimate {obj.name}: {total} -> {tri_count(obj)} (target {target_tris})")
 
 
-def unwrap(obj, margin=0.004):
+def unwrap(obj, margin=0.004, slot=None):
+    """Smart project the whole object, or only the faces of one material slot into their own 0..1 layout."""
     select_only(obj)
     bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
+    if slot is None:
+        bpy.ops.mesh.select_all(action="SELECT")
+    else:
+        bpy.ops.mesh.select_all(action="DESELECT")
+        obj.active_material_index = slot
+        bpy.ops.object.material_slot_select()
     bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=margin, correct_aspect=True, scale_to_bounds=False)
     bpy.ops.object.mode_set(mode="OBJECT")
+
+
+def assign_head_slot(obj, head_z):
+    """Faces above head_z go to a second material slot so the head gets its own texture set."""
+    obj.data.materials.append(bpy.data.materials.new(obj.name + "HeadBake"))
+    obj.data.materials[-1].use_nodes = True
+    verts = obj.data.vertices
+    n = 0
+    for poly in obj.data.polygons:
+        if all(verts[i].co.z > head_z for i in poly.vertices):
+            poly.material_index = 1
+            n += 1
+    log(f"head slot: {n} faces above z {head_z:.3f}")
+    return n
 
 
 def new_image(name, size, color=False):
@@ -154,7 +180,7 @@ def new_image(name, size, color=False):
 
 
 def bake(low, high, img, kind, size, samples, extrusion=0.02, ray_distance=0.06, pass_filter=None, margin=16):
-    """Selected to active bake from high onto low into img via an image node on low's material."""
+    """Selected to active bake from high onto low. img is one image, or a list with one image per material slot."""
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
     scene.cycles.device = "GPU"
@@ -173,10 +199,13 @@ def bake(low, high, img, kind, size, samples, extrusion=0.02, ray_distance=0.06,
     scene.render.bake.cage_extrusion = extrusion
     scene.render.bake.max_ray_distance = ray_distance
     scene.render.bake.use_clear = True
-    mat = low.data.materials[0]
-    node = mat.node_tree.nodes.new("ShaderNodeTexImage")
-    node.image = img
-    mat.node_tree.nodes.active = node
+    imgs = img if isinstance(img, list) else [img]
+    nodes_made = []
+    for mat, im in zip(low.data.materials, imgs):
+        node = mat.node_tree.nodes.new("ShaderNodeTexImage")
+        node.image = im
+        mat.node_tree.nodes.active = node
+        nodes_made.append((mat, node))
     bpy.ops.object.select_all(action="DESELECT")
     if high is not None:
         high.select_set(True)
@@ -187,7 +216,8 @@ def bake(low, high, img, kind, size, samples, extrusion=0.02, ray_distance=0.06,
         kwargs["pass_filter"] = pass_filter
     with Timer(f"bake {kind} {size}"):
         bpy.ops.object.bake(**kwargs)
-    mat.node_tree.nodes.remove(node)
+    for mat, node in nodes_made:
+        mat.node_tree.nodes.remove(node)
     return img
 
 
@@ -219,11 +249,29 @@ def export_glb(objs, name):
 
 # ---------- assets ----------
 
+def ensure_world():
+    if bpy.context.scene.world is None:
+        bpy.context.scene.world = bpy.data.worlds.new("World")
+
+
 def statue():
     cfg = CONFIG["statue"]
     size = cfg["texture_size"]
     open_blend("statue")
+    ensure_world()
     high = bpy.data.objects["Statue"]
+    if cfg.get("remesh_voxel"):
+        # the sculpt is many overlapping shells; fuse into one watertight surface before decimating or the
+        # collapse tears holes where shells intersect (hair, beard, feet)
+        select_only(high)
+        rm = high.modifiers.new("Remesh", "REMESH")
+        rm.mode = "VOXEL"
+        rm.voxel_size = cfg["remesh_voxel"]
+        rm.adaptivity = 0.0
+        rm.use_smooth_shade = True
+        with Timer(f"voxel remesh {cfg['remesh_voxel']}"):
+            bpy.ops.object.modifier_apply(modifier="Remesh")
+        log("remeshed tris", tri_count(high))
     high.data.materials.clear()
     high.data.materials.append(marble_material("MarbleHigh", scale=1.6, seed=3.0))
     lo, hi = bbox(high)
@@ -239,26 +287,39 @@ def statue():
     with Timer("decimate LOD1"):
         decimate_to(lod1, cfg["lod1_triangles"])
 
-    with Timer("unwrap LOD0"):
-        unwrap(lod0)
-    with Timer("unwrap LOD1"):
-        unwrap(lod1, margin=0.006)
-
+    use_head = bool(cfg.get("head_texture"))
     stats = {"lod0_triangles": tri_count(lod0), "lod1_triangles": tri_count(lod1), "textures": {}}
-    for lod, s, samples in ((lod0, size, 64), (lod1, size // 2, 32)):
+    for lod, s, samples, split in ((lod0, size, 64, use_head), (lod1, size // 2, 32, False)):
         lod.data.materials.clear()
         lod.data.materials.append(bpy.data.materials.new(lod.name + "Bake"))
         lod.data.materials[0].use_nodes = True
-        lod.select_set(True); high.select_set(True)
+        slots = 1
+        if split:
+            assign_head_slot(lod, head_z)
+            slots = 2
+        for k in range(slots):
+            unwrap(lod, margin=0.004 if s >= 2048 else 0.006, slot=k if slots > 1 else None)
+        select_only(lod)
         bpy.ops.object.shade_smooth()
-        nrm = bake(lod, high, new_image(lod.name + "_normal", s), "NORMAL", s, 16)
-        alb = bake(lod, high, new_image(lod.name + "_albedo", s, color=True), "DIFFUSE", s, 16, pass_filter={"COLOR"})
-        rgh = bake(lod, high, new_image(lod.name + "_rough", s), "ROUGHNESS", s, 16)
-        ao = bake(lod, high, new_image(lod.name + "_ao", s), "AO", s, samples, ray_distance=0.25)
-        paths = {k: save_image(i, f"{lod.name.lower()}_{k}") for k, i in (("normal", nrm), ("albedo", alb), ("rough", rgh), ("ao", ao))}
-        stats["textures"][lod.name] = {k: {"size": s, "bytes": file_size(p)} for k, p in paths.items()}
-        lod.data.materials.clear()
-        lod.data.materials.append(image_material(lod.name + "Mat", alb, nrm, rgh, ao))
+        names = ["body", "head"][:slots]
+        mk = lambda kind, color=False: [new_image(f"{lod.name}_{names[k]}_{kind}", s, color=color) for k in range(slots)]
+        nrm = bake(lod, high, mk("normal"), "NORMAL", s, 16)
+        alb = bake(lod, high, mk("albedo", True), "DIFFUSE", s, 16, pass_filter={"COLOR"})
+        rgh = bake(lod, high, mk("rough"), "ROUGHNESS", s, 16)
+        # AO from the low poly itself: projecting it from the high poly starts rays inside neighbouring hair and
+        # beard shells and leaves black patches
+        bpy.context.scene.world.light_settings.distance = 0.25
+        ao = bake(lod, None, mk("ao"), "AO", s, samples)
+        lod_stats = {}
+        mats = []
+        for k in range(slots):
+            paths = {kind: save_image(i[k], f"{lod.name.lower()}_{names[k]}_{kind}") for kind, i in (("normal", nrm), ("albedo", alb), ("rough", rgh), ("ao", ao))}
+            lod_stats[names[k]] = {kind: {"size": s, "bytes": file_size(p)} for kind, p in paths.items()}
+            mats.append(image_material(f"{lod.name}{names[k].title()}Mat", alb[k], nrm[k], rgh[k], ao[k]))
+        stats["textures"][lod.name] = lod_stats
+        # replace in place: clearing the slots resets every face's material index to 0
+        for k, m in enumerate(mats):
+            lod.data.materials[k] = m
         lod.modifiers.clear()
     stats["lod0_glb"] = file_size(export_glb([lod0], "statue-lod0"))
     stats["lod1_glb"] = file_size(export_glb([lod1], "statue-lod1"))
@@ -271,6 +332,7 @@ def column():
     cfg = CONFIG["column"]
     size = cfg["texture_size"]
     open_blend("column")
+    ensure_world()
     obj = bpy.data.objects["Column"]
     if cfg.get("textured"):
         # source ships its own PBR textures: decimate to budget if needed and export as is
@@ -289,7 +351,8 @@ def column():
     # self bake: no high poly, the procedural material is the source
     alb = bake(obj, None, new_image("column_albedo", size, color=True), "DIFFUSE", size, 16, pass_filter={"COLOR"})
     rgh = bake(obj, None, new_image("column_rough", size), "ROUGHNESS", size, 16)
-    ao = bake(obj, None, new_image("column_ao", size), "AO", size, 48, ray_distance=0.2)
+    bpy.context.scene.world.light_settings.distance = 0.2
+    ao = bake(obj, None, new_image("column_ao", size), "AO", size, 48)
     # flat normal (no high) keeps the glTF material complete and lets us add detail later
     nrm = new_image("column_normal", 4)
     nrm.pixels = [0.5, 0.5, 1.0, 1.0] * 16

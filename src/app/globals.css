@@ -1,26 +1,258 @@
 @import "tailwindcss";
 
+/* Palette. Marble and vein greys are sampled from the baked statue albedo (tools: see README). The sky is the
+   only saturated colour on the page and the accent is pulled from the vein grey with the sky's hue. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --quarry: #0b0b0c;
+  --marble: #dedcd8;
+  --vein: #474748;
+  --vein-light: #999b9e;
+  --accent: #6d7f94;
+  --sky-top: #2a63c4;
+  --sky-mid: #7fb0e6;
+  --sky-horizon: #dbe9f6;
+  --ink: #14202e;
+  --ink-soft: rgba(20, 32, 46, 0.72);
+
+  --font-display: var(--font-display-src), "Cormorant Garamond", "Times New Roman", serif;
+  --font-body: var(--font-body-src), "Hanken Grotesk", system-ui, sans-serif;
+
+  /* type scale, 1.25 ratio from 1rem */
+  --step--1: 0.8rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.563rem;
+  --step-3: 1.953rem;
+  --step-4: 2.441rem;
+  --step-5: 3.052rem;
+  --step-6: 3.815rem;
+  --step-7: 4.768rem;
+  --measure: 34ch;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-quarry: var(--quarry);
+  --color-marble: var(--marble);
+  --color-ink: var(--ink);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
+  scroll-behavior: auto;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--sky-horizon);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--accent);
+  color: white;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--ink);
+  color: white;
+  border-radius: 4px;
+  font-size: var(--step--1);
+  transition: top 120ms ease;
+}
+.skip-link:focus-visible {
+  top: 1rem;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  position: relative;
+  height: 700svh;
+}
+.hero.is-static {
+  height: auto;
+}
+
+.hero__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.hero__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.hero__still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+/* copy blocks sit in DOM over the canvas, selectable and indexable */
+.copy {
+  position: absolute;
+  z-index: 2;
+  max-width: var(--measure);
+  margin: 0;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+.copy a,
+.copy button {
+  pointer-events: auto;
+}
+.copy--headline {
+  left: clamp(1.25rem, 6vw, 6rem);
+  bottom: clamp(1.5rem, 10vh, 7rem);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(var(--step-4), 6.5vw, var(--step-7));
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  max-width: 14ch;
+  animation: headline-in 400ms ease-out 120ms both;
+}
+.copy--block {
+  left: clamp(1.25rem, 6vw, 6rem);
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(34vw, 30ch);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(var(--step-2), 2.4vw, var(--step-4));
+  line-height: 1.18;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.copy--block.copy--right {
+  left: auto;
+  right: clamp(1.25rem, 6vw, 6rem);
+}
+.copy--cta {
+  left: 50%;
+  bottom: clamp(1.5rem, 10vh, 7rem);
+  transform: translateX(-50%);
+}
+
+@keyframes headline-in {
+  from { opacity: 0; transform: translateY(0.4em); }
+  to { opacity: 1; transform: none; }
+}
+
+.cta {
+  display: inline-block;
+  padding: 0.9rem 1.6rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  text-decoration: none;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px);
+}
+.cta:hover {
+  background: var(--ink);
+  color: white;
+}
+
+.scroll-hint {
+  position: absolute;
+  right: clamp(1.25rem, 6vw, 6rem);
+  bottom: clamp(1.5rem, 10vh, 7rem);
+  z-index: 2;
+  font-size: var(--step--1);
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+
+/* static and reduced motion: copy blocks stack in flow under the still */
+.hero.is-static .copy {
+  position: static;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  max-width: var(--measure);
+}
+.hero.is-static .hero__stage {
+  position: relative;
+  height: 80svh;
+}
+.hero.is-static .hero__copy-stack {
+  display: grid;
+  gap: 2.5rem;
+  padding: clamp(2rem, 6vw, 6rem);
+}
+
+/* ---------- below the hero ---------- */
+
+.section {
+  padding: clamp(3rem, 10vw, 9rem) clamp(1.25rem, 6vw, 6rem);
+  background: var(--marble);
+  color: var(--ink);
+}
+.section + .section {
+  border-top: 1px solid rgba(16, 18, 20, 0.08);
+}
+.section h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(var(--step-3), 4vw, var(--step-5));
+  line-height: 1.1;
+  margin: 0 0 1.5rem;
+  max-width: 20ch;
+}
+.section p {
+  max-width: 60ch;
+  margin: 0 0 1rem;
+  color: var(--ink-soft);
+}
+.section ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.6rem;
+  max-width: 60ch;
+}
+.section li {
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(16, 18, 20, 0.12);
+}
+.section a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+footer.section {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
 }
