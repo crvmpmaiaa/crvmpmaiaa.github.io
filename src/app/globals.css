@@ -145,7 +145,7 @@ body {
 .copy button {
   pointer-events: auto;
 }
-/* the opening frame: BUILD top left, DIFFERENT bottom right, in a heavy condensed grotesk.
+/* the opening frame: DIFFERENT top right, BUILD bottom left, in a heavy condensed grotesk.
    Letters rise out of a clipped line with a stagger, sharpening from a slight blur, then the words sit still. */
 .copy--wordmark {
   max-width: none;
@@ -166,11 +166,11 @@ body {
   margin: -0.06em -0.04em -0.02em;
 }
 .copy--wordmark .word--top {
-  left: clamp(1rem, 4vw, 4rem);
+  right: clamp(1rem, 4vw, 4rem);
   top: clamp(0.75rem, 3.5vw, 3.5rem);
 }
 .copy--wordmark .word--bottom {
-  right: clamp(1rem, 4vw, 4rem);
+  left: clamp(1rem, 4vw, 4rem);
   bottom: clamp(0.5rem, 3vw, 3rem);
 }
 .copy--wordmark .letter {
