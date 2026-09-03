@@ -11,5 +11,6 @@ export function onProgress(fn: Listener): () => void {
 
 export function setProgress(p: number) {
   progress.p = p;
+  if (typeof window !== "undefined") (window as unknown as { __bdProgress?: number }).__bdProgress = p;
   for (const fn of listeners) fn(p);
 }

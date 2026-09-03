@@ -16,6 +16,7 @@
 
   --font-display: var(--font-display-src), "Cormorant Garamond", "Times New Roman", serif;
   --font-body: var(--font-body-src), "Hanken Grotesk", system-ui, sans-serif;
+  --font-wordmark: var(--font-wordmark-src), Anton, Impact, "Arial Narrow Bold", sans-serif;
 
   /* type scale, 1.25 ratio from 1rem */
   --step--1: 0.8rem;
@@ -127,16 +128,29 @@ body {
 .copy button {
   pointer-events: auto;
 }
-.copy--headline {
-  left: clamp(1.25rem, 6vw, 6rem);
-  bottom: clamp(1.5rem, 10vh, 7rem);
-  font-family: var(--font-display);
+/* the opening frame: BUILD top left, DIFFERENT bottom right, in a heavy condensed grotesk */
+.copy--wordmark {
+  max-width: none;
+  font-family: var(--font-wordmark);
   font-weight: 400;
-  font-size: clamp(var(--step-4), 6.5vw, var(--step-7));
-  line-height: 1.02;
-  letter-spacing: -0.01em;
-  max-width: 14ch;
-  animation: headline-in 400ms ease-out 120ms both;
+  text-transform: uppercase;
+  font-size: clamp(4.5rem, 17vw, 24rem);
+  line-height: 0.82;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  animation: headline-in 500ms ease-out 120ms both;
+}
+.copy--wordmark span {
+  position: absolute;
+  white-space: nowrap;
+}
+.copy--wordmark .word--build {
+  left: clamp(1rem, 4vw, 4rem);
+  top: clamp(0.75rem, 3.5vw, 3.5rem);
+}
+.copy--wordmark .word--different {
+  right: clamp(1rem, 4vw, 4rem);
+  bottom: clamp(0.5rem, 3vw, 3rem);
 }
 .copy--block {
   left: clamp(1.25rem, 6vw, 6rem);
@@ -184,7 +198,7 @@ body {
 
 .scroll-hint {
   position: absolute;
-  right: clamp(1.25rem, 6vw, 6rem);
+  left: clamp(1.25rem, 6vw, 6rem);
   bottom: clamp(1.5rem, 10vh, 7rem);
   z-index: 2;
   font-size: var(--step--1);
@@ -194,6 +208,10 @@ body {
 }
 
 /* static and reduced motion: copy blocks stack in flow under the still */
+.hero.is-static .copy--wordmark span {
+  position: static;
+  display: block;
+}
 .hero.is-static .copy {
   position: static;
   opacity: 1;

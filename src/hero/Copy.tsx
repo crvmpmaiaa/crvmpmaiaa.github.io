@@ -29,8 +29,9 @@ export function Copy({ isStatic }: { isStatic: boolean }) {
 
   return (
     <div className={isStatic ? "hero__copy-stack" : undefined}>
-      <h1 className="copy copy--headline" ref={set("headline1")} style={isStatic ? undefined : { opacity: 1 }}>
-        {COPY.headline1}
+      <h1 className="copy copy--wordmark" ref={set("headline1")} style={isStatic ? undefined : { opacity: 1, inset: 0 }}>
+        <span className="word--build">{COPY.wordmark[0]}</span>
+        <span className="word--different">{COPY.wordmark[1]}</span>
       </h1>
       <p className="copy copy--block" ref={set("block1")}>
         {COPY.block1}
