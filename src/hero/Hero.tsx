@@ -9,6 +9,7 @@ import { SCROLL_LENGTH_VH } from "./beats";
 import { setProgress } from "./progress";
 
 const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false });
+const SkyScene = dynamic(() => import("./Scene").then((m) => m.SkyScene), { ssr: false });
 
 type Mode = "pending" | "scroll" | "reduced" | "static";
 
@@ -76,9 +77,13 @@ export function Hero() {
         {mode === "static" || mode === "pending" ? (
           <img className="hero__still" src="/hero-still.png" alt="A marble figure of Hercules, leaning on his club" width={1280} height={1280} />
         ) : (
-          <Scene frozen={frozen} />
+          <>
+            <SkyScene frozen={frozen} />
+            <Copy isStatic={false} layer="behind" />
+            <Scene frozen={frozen} />
+          </>
         )}
-        {!isStatic && <Copy isStatic={false} />}
+        {!isStatic && <Copy isStatic={false} layer="front" />}
       </div>
       {isStatic && <Copy isStatic />}
     </section>

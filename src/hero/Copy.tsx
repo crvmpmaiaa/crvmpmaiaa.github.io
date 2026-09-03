@@ -5,7 +5,10 @@ import { COPY_WINDOWS } from "./beats";
 import { onProgress } from "./progress";
 
 /** Copy blocks in DOM over the canvas. Opacity is a function of p, applied directly to style, no React state. */
-export function Copy({ isStatic }: { isStatic: boolean }) {
+type Layer = "behind" | "front" | "all";
+
+/** layer "behind" renders only the wordmark (between sky and statue), "front" the rest, "all" for the static page. */
+export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: Layer }) {
   const refs = useRef<Record<string, HTMLElement | null>>({});
 
   useEffect(() => {
@@ -27,12 +30,27 @@ export function Copy({ isStatic }: { isStatic: boolean }) {
     refs.current[k] = el;
   };
 
+  // each letter is its own span so the entrance can stagger; the word stays one accessible string
+  const word = (text: string, cls: string, delay: number) => (
+    <span className={`word ${cls}`} aria-label={text} role="text">
+      {Array.from(text).map((ch, i) => (
+        <span className="letter" aria-hidden="true" key={i} style={{ animationDelay: `${delay + i * 45}ms` }}>
+          {ch}
+        </span>
+      ))}
+    </span>
+  );
+  const wordmark = (
+    <h1 className="copy copy--wordmark" ref={set("headline1")} style={isStatic ? undefined : { opacity: 1, inset: 0 }}>
+      {word(COPY.wordmark[0], "word--top", 150)}
+      {word(COPY.wordmark[1], "word--bottom", 450)}
+    </h1>
+  );
+  if (layer === "behind") return <div className="hero__layer hero__layer--behind">{wordmark}</div>;
+
   return (
-    <div className={isStatic ? "hero__copy-stack" : undefined}>
-      <h1 className="copy copy--wordmark" ref={set("headline1")} style={isStatic ? undefined : { opacity: 1, inset: 0 }}>
-        <span className="word--build">{COPY.wordmark[0]}</span>
-        <span className="word--different">{COPY.wordmark[1]}</span>
-      </h1>
+    <div className={isStatic ? "hero__copy-stack" : "hero__layer hero__layer--front"}>
+      {layer === "all" && wordmark}
       <p className="copy copy--block" ref={set("block1")}>
         {COPY.block1}
       </p>
