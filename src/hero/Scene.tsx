@@ -24,7 +24,7 @@ function Lights() {
     <>
       <directionalLight
         ref={key}
-        intensity={2.6}
+        intensity={3.0}
         color="#fff6ea"
         castShadow
         shadow-mapSize={[2048, 2048]}
@@ -34,7 +34,7 @@ function Lights() {
       >
         <orthographicCamera attach="shadow-camera" args={[-1.5, 1.5, 2.4, -0.4, 0.5, 8]} />
       </directionalLight>
-      <hemisphereLight args={["#bcd6f2", "#7a7368", 0.55]} />
+      <hemisphereLight args={["#bcd6f2", "#6f6a63", 0.4]} />
     </>
   );
 }
@@ -43,21 +43,21 @@ export function Scene({ frozen = false, onReady }: { frozen?: boolean; onReady?:
   return (
     <Canvas
       className="hero__canvas"
-      dpr={[1, 1.75]}
+      dpr={[1, 2]}
       gl={{ antialias: true, powerPreference: "high-performance", alpha: false }}
       shadows
       camera={{ fov: 32, near: 0.05, far: 60, position: [0.3, 1.6, 0.6] }}
       frameloop="always"
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.0;
+        gl.toneMappingExposure = 0.92;
         gl.outputColorSpace = THREE.SRGBColorSpace;
         onReady?.();
       }}
     >
       <Sky frozen={frozen} />
       <Suspense fallback={null}>
-        <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.7} />
+        <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.5} />
         <Statue frozen={frozen} />
       </Suspense>
       <Lights />

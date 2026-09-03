@@ -12,10 +12,11 @@ import { STATUE } from "./Statue";
  * Beat 3: no dolly, a slow parallax drift only.
  */
 const HEAD = STATUE.head;
+// opening frame: head and the upper half of the torso, three quarter
 const CLOSE = {
-  pos: new THREE.Vector3(HEAD.x + 0.34, HEAD.y + 0.02, HEAD.z + 0.46),
-  look: new THREE.Vector3(HEAD.x - 0.02, HEAD.y - 0.02, HEAD.z),
-  fov: 32,
+  pos: new THREE.Vector3(HEAD.x + 0.95, HEAD.y - 0.14, HEAD.z + 1.55),
+  look: new THREE.Vector3(HEAD.x - 0.05, HEAD.y - 0.26, HEAD.z),
+  fov: 30,
 };
 // the figure sits right of centre at the wide shot so the copy column on the left never touches it
 const WIDE = {

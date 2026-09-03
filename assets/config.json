@@ -6,8 +6,8 @@
     "height": 1.8,
     "yaw_degrees": 0,
     "head_fraction": 0.17,
-    "lod0_triangles": 120000,
-    "lod1_triangles": 25000,
+    "lod0_triangles": 180000,
+    "lod1_triangles": 40000,
     "texture_size": 2048,
     "pitch_degrees": 0,
     "placeholder": false,
@@ -26,7 +26,7 @@
       "rings": 36,
       "slack": 1.12
     },
-    "remesh_voxel": 0.0035,
+    "remesh_voxel": 0.002,
     "head_texture": true
   },
   "column": {

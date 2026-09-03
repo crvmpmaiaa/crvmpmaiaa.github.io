@@ -214,8 +214,17 @@ def bake(low, high, img, kind, size, samples, extrusion=0.02, ray_distance=0.06,
     kwargs = dict(type=kind, use_clear=True, margin=margin)
     if pass_filter:
         kwargs["pass_filter"] = pass_filter
+    # a self bake must not see any other geometry, or the high poly a millimetre away occludes everything
+    hidden = []
+    if high is None:
+        for o in bpy.context.scene.objects:
+            if o.type == "MESH" and o is not low and not o.hide_render:
+                o.hide_render = True
+                hidden.append(o)
     with Timer(f"bake {kind} {size}"):
         bpy.ops.object.bake(**kwargs)
+    for o in hidden:
+        o.hide_render = False
     for mat, node in nodes_made:
         mat.node_tree.nodes.remove(node)
     return img
@@ -313,6 +322,13 @@ def statue():
         lod_stats = {}
         mats = []
         for k in range(slots):
+            # fold AO into the albedo: the glTF exporter only carries a plain image on base colour
+            import numpy as np
+            a_px = np.array(alb[k].pixels[:], np.float32).reshape(-1, 4)
+            o_px = np.array(ao[k].pixels[:], np.float32).reshape(-1, 4)
+            occ = 1.0 - 0.75 * (1.0 - o_px[:, :1])
+            a_px[:, :3] *= occ
+            alb[k].pixels = a_px.ravel().tolist()
             paths = {kind: save_image(i[k], f"{lod.name.lower()}_{names[k]}_{kind}") for kind, i in (("normal", nrm), ("albedo", alb), ("rough", rgh), ("ao", ao))}
             lod_stats[names[k]] = {kind: {"size": s, "bytes": file_size(p)} for kind, p in paths.items()}
             mats.append(image_material(f"{lod.name}{names[k].title()}Mat", alb[k], nrm[k], rgh[k], ao[k]))

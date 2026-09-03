@@ -33,7 +33,7 @@ const frag = /* glsl */ `
   float fbm(vec2 p) {
     float v = 0.0; float a = 0.5;
     mat2 r = mat2(0.8, 0.6, -0.6, 0.8);
-    for (int i = 0; i < 6; i++) { v += a * noise(p); p = r * p * 2.05; a *= 0.5; }
+    for (int i = 0; i < 8; i++) { v += a * noise(p); p = r * p * 2.05; a *= 0.5; }
     return v;
   }
   // soft cumulus: fbm shaped by a threshold, with a lit top and a shaded base
@@ -43,16 +43,19 @@ const frag = /* glsl */ `
     float d = fbm(p + (fbm(p * 0.7 + uTime * speed * 0.3) - 0.5) * 0.45);
     float band = smoothstep(y0 - 0.35, y0 + 0.05, uv.y) * (1.0 - smoothstep(y0 + 0.25, y0 + 0.6, uv.y));
     float a = smoothstep(cover, cover + softness, d) * band;
-    float lit = smoothstep(cover - 0.05, cover + 0.35, d);
-    vec3 col = mix(vec3(0.74, 0.79, 0.86), vec3(1.0), lit);
+    // lit crown, shaded base, a little fine detail riding on the edge
+    float detail = fbm(p * 5.0 + uTime * speed * 2.0) - 0.5;
+    a = clamp(a + detail * 0.12 * a, 0.0, 1.0);
+    float lit = smoothstep(cover - 0.02, cover + 0.30, d + detail * 0.15);
+    vec3 col = mix(vec3(0.70, 0.76, 0.85), vec3(1.0), lit);
     return vec4(col, a);
   }
   void main() {
     float y = vUv.y;
     vec3 sky = mix(uHorizon, uMid, smoothstep(0.0, 0.45, y));
     sky = mix(sky, uTop, smoothstep(0.45, 1.0, y));
-    vec4 c1 = cloudLayer(vUv, 1.7, 0.010, 0.50, 0.58, 0.16);
-    vec4 c2 = cloudLayer(vUv + vec2(0.3, 0.1), 2.8, 0.018, 0.55, 0.32, 0.14);
+    vec4 c1 = cloudLayer(vUv, 1.7, 0.010, 0.50, 0.58, 0.09);
+    vec4 c2 = cloudLayer(vUv + vec2(0.3, 0.1), 2.8, 0.018, 0.55, 0.32, 0.08);
     vec3 col = mix(sky, c2.rgb, c2.a * 0.85);
     col = mix(col, c1.rgb, c1.a * 0.95);
     // haze toward the horizon

@@ -27,7 +27,8 @@ function prepare(scene: THREE.Group) {
       m.receiveShadow = true;
       m.frustumCulled = false;
       const mat = m.material as THREE.MeshStandardMaterial;
-      if (mat && "envMapIntensity" in mat) mat.envMapIntensity = 0.9;
+      if (mat && "envMapIntensity" in mat) mat.envMapIntensity = 0.7;
+      for (const t of [mat.map, mat.normalMap, mat.roughnessMap]) if (t) t.anisotropy = 8;
     }
   });
 }
