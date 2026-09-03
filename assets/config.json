@@ -17,12 +17,14 @@
     "drop_islands": false,
     "drape": {
       "top": 0.585,
-      "bottom": 0.43,
-      "front_drop": 0.06,
-      "offset": 0.01,
-      "thickness": 0.008,
-      "fold_strength": 0.012,
-      "body_x_max": 0.12
+      "bottom": 0.4,
+      "offset": 0.006,
+      "thickness": 0.007,
+      "body_x_max": 0.12,
+      "frames": 70,
+      "segs": 160,
+      "rings": 36,
+      "slack": 1.12
     }
   },
   "column": {

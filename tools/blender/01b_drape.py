@@ -1,5 +1,6 @@
-"""Modesty drape for the statue: a cloth band around the hips, shrinkwrapped to the body, joined into the high poly.
-Runs after 01_normalise.py statue and rewrites assets/clean/statue.blend (keeps statue-nude.blend as the untouched source).
+"""Modesty drape for the statue, cloth simulated: a band pinned at the waist falls under gravity and collides
+with the body, then gets thickness and is joined into the high poly. Rewrites assets/clean/statue.blend,
+keeping statue-nude.blend as the untouched source.
 Run: tools/blender/run.sh 01b_drape.py
 """
 import math
@@ -23,94 +24,142 @@ def main():
         open_blend("statue")
         bpy.ops.wm.save_as_mainfile(filepath=nude, compress=True)
     statue = bpy.data.objects["Statue"]
+    scene = bpy.context.scene
 
     lo, hi = bbox(statue)
     H = hi[2] - lo[2]
     z_top, z_bot = lo[2] + H * d["top"], lo[2] + H * d["bottom"]
-    # body cross section in the hip slab, excluding the club and lion skin on +X
-    pts = [v.co for v in statue.data.vertices if z_bot <= v.co.z <= z_top and v.co.x < d["body_x_max"]]
-    xs = [p.x for p in pts]; ys = [p.y for p in pts]
-    cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
-    rx, ry = (max(xs) - min(xs)) / 2, (max(ys) - min(ys)) / 2
-    log(f"hip slab z {z_bot:.3f}..{z_top:.3f}, centre ({cx:.3f},{cy:.3f}), radii ({rx:.3f},{ry:.3f}), {len(pts)} verts")
 
-    # body only proxy as the wrap target: the hip slab without the club, lion skin and anything far from the body
+    # body only collision proxy: hip to knee slab without the club and lion skin, decimated for sim speed
     proxy = statue.copy(); proxy.data = statue.data.copy(); proxy.name = "BodyProxy"
-    bpy.context.scene.collection.objects.link(proxy)
+    scene.collection.objects.link(proxy)
     pb = bmesh.new(); pb.from_mesh(proxy.data)
-    kill = [v for v in pb.verts if v.co.x > d["body_x_max"] or v.co.z < z_bot - 0.15 or v.co.z > z_top + 0.15]
+    kill = [v for v in pb.verts if v.co.x > d["body_x_max"] or v.co.z < z_bot - 0.2 or v.co.z > z_top + 0.15]
     bmesh.ops.delete(pb, geom=kill, context="VERTS")
     pb.to_mesh(proxy.data); pb.free()
+    select_only(proxy)
+    dec = proxy.modifiers.new("D", "DECIMATE"); dec.ratio = min(1.0, 40000 / max(tri_count(proxy), 1))
+    bpy.ops.object.modifier_apply(modifier="D")
+    col = proxy.modifiers.new("Collision", "COLLISION")
+    proxy.collision.thickness_outer = d["offset"]
+    proxy.collision.cloth_friction = 12.0
     log("proxy tris", tri_count(proxy))
 
-    # band: elliptical cylinder, slightly larger than the body, longer at the front (the hanging flap)
-    segs, rings = 96, 14
+    # waist ring: the body outline at z_top, so the pinned top edge sits on the skin
+    band = [v.co for v in proxy.data.vertices if abs(v.co.z - z_top) < 0.012]
+    cx = (min(p.x for p in band) + max(p.x for p in band)) / 2
+    cy = (min(p.y for p in band) + max(p.y for p in band)) / 2
+    log(f"waist z {z_top:.3f} centre ({cx:.3f},{cy:.3f}) from {len(band)} verts")
+    bvh = mathutils.bvhtree.BVHTree.FromObject(proxy, bpy.context.evaluated_depsgraph_get())
+
+    def waist_radius(a):
+        # cast from the axis outward at z_top and take the hit distance
+        o = mathutils.Vector((cx, cy, z_top)); dirv = mathutils.Vector((math.cos(a), math.sin(a), 0))
+        hit = bvh.ray_cast(o, dirv, 1.0)
+        return (hit[0] - o).length if hit[0] is not None else 0.2
+
+    segs, rings = d["segs"], d["rings"]
+    length = (z_top - z_bot)
     bm = bmesh.new()
     grid = []
+    pin = []
     for j in range(rings + 1):
         t = j / rings
         ring = []
         for i in range(segs):
             a = 2 * math.pi * i / segs
-            # front is -Y. front weight 1 at the front, 0 at the back
-            front = (1 - math.cos(a - math.pi / 2)) / 2 if False else max(0.0, -math.sin(a))
-            z = z_top - t * ((z_top - z_bot) + d["front_drop"] * front ** 2)
-            x = cx + rx * math.cos(a)
-            y = cy + ry * math.sin(a)
-            ring.append(bm.verts.new((x, y, z)))
+            r = waist_radius(a) + d["offset"] * 1.5
+            r *= 1.0 + (d["slack"] - 1.0) * t  # wider toward the hem so it can fall and fold
+            v = bm.verts.new((cx + r * math.cos(a), cy + r * math.sin(a), z_top - t * length))
+            ring.append(v)
+            if j == 0:
+                pin.append(v)
         grid.append(ring)
     for j in range(rings):
         for i in range(segs):
             bm.faces.new((grid[j][i], grid[j][(i + 1) % segs], grid[j + 1][(i + 1) % segs], grid[j + 1][i]))
     me = bpy.data.meshes.new("Drape")
-    bm.to_mesh(me); bm.free()
+    bm.to_mesh(me)
+    pin_idx = [v.index for v in pin]
+    bm.free()
     drape = bpy.data.objects.new("Drape", me)
-    bpy.context.scene.collection.objects.link(drape)
+    scene.collection.objects.link(drape)
+    vg = drape.vertex_groups.new(name="Pin")
+    vg.add(pin_idx, 1.0, "REPLACE")
     select_only(drape)
     bpy.ops.object.shade_smooth()
 
-    # hug the body, then folds, then thickness
-    sw = drape.modifiers.new("Wrap", "SHRINKWRAP")
-    sw.target = proxy
-    sw.wrap_method = "NEAREST_SURFACEPOINT"
-    sw.wrap_mode = "ON_SURFACE"
-    sw.offset = d["offset"]
-    sub = drape.modifiers.new("Sub", "SUBSURF")
-    sub.levels = sub.render_levels = 2
-    tex = bpy.data.textures.new("Folds", "CLOUDS")
-    tex.noise_scale = 0.08
-    tex.noise_depth = 2
-    disp = drape.modifiers.new("Folds", "DISPLACE")
-    disp.texture = tex
-    disp.strength = d["fold_strength"]
-    disp.mid_level = 0.5
-    disp.direction = "NORMAL"
-    # vertical fold ridges: stretch the noise along Z so folds hang
-    disp.texture_coords = "LOCAL"
-    sw2 = drape.modifiers.new("Wrap2", "SHRINKWRAP")
-    sw2.target = proxy
-    sw2.wrap_method = "NEAREST_SURFACEPOINT"
-    sw2.wrap_mode = "OUTSIDE"
-    sw2.offset = d["offset"] * 0.5
-    sol = drape.modifiers.new("Thick", "SOLIDIFY")
-    sol.thickness = d["thickness"]
-    sol.offset = -1
-    sol.use_rim = True
-    smooth = drape.modifiers.new("Smooth", "SMOOTH")
-    smooth.factor = 0.5
-    smooth.iterations = 2
+    # cloth
+    cloth = drape.modifiers.new("Cloth", "CLOTH")
+    cs = cloth.settings
+    cs.quality = 10
+    cs.mass = 0.4
+    cs.tension_stiffness = 12
+    cs.compression_stiffness = 12
+    cs.shear_stiffness = 6
+    cs.bending_stiffness = 0.15
+    cs.tension_damping = 5
+    cs.air_damping = 1.5
+    cs.vertex_group_mass = "Pin"
+    cs.pin_stiffness = 1.0
+    cc = cloth.collision_settings
+    cc.use_collision = True
+    cc.distance_min = d["offset"]
+    cc.collision_quality = 4
+    cc.use_self_collision = True
+    cc.self_distance_min = 0.004
+    scene.frame_start = 1
+    scene.frame_end = d["frames"]
+    cloth.point_cache.frame_start = 1
+    cloth.point_cache.frame_end = d["frames"]
+    with Timer(f"cloth sim {d['frames']} frames"):
+        for f in range(1, d["frames"] + 1):
+            scene.frame_set(f)
+    # bake the simulated shape into the mesh
+    deps = bpy.context.evaluated_depsgraph_get()
+    sim_mesh = bpy.data.meshes.new_from_object(drape.evaluated_get(deps))
+    drape.modifiers.clear()
+    old = drape.data
+    drape.data = sim_mesh
+    bpy.data.meshes.remove(old)
+    drape.vertex_groups.clear()
+
+    # thickness and a little softening
+    select_only(drape)
+    sub = drape.modifiers.new("Sub", "SUBSURF"); sub.levels = sub.render_levels = 1
+    sol = drape.modifiers.new("Thick", "SOLIDIFY"); sol.thickness = d["thickness"]; sol.offset = 1; sol.use_rim = True
     for m in list(drape.modifiers):
-        select_only(drape)
         bpy.ops.object.modifier_apply(modifier=m.name)
+    bpy.ops.object.shade_smooth()
     log("drape tris", tri_count(drape))
+
+    # fold over cuff: the top rows of the simulated cloth duplicated, pushed out along their normals and thickened,
+    # so the waist reads as a doubled, tucked edge that follows every fold of the wrap
+    cuff_h = 0.045
+    cb = bmesh.new(); cb.from_mesh(drape.data)
+    cb.verts.ensure_lookup_table()
+    keep_faces = [f for f in cb.faces if all(v.co.z > z_top - cuff_h for v in f.verts)]
+    drop = [f for f in cb.faces if f not in set(keep_faces)]
+    bmesh.ops.delete(cb, geom=drop, context="FACES")
+    for v in cb.verts:
+        v.co += v.normal * (d["thickness"] * 1.4)
+    wme = bpy.data.meshes.new("Cuff"); cb.to_mesh(wme); cb.free()
+    waist = bpy.data.objects.new("Cuff", wme)
+    scene.collection.objects.link(waist)
+    select_only(waist)
+    bpy.ops.object.mode_set(mode="EDIT"); bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.delete_loose(); bpy.ops.object.mode_set(mode="OBJECT")
+    sol2 = waist.modifiers.new("Thick", "SOLIDIFY"); sol2.thickness = d["thickness"] * 0.9; sol2.offset = -1; sol2.use_rim = True
+    bpy.ops.object.modifier_apply(modifier="Thick")
+    bpy.ops.object.shade_smooth()
+    log("cuff tris", tri_count(waist))
     bpy.data.objects.remove(proxy, do_unlink=True)
 
-    # join into the high poly so every later stage (LODs, bake, points) sees one statue
-    statue["drape"] = True
-    joined = join([statue, drape], "Statue")
+    joined = join([statue, drape, waist], "Statue")
     select_only(joined)
+    scene.frame_set(1)
     save_blend("statue")
-    write_stats("drape", {"triangles_added": tri_count(joined) - 970342, "slab": [round(z_bot, 3), round(z_top, 3)]})
+    write_stats("drape", {"triangles_added": tri_count(joined) - 970342, "slab": [round(z_bot, 3), round(z_top, 3)], "frames": d["frames"]})
 
 
 main()
