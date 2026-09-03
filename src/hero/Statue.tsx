@@ -6,9 +6,11 @@ import * as THREE from "three";
 import { BEATS, ease, remap } from "./beats";
 import { progress } from "./progress";
 
+// the version stamp defeats browser caching whenever the bake changes
+export const MODEL_VERSION = "2026-09-04a";
 export const STATUE = {
-  lod0: "/models/statue-lod0.glb",
-  lod1: "/models/statue-lod1.glb",
+  lod0: `/models/statue-lod0.glb?v=${MODEL_VERSION}`,
+  lod1: `/models/statue-lod1.glb?v=${MODEL_VERSION}`,
   /** LOD1 takes over during the dolly back */
   lodSwapAt: 0.2,
   height: 1.8,
