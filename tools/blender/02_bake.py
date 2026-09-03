@@ -313,12 +313,26 @@ def statue():
         names = ["body", "head"][:slots]
         mk = lambda kind, color=False: [new_image(f"{lod.name}_{names[k]}_{kind}", s, color=color) for k in range(slots)]
         nrm = bake(lod, high, mk("normal"), "NORMAL", s, 16)
-        alb = bake(lod, high, mk("albedo", True), "DIFFUSE", s, 16, pass_filter={"COLOR"})
-        rgh = bake(lod, high, mk("rough"), "ROUGHNESS", s, 16)
-        # AO from the low poly itself: projecting it from the high poly starts rays inside neighbouring hair and
-        # beard shells and leaves black patches
+        # colour and roughness come from the procedural marble on the low poly itself: it is defined in object
+        # space so it matches the high poly exactly, and a self bake cannot miss thin geometry
+        keep = [m for m in lod.data.materials]
+        for k in range(slots):
+            lod.data.materials[k] = marble_material(f"{lod.name}MarbleSelf{k}", scale=1.6, seed=3.0)
+        alb = bake(lod, None, mk("albedo", True), "DIFFUSE", s, 16, pass_filter={"COLOR"})
+        rgh = bake(lod, None, mk("rough"), "ROUGHNESS", s, 16)
+        for k, m in enumerate(keep):
+            lod.data.materials[k] = m
+        # AO from the low poly itself as well
         bpy.context.scene.world.light_settings.distance = 0.25
         ao = bake(lod, None, mk("ao"), "AO", s, samples)
+        # any normal texel the projection missed is black: make it flat rather than a hole
+        import numpy as np
+        for k in range(slots):
+            px = np.array(nrm[k].pixels[:], np.float32).reshape(-1, 4)
+            miss = px[:, :3].sum(axis=1) < 0.15
+            px[miss, 0] = 0.5; px[miss, 1] = 0.5; px[miss, 2] = 1.0
+            nrm[k].pixels = px.ravel().tolist()
+            log(f"normal {names[k]}: filled {int(miss.sum())} missed texels")
         lod_stats = {}
         mats = []
         for k in range(slots):
