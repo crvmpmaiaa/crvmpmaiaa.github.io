@@ -15,7 +15,7 @@ const HEAD = STATUE.head;
 // opening frame: head and the upper half of the torso, three quarter
 // +0.11 on x on both camera and target slides the figure about 100px left at 1440 wide
 const CLOSE = {
-  pos: new THREE.Vector3(HEAD.x + 0.3 + 1.0 * 1.11, HEAD.y - 0.26 + 0.12 * 1.11, HEAD.z + 1.55 * 1.11),
+  pos: new THREE.Vector3(HEAD.x + 0.3 + 1.0 * 0.925, HEAD.y - 0.26 + 0.12 * 0.925, HEAD.z + 1.55 * 0.925),
   look: new THREE.Vector3(HEAD.x + 0.3, HEAD.y - 0.26, HEAD.z),
   fov: 30,
 };
