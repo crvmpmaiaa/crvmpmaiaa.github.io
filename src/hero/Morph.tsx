@@ -67,9 +67,23 @@ const vert = /* glsl */ `
     p.y += te * te * uRise * (0.5 + seed);
     // visible the moment the surface lets go, gone as it thins into the sky
     vFade = smoothstep(0.0, 0.02, t) * (1.0 - smoothstep(0.35, 1.0, t));
-    // it stays stone: baked colour lifted out of its occlusion, drifting toward the sky's tint as it thins
+    // mostly stone, lifted out of its occlusion and drifting toward the sky's tint as it thins
     vec3 marble = clamp(colA * 1.35 + 0.08, 0.0, 1.0);
-    vColor = mix(marble, vec3(0.88, 0.92, 0.97), smoothstep(0.3, 1.0, t));
+    vec3 col = mix(marble, vec3(0.88, 0.92, 0.97), smoothstep(0.3, 1.0, t));
+    // signal breaking up: a share of motes become sub pixels in pure primaries, flickering on and off,
+    // a few go dead black. More of them the further the dust has travelled.
+    float kind = fract(seed * 91.7);
+    float flicker = step(0.5, fract(sin(seed * 517.3 + floor(uTime * 14.0 + seed * 40.0)) * 43758.5));
+    float glitchShare = 0.10 + 0.35 * smoothstep(0.1, 0.8, t);
+    if (kind < glitchShare) {
+      float c = fract(seed * 13.1 + floor(uTime * 6.0 + seed * 20.0) * 0.37);
+      vec3 prim = c < 0.33 ? vec3(1.0, 0.05, 0.1) : (c < 0.66 ? vec3(0.05, 1.0, 0.15) : vec3(0.1, 0.25, 1.0));
+      if (c > 0.9) prim = vec3(1.0, 0.1, 0.9);
+      col = mix(col, prim, flicker);
+    } else if (kind > 0.96) {
+      col = vec3(0.02);  // dead pixel
+    }
+    vColor = col;
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     // whole device pixels so every mote sits on the pixel grid: 2 on the body, 3 in flight, 1 as it thins
     float size = (1.0 + 0.5 * smoothstep(0.0, 0.3, t)) * (1.0 - 0.5 * smoothstep(0.5, 1.0, t));
