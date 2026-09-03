@@ -219,7 +219,7 @@ body {
 
 .scroll-hint {
   position: absolute;
-  left: clamp(1.25rem, 6vw, 6rem);
+  right: clamp(1.25rem, 6vw, 6rem);
   bottom: clamp(1.5rem, 10vh, 7rem);
   z-index: 2;
   font-size: var(--step--1);
