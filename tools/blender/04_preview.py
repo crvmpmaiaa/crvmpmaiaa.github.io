@@ -35,7 +35,7 @@ def main():
     a = args()
     name = a[0]
     out = a[1] if len(a) > 1 and not a[1].startswith("--") else name
-    if name.endswith(".glb"):
+    if name.endswith(".glb") or name.endswith(".gltf"):
         reset_scene()
         bpy.ops.import_scene.gltf(filepath=path(name))
         out = a[1] if len(a) > 1 and not a[1].startswith("--") else os.path.splitext(os.path.basename(name))[0]
@@ -81,8 +81,10 @@ def main():
     key.location = (1.5, -1.5, 2.5)
     key.rotation_euler = (mathutils.Vector((0, 0, 0.8)) - key.location).to_track_quat("-Z", "Y").to_euler()
     scene.collection.objects.link(key)
-    # floor
-    bpy.ops.mesh.primitive_plane_add(size=20, location=(0, 0, 0))
+    # floor (skipped with --nofloor for scenes that bring their own ground)
+    lo_all = [min(bbox(o)[0][i] for o in objs) for i in range(3)]; hi_all = [max(bbox(o)[1][i] for o in objs) for i in range(3)]
+    log("scene bounds", [round(v, 2) for v in lo_all], [round(v, 2) for v in hi_all])
+    bpy.ops.mesh.primitive_plane_add(size=20 if "--nofloor" not in a else 0.001, location=(0, 0, lo_all[2] - 0.001))
     floor = bpy.context.active_object
     fm = bpy.data.materials.new("Floor")
     fm.use_nodes = True

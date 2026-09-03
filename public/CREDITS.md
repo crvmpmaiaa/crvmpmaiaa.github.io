@@ -15,3 +15,8 @@ Every third party asset used on this site, with its licence. Kept current by the
 ## Not used
 
 - Poly Haven "Classic Laptop" and "Marble Bust 01" (CC0) and the threedscans.com "Theodoric the Great" scan were used as stand-ins during development and are not part of the site.
+
+## Purchased, reserved for later sections (not yet placed)
+
+- **Atlas** (Sketchfab, purchased 3 Sep 2026 under the Sketchfab Standard licence, receipt held by Build Different). 13k triangles, 4k PBR textures for the figure and the sphere.
+- **Ancient Temple Stylized** (Sketchfab, purchased 3 Sep 2026 under the Sketchfab Standard licence, receipt held by Build Different). 96k triangles, 9 materials, 21 textures.
