@@ -72,8 +72,8 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
 
     // beat 4 lean in toward the dust
     const lean = ease.smooth(remap(p, BEATS.vaporise[0], BEATS.vaporise[1]));
-    tmpPos.z -= lean * 0.35;
-    fov -= lean * 1.5;
+    tmpPos.z -= lean * 0.12;
+    fov -= lean * 0.8;
 
     camera.position.copy(tmpPos);
     camera.lookAt(tmpLook);

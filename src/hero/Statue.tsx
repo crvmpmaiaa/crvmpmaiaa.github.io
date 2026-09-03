@@ -22,6 +22,46 @@ export const STATUE = {
 
 const DRACO = "/draco/";
 
+/** Shared dissolve uniforms: the cut height sweeps up the figure in step with the point launches. */
+const dissolve = { uCut: { value: -1.0 }, uEdge: { value: 0.06 } };
+
+const DISSOLVE_PARS = /* glsl */ `
+  uniform float uCut;
+  uniform float uEdge;
+  varying vec3 vWorldPos;
+  float dHash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453123); }
+  float dNoise(vec3 p) {
+    vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix(dHash(i), dHash(i + vec3(1,0,0)), f.x), mix(dHash(i + vec3(0,1,0)), dHash(i + vec3(1,1,0)), f.x), f.y),
+               mix(mix(dHash(i + vec3(0,0,1)), dHash(i + vec3(1,0,1)), f.x), mix(dHash(i + vec3(0,1,1)), dHash(i + vec3(1,1,1)), f.x), f.y), f.z);
+  }
+`;
+
+function withDissolve(mat: THREE.MeshStandardMaterial) {
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uCut = dissolve.uCut;
+    shader.uniforms.uEdge = dissolve.uEdge;
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 vWorldPos;")
+      .replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;");
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", "#include <common>\n" + DISSOLVE_PARS)
+      .replace(
+        "#include <dithering_fragment>",
+        `#include <dithering_fragment>
+        // crumble from the feet up along a ragged, grainy edge that matches the point delays
+        float h = vWorldPos.y / 1.8;
+        float grain = dNoise(vWorldPos * 28.0) * 0.6 + dNoise(vWorldPos * 6.0) * 0.4;
+        float edge = h + (grain - 0.5) * 0.22;
+        if (edge < uCut) discard;
+        // a faint darkening right at the edge, like stone breaking
+        float rim = 1.0 - smoothstep(0.0, uEdge, edge - uCut);
+        gl_FragColor.rgb *= 1.0 - rim * 0.35;`,
+      );
+  };
+  mat.customProgramCacheKey = () => "dissolve";
+}
+
 function prepare(scene: THREE.Group) {
   scene.traverse((o) => {
     if ((o as THREE.Mesh).isMesh) {
@@ -31,9 +71,8 @@ function prepare(scene: THREE.Group) {
       m.frustumCulled = false;
       const mat = m.material as THREE.MeshStandardMaterial;
       if (mat && "envMapIntensity" in mat) mat.envMapIntensity = 0.7;
-      mat.transparent = true;
-      mat.depthWrite = true;
       for (const t of [mat.map, mat.normalMap, mat.roughnessMap]) if (t) t.anisotropy = 8;
+      withDissolve(mat);
     }
   });
 }
@@ -64,18 +103,14 @@ export function Statue({ frozen = false }: { frozen?: boolean }) {
     if (!frozen) idle.current += STATUE.idleRadPerSec * Math.min(dt, 0.05);
     const w = 1 - ease.inOut(remap(p, BEATS.reveal[0], BEATS.reveal[1]));
     g.rotation.y = idle.current * w;
-    // the mesh leaves over the first part of the vaporise while the points take over
+    // the surface is cut away exactly where its points have launched: a point with delay d leaves when
+    // u > d * spread, and d is roughly sweep * height, so the cut height is (u / spread) / sweep
     const u = ease.smooth(remap(p, VAPORISE.start, VAPORISE.end));
-    const opacity = 1 - remap(u, 0.02, 0.2);
+    dissolve.uCut.value = u <= 0 ? -1 : u / VAPORISE.spread / VAPORISE.sweep;
+    const gone = dissolve.uCut.value > 1.3;
     const useLod0 = p < STATUE.lodSwapAt;
-    scenes.a.visible = useLod0 && opacity > 0;
-    scenes.b.visible = !useLod0 && opacity > 0;
-    for (const sc of [scenes.a, scenes.b]) {
-      sc.traverse((o) => {
-        const mm = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
-        if (mm && mm.opacity !== opacity) mm.opacity = opacity;
-      });
-    }
+    scenes.a.visible = useLod0 && !gone;
+    scenes.b.visible = !useLod0 && !gone;
   });
 
   return (

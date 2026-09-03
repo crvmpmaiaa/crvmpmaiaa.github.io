@@ -57,28 +57,23 @@ const vert = /* glsl */ `
     float t = clamp((uProgress - delay * uSpread) / (1.0 - uSpread), 0.0, 1.0);
     float te = easeOut(t);
     vT = t;
-    // journey: normal push, curl swirl that peaks mid flight, then a wide scatter and a rise into the sky
-    vec3 dir = normalize(hash3(vec3(seed * 7.1, seed * 3.3, seed * 9.7)) + nrmA * 0.6);
+    // crumble: a small break away from the surface, then the wind takes over, with turbulence riding on it
+    vec3 jitter = normalize(hash3(vec3(seed * 7.1, seed * 3.3, seed * 9.7)));
+    vec3 wind = normalize(vec3(1.0, 0.22, 0.15));
     vec3 p = position;
-    p += nrmA * te * 0.12;
-    p += curl(position * 2.2 + vec3(0.0, uTime * 0.05, 0.0)) * sin(t * 3.14159) * 0.22;
-    p += dir * te * te * uScatter;
-    p.y += te * te * uRise + sin(seed * 40.0 + uTime) * 0.02 * te;
-    // fade: appear as the mesh leaves, thin out as they reach the sky
-    vFade = smoothstep(0.0, 0.06, t) * (1.0 - smoothstep(0.62, 1.0, t));
-    // colour: marble, then a spectrum keyed on height and seed, with a hot flash around the middle
-    float hue = fract(position.y * 0.35 + seed * 0.4 + 0.55);
-    vec3 spectrum = 0.55 + 0.45 * cos(6.28318 * (hue + vec3(0.0, 0.33, 0.67)));
-    float flash = exp(-pow((t - 0.45) / 0.09, 2.0));
-    // the baked colour carries occlusion, which reads as grey grit on unlit points: lift it toward marble white
+    p += nrmA * smoothstep(0.0, 0.25, t) * 0.03;
+    p += curl(position * 1.6 + vec3(uTime * 0.08, 0.0, 0.0) + t * 1.5) * (0.06 + 0.5 * t) * t;
+    p += (wind + jitter * 0.35) * te * te * uScatter * (0.8 + 0.4 * seed);
+    p.y += te * te * uRise * (0.5 + seed);
+    // visible the moment the surface lets go, gone as it thins into the sky
+    vFade = smoothstep(0.0, 0.02, t) * (1.0 - smoothstep(0.35, 1.0, t));
+    // it stays stone: baked colour lifted out of its occlusion, drifting toward the sky's tint as it thins
     vec3 marble = clamp(colA * 1.35 + 0.08, 0.0, 1.0);
-    vec3 col = mix(marble, spectrum, smoothstep(0.1, 0.6, t));
-    col = mix(col, vec3(1.0), flash * 0.85);
-    vColor = col;
+    vColor = mix(marble, vec3(0.88, 0.92, 0.97), smoothstep(0.3, 1.0, t));
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
-    // dust, not confetti: about two pixels on the body, swelling to four mid flight, shrinking as it thins out
-    float size = (1.0 + 1.1 * sin(t * 3.14159)) * (1.0 - 0.45 * smoothstep(0.7, 1.0, t));
-    gl_PointSize = size * uPixelRatio * (7.5 / -mv.z);
+    // whole device pixels so every mote sits on the pixel grid: 2 on the body, 3 in flight, 1 as it thins
+    float size = (1.0 + 0.5 * smoothstep(0.0, 0.3, t)) * (1.0 - 0.5 * smoothstep(0.5, 1.0, t));
+    gl_PointSize = max(1.0, floor(size * uPixelRatio * (7.5 / -mv.z) + 0.5));
     gl_Position = projectionMatrix * mv;
   }
 `;
@@ -95,8 +90,7 @@ const frag = /* glsl */ `
     float soft = 1.0 - smoothstep(0.12, 0.25, d);
     float a = soft * vFade;
     // brighter and more additive while the dust is hot, then it settles to plain blending into the sky
-    float hot = 1.0 + 0.45 * sin(vT * 3.14159);
-    gl_FragColor = vec4(vColor * a * hot, a);
+    gl_FragColor = vec4(vColor * a, a);
   }
 `;
 
@@ -120,7 +114,7 @@ async function loadPoints(set: "desktop" | "mobile"): Promise<Buffers> {
   return { pos, nrm, col, delay, count: n };
 }
 
-export const VAPORISE = { start: BEATS.vaporise[0], end: 0.95, spread: 0.55 };
+export const VAPORISE = { start: BEATS.vaporise[0], end: 0.97, spread: 0.6, sweep: 0.85 };
 
 export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "mobile"; frozen?: boolean }) {
   const [buf, setBuf] = useState<Buffers | null>(null);
@@ -166,8 +160,8 @@ export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "
       uSpread: { value: VAPORISE.spread },
       uTime: { value: 0 },
       uPixelRatio: { value: 1 },
-      uScatter: { value: 2.6 },
-      uRise: { value: 1.6 },
+      uScatter: { value: 3.4 },
+      uRise: { value: 0.7 },
     }),
     [],
   );
