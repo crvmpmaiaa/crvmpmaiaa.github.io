@@ -9,6 +9,7 @@ import { CameraRig } from "./CameraRig";
 import { Sky } from "./Sky";
 import { Statue } from "./Statue";
 import { Morph } from "./Morph";
+import { Rebuild } from "./Rebuild";
 
 /** Key light orbits the statue through the hold, so the light moves instead of the model. */
 function Lights() {
@@ -68,9 +69,11 @@ export function SkyScene({ frozen = false }: { frozen?: boolean }) {
 export function Scene({
   frozen = false,
   onReady,
+  video = null,
 }: {
   frozen?: boolean;
   onReady?: () => void;
+  video?: HTMLVideoElement | null;
 }) {
   const mobile = typeof window !== "undefined" && window.innerWidth < 820;
   return (
@@ -103,6 +106,7 @@ export function Scene({
         </Suspense>
         <Suspense fallback={null}>
           <Morph set={mobile ? "mobile" : "desktop"} frozen={frozen} />
+          <Rebuild video={video} />
         </Suspense>
         <Lights />
         <CameraRig frozen={frozen} />

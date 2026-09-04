@@ -6,7 +6,7 @@ export const BEATS = {
   head: [0.0, 0.12],
   reveal: [0.12, 0.3],
   hold: [0.3, 0.45],
-  vaporise: [0.45, 0.62],
+  vaporise: [0.45, 0.64],
   rebuild: [0.62, 0.78],
   turn: [0.78, 0.9],
   screen: [0.9, 1.0],
@@ -41,8 +41,8 @@ export function window(p: number, a: number, b: number, c: number, d: number): n
 export const COPY_WINDOWS = {
   headline1: (p: number) => 1 - ease.smooth(remap(p, 0.1, 0.16)),
   block1: (p: number) => window(p, 0.17, 0.24, 0.4, 0.45),
-  block2: (p: number) => window(p, 0.5, 0.58, 0.7, 0.75),
-  block3: (p: number) => window(p, 0.78, 0.85, 0.96, 0.99),
-  cta: (p: number) => ease.smooth(remap(p, 0.9, 0.96)),
+  block2: (p: number) => window(p, 0.49, 0.55, 0.6, 0.64),
+  block3: (p: number) => window(p, 0.66, 0.72, 0.88, 0.91),
+  cta: (p: number) => ease.smooth(remap(p, 0.955, 0.985)),
   scrollHint: (p: number) => 1 - ease.smooth(remap(p, 0.02, 0.06)),
 };

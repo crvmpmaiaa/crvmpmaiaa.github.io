@@ -17,9 +17,14 @@ const FLOATS = 19; // posA nrmA colA posB nrmB colB delay
 const vert = /* glsl */ `
   attribute vec3 nrmA;
   attribute vec3 colA;
+  attribute vec3 posB;
+  attribute vec3 colB;
+  attribute float delayB;
   attribute float delay;
   attribute float seed;
   uniform float uProgress;   // 0..1 across the vaporise
+  uniform float uRebuild;    // 0..1 across the rebuild
+  uniform float uSettle;     // 0..1 as the meshes surface and the settled dust dies from the base up
   uniform float uSpread;     // how much of the range the delay sweep takes
   uniform float uTime;
   uniform float uPixelRatio;
@@ -53,7 +58,41 @@ const vert = /* glsl */ `
   }
   float easeOut(float t) { return 1.0 - pow(1.0 - t, 3.0); }
 
+  float easeOutBack(float t) { float c1 = 1.70158; float c3 = c1 + 1.0; return 1.0 + c3 * pow(t - 1.0, 3.0) + c1 * pow(t - 1.0, 2.0); }
+
   void main() {
+    if (uRebuild > 0.0) {
+      // phase B: the same motes come in from the left and settle onto the pillar and laptop, ground up
+      float t = clamp((uRebuild - delayB * uSpread) / (1.0 - uSpread), 0.0, 1.0);
+      float te = easeOutBack(t);
+      vT = t;
+      vec3 jitter = normalize(hash3(vec3(seed * 5.3, seed * 8.9, seed * 2.7)));
+      vec3 from = posB + vec3(-4.5, 0.6, 0.0) + jitter * vec3(1.6, 1.2, 1.2) * (0.5 + seed);
+      vec3 p = mix(from, posB, te);
+      p += curl(posB * 1.6 + vec3(uTime * 0.08, 0.0, 0.0) + t * 1.5) * 0.35 * sin(t * 3.14159);
+      // settled motes die from the base up as the marble surfaces beneath them
+      float hB = clamp(posB.y / 1.35, 0.0, 1.0);
+      float dead = smoothstep(hB - 0.05, hB + 0.05, uSettle);
+      vFade = smoothstep(0.0, 0.03, t) * (1.0 - dead);
+      vec3 stone = clamp(colB * 1.25 + 0.06, 0.0, 1.0);
+      vec3 col = mix(vec3(0.88, 0.92, 0.97), stone, smoothstep(0.4, 1.0, t));
+      float kind = fract(seed * 91.7);
+      float flicker = step(0.5, fract(sin(seed * 517.3 + floor(uTime * 14.0 + seed * 40.0)) * 43758.5));
+      float glitchShare = 0.10 + 0.35 * (1.0 - smoothstep(0.2, 0.9, t));
+      if (kind < glitchShare) {
+        float c = fract(seed * 13.1 + floor(uTime * 6.0 + seed * 20.0) * 0.37);
+        vec3 prim = c < 0.33 ? vec3(1.0, 0.05, 0.1) : (c < 0.66 ? vec3(0.05, 1.0, 0.15) : vec3(0.1, 0.25, 1.0));
+        col = mix(col, prim, flicker);
+      } else if (kind > 0.96) {
+        col = vec3(0.02);
+      }
+      vColor = col;
+      vec4 mv = modelViewMatrix * vec4(p, 1.0);
+      float size = 1.0 + 0.5 * (1.0 - smoothstep(0.6, 1.0, t));
+      gl_PointSize = max(1.0, floor(size * uPixelRatio * (7.5 / -mv.z) + 0.5));
+      gl_Position = projectionMatrix * mv;
+      return;
+    }
     float t = clamp((uProgress - delay * uSpread) / (1.0 - uSpread), 0.0, 1.0);
     float te = easeOut(t);
     vT = t;
@@ -108,7 +147,7 @@ const frag = /* glsl */ `
   }
 `;
 
-type Buffers = { pos: Float32Array; nrm: Float32Array; col: Float32Array; delay: Float32Array; count: number };
+type Buffers = { pos: Float32Array; nrm: Float32Array; col: Float32Array; delay: Float32Array; posB: Float32Array; colB: Float32Array; delayB: Float32Array; count: number };
 
 async function loadPoints(set: "desktop" | "mobile"): Promise<Buffers> {
   const [bin, meta] = await Promise.all([
@@ -118,17 +157,27 @@ async function loadPoints(set: "desktop" | "mobile"): Promise<Buffers> {
   const f = new Float32Array(bin);
   const n = meta.count;
   const pos = new Float32Array(n * 3), nrm = new Float32Array(n * 3), col = new Float32Array(n * 3), delay = new Float32Array(n);
+  const posB = new Float32Array(n * 3), colB = new Float32Array(n * 3), delayB = new Float32Array(n);
+  let maxY = 0;
+  for (let i = 0; i < n; i++) maxY = Math.max(maxY, f[i * FLOATS + 10]);
   for (let i = 0; i < n; i++) {
     const o = i * FLOATS;
     pos[i * 3] = f[o]; pos[i * 3 + 1] = f[o + 1]; pos[i * 3 + 2] = f[o + 2];
     nrm[i * 3] = f[o + 3]; nrm[i * 3 + 1] = f[o + 4]; nrm[i * 3 + 2] = f[o + 5];
     col[i * 3] = f[o + 6]; col[i * 3 + 1] = f[o + 7]; col[i * 3 + 2] = f[o + 8];
+    posB[i * 3] = f[o + 9]; posB[i * 3 + 1] = f[o + 10]; posB[i * 3 + 2] = f[o + 11];
+    colB[i * 3] = f[o + 15]; colB[i * 3 + 1] = f[o + 16]; colB[i * 3 + 2] = f[o + 17];
     delay[i] = f[o + 18];
+    // rebuild order: ground up on the pillar, with a little grain so the front is ragged
+    delayB[i] = Math.min(1, (f[o + 10] / maxY) * 0.85 + ((i * 7919) % 1000) / 1000 * 0.15);
   }
-  return { pos, nrm, col, delay, count: n };
+  return { pos, nrm, col, delay, posB, colB, delayB, count: n };
 }
 
-export const VAPORISE = { start: BEATS.vaporise[0], end: 0.97, spread: 0.6, sweep: 0.85 };
+export const VAPORISE = { start: BEATS.vaporise[0], end: BEATS.vaporise[1], spread: 0.6, sweep: 0.85 };
+export const REBUILD = { start: BEATS.rebuild[0], end: BEATS.rebuild[1], spread: 0.6 };
+/** the meshes surface and the settled dust dies over the last part of the rebuild */
+export const SETTLE = { start: 0.7, end: 0.8 };
 
 export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "mobile"; frozen?: boolean }) {
   const [buf, setBuf] = useState<Buffers | null>(null);
@@ -161,6 +210,9 @@ export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "
     g.setAttribute("nrmA", new THREE.BufferAttribute(buf.nrm, 3));
     g.setAttribute("colA", new THREE.BufferAttribute(buf.col, 3));
     g.setAttribute("delay", new THREE.BufferAttribute(buf.delay, 1));
+    g.setAttribute("posB", new THREE.BufferAttribute(buf.posB, 3));
+    g.setAttribute("colB", new THREE.BufferAttribute(buf.colB, 3));
+    g.setAttribute("delayB", new THREE.BufferAttribute(buf.delayB, 1));
     const seed = new Float32Array(buf.count);
     for (let i = 0; i < buf.count; i++) seed[i] = ((i * 2654435761) % 4294967296) / 4294967296;
     g.setAttribute("seed", new THREE.BufferAttribute(seed, 1));
@@ -171,6 +223,8 @@ export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "
   const uniforms = useMemo(
     () => ({
       uProgress: { value: 0 },
+      uRebuild: { value: 0 },
+      uSettle: { value: 0 },
       uSpread: { value: VAPORISE.spread },
       uTime: { value: 0 },
       uPixelRatio: { value: 1 },
@@ -183,12 +237,17 @@ export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "
   useFrame((_, dt) => {
     const m = mat.current;
     if (!m || !points.current) return;
-    const u = ease.smooth(remap(progress.p, VAPORISE.start, VAPORISE.end));
+    const p = progress.p;
+    const u = ease.smooth(remap(p, VAPORISE.start, VAPORISE.end));
+    const r = ease.smooth(remap(p, REBUILD.start, REBUILD.end));
+    const settle = ease.smooth(remap(p, SETTLE.start, SETTLE.end));
     m.uniforms.uProgress.value = u;
+    m.uniforms.uRebuild.value = r;
+    m.uniforms.uSettle.value = settle;
     (window as unknown as { __bdMorphU?: number }).__bdMorphU = u;
     m.uniforms.uPixelRatio.value = dpr;
     if (!frozen) m.uniforms.uTime.value += Math.min(dt, 0.05);
-    points.current.visible = u > 0.001;
+    points.current.visible = u > 0.001 && settle < 0.999;
   });
 
   if (!geometry) return null;

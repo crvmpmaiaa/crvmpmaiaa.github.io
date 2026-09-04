@@ -10,6 +10,9 @@ import { setProgress } from "./progress";
 
 const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false });
 import { SkyVideo } from "./SkyVideo";
+import { ScreenVideo } from "./ScreenVideo";
+import { onProgress } from "./progress";
+import { ease, remap } from "./beats";
 
 type Mode = "pending" | "scroll" | "reduced" | "static";
 
@@ -33,6 +36,18 @@ function detectMode(): Mode {
 export function Hero() {
   const [mode, setMode] = useState<Mode>("pending");
   const section = useRef<HTMLElement>(null);
+  const [video, setVideo] = useState<HTMLVideoElement | null>(null);
+  const videoRef = (el: HTMLVideoElement | null) => setVideo(el);
+
+  // fullscreen hand off over the last five percent
+  useEffect(() => {
+    if (!video) return;
+    return onProgress((p) => {
+      const o = ease.smooth(remap(p, 0.95, 0.99));
+      video.style.opacity = o.toFixed(3);
+      video.style.visibility = o < 0.01 ? "hidden" : "visible";
+    });
+  }, [video]);
 
   useEffect(() => {
     setMode(detectMode());
@@ -80,7 +95,8 @@ export function Hero() {
           <>
             <SkyVideo frozen={frozen} />
             <Copy isStatic={false} layer="behind" />
-            <Scene frozen={frozen} />
+            <Scene frozen={frozen} video={video} />
+            <ScreenVideo ref={videoRef} />
           </>
         )}
         {!isStatic && <Copy isStatic={false} layer="front" />}

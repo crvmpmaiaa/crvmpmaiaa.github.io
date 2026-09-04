@@ -129,6 +129,18 @@ body {
 .hero__canvas--statue {
   z-index: 2;
 }
+.hero__screen-video {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: var(--quarry);
+}
 .hero__layer--front {
   position: absolute;
   inset: 0;

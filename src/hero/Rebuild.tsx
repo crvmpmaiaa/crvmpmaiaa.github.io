@@ -1,0 +1,132 @@
+"use client";
+import { useGLTF } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import * as THREE from "three";
+import { BEATS, ease, remap } from "./beats";
+import { progress } from "./progress";
+import { MODEL_VERSION } from "./Statue";
+import { SETTLE } from "./Morph";
+import { makeDissolve, applyDissolve } from "./dissolve";
+
+const COLUMN = `/models/column.glb?v=${MODEL_VERSION}`;
+const LAPTOP = `/models/laptop.glb?v=${MODEL_VERSION}`;
+const DRACO = "/draco/";
+export const COLUMN_TOP = 1.2;
+export const LID_OPEN_DEG = 110;
+
+/** Shared with the camera rig: where the screen is and which way it faces, in world space. */
+export const screenState = { centre: new THREE.Vector3(), normal: new THREE.Vector3(0, 0, 1), height: 0.19, ready: false, light: 0 };
+
+const rebuildDissolve = makeDissolve(COLUMN_TOP + 0.3, true);
+
+/** Column and laptop surface beneath the settling dust, then turn, open and light up. */
+export function Rebuild({ video }: { video: HTMLVideoElement | null }) {
+  const column = useGLTF(COLUMN, DRACO);
+  const laptop = useGLTF(LAPTOP, DRACO);
+  const group = useRef<THREE.Group>(null);
+  const lid = useRef<THREE.Object3D | null>(null);
+  const screen = useRef<THREE.Mesh | null>(null);
+  const screenMat = useRef<THREE.MeshStandardMaterial | null>(null);
+  const tex = useRef<THREE.VideoTexture | null>(null);
+  const shadows = useRef(true);
+
+  const scenes = useMemo(() => {
+    const c = column.scene;
+    const l = laptop.scene;
+    for (const s of [c, l]) {
+      s.traverse((o) => {
+        if ((o as THREE.Mesh).isMesh) {
+          const m = o as THREE.Mesh;
+          m.castShadow = true;
+          m.receiveShadow = true;
+          m.frustumCulled = false;
+          const mat = m.material as THREE.MeshStandardMaterial;
+          if (mat) {
+            mat.side = THREE.DoubleSide;  // the lid and bezel are thin single sided shells
+            applyDissolve(mat, rebuildDissolve, "rebuild-dissolve");
+          }
+        }
+      });
+    }
+    l.position.y = COLUMN_TOP;
+    lid.current = l.getObjectByName("Lid") ?? null;
+    const sc = l.getObjectByName("ScreenSurface") as THREE.Mesh | null;
+    screen.current = sc;
+    if (sc) {
+      const sm = new THREE.MeshStandardMaterial({ color: 0x050607, roughness: 0.25, metalness: 0.0, emissive: 0xffffff, emissiveIntensity: 0, side: THREE.DoubleSide });
+      applyDissolve(sm, rebuildDissolve, "rebuild-dissolve-screen");
+      sc.material = sm;
+      screenMat.current = sm;
+      // find the quad's height for the camera framing
+      sc.geometry.computeBoundingBox();
+      const bb = sc.geometry.boundingBox!;
+      screenState.height = Math.max(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z) * 0.68;
+    }
+    return { c, l };
+  }, [column.scene, laptop.scene]);
+
+  useEffect(() => {
+    if (!video || !screenMat.current) return;
+    const t = new THREE.VideoTexture(video);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.flipY = false;
+    tex.current = t;
+    screenMat.current.emissiveMap = t;
+    screenMat.current.needsUpdate = true;
+    return () => t.dispose();
+  }, [video]);
+
+  const tmpN = useMemo(() => new THREE.Vector3(), []);
+  const tmpBox = useMemo(() => new THREE.Box3(), []);
+
+  useFrame(() => {
+    const g = group.current;
+    if (!g) return;
+    const p = progress.p;
+    // surface from the ground up in step with the settling dust
+    const settle = ease.smooth(remap(p, SETTLE.start, SETTLE.end));
+    rebuildDissolve.uCut.value = settle <= 0 ? -1 : settle * 1.15;
+    if (shadows.current !== settle > 0) {
+      shadows.current = settle > 0;
+      g.traverse((o) => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = shadows.current; });
+    }
+
+    // one full turn landing square, eased, a pure function of p
+    const turn = ease.inOut(remap(p, BEATS.turn[0], BEATS.turn[1]));
+    g.rotation.y = turn * Math.PI * 2;
+
+    // the lid lifts from 0.80 to 0.89 to its open angle, backlight comes up 0.84 to 0.88
+    const open = ease.inOut(remap(p, 0.8, 0.89));
+    if (lid.current) lid.current.rotation.x = THREE.MathUtils.degToRad(LID_OPEN_DEG) * open;
+    const light = ease.smooth(remap(p, 0.84, 0.88));
+    screenState.light = light;
+    if (screenMat.current) screenMat.current.emissiveIntensity = light * 1.4;
+    if (video && p > 0.86 && video.paused) video.play().catch(() => {});
+
+    // publish the screen's world centre and normal for the camera
+    const sc = screen.current;
+    if (sc) {
+      sc.updateWorldMatrix(true, false);
+      tmpBox.setFromObject(sc);
+      tmpBox.getCenter(screenState.centre);
+      const na = sc.geometry.getAttribute("normal");
+      tmpN.set(na.getX(0), na.getY(0), na.getZ(0)).transformDirection(sc.matrixWorld).normalize();
+      // the lid opens away from the viewer, so the screen's outward side is the one with a forward component
+      if (tmpN.z < 0) tmpN.negate();
+      screenState.normal.copy(tmpN);
+      (window as unknown as { __bdScreen?: unknown }).__bdScreen = { c: screenState.centre.toArray(), n: tmpN.toArray(), h: screenState.height, v: video ? [video.readyState, video.currentTime, video.paused] : null };
+      screenState.ready = true;
+    }
+  });
+
+  return (
+    <group ref={group}>
+      <primitive object={scenes.c} />
+      <primitive object={scenes.l} />
+    </group>
+  );
+}
+
+useGLTF.preload(COLUMN, DRACO);
+useGLTF.preload(LAPTOP, DRACO);

@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { BEATS, ease, remap } from "./beats";
 import { progress } from "./progress";
 import { STATUE } from "./Statue";
+import { screenState, COLUMN_TOP } from "./Rebuild";
 
 /**
  * Camera as a pure function of p, plus a wall clock handheld drift in beat 1 that fades out with the dolly.
@@ -30,6 +31,7 @@ const CTRL = new THREE.Vector3(1.6, 1.25, 2.2);
 
 const tmpPos = new THREE.Vector3();
 const tmpLook = new THREE.Vector3();
+const screenPos = new THREE.Vector3();
 
 function bezier(out: THREE.Vector3, a: THREE.Vector3, c: THREE.Vector3, b: THREE.Vector3, t: number) {
   const u = 1 - t;
@@ -65,15 +67,35 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
     tmpPos.y += noise(t, 2) * drift * 0.6;
     tmpLook.x += noise(t, 3) * drift * 0.5;
 
-    // beat 3 parallax: a slow lateral drift as p moves through the hold
-    const hold = remap(p, BEATS.hold[0], BEATS.hold[1]);
-    tmpPos.x += Math.sin(hold * Math.PI) * 0.18;
-    tmpPos.y -= hold * 0.06;
+    // beat 3: the figure drifts from right of centre into the middle of the frame
+    const hold = ease.inOut(remap(p, BEATS.hold[0], BEATS.hold[1]));
+    tmpPos.x += hold * 0.55;
+    tmpLook.x += hold * 0.6;
+    tmpPos.y -= hold * 0.04;
 
     // beat 4 lean in toward the dust
     const lean = ease.smooth(remap(p, BEATS.vaporise[0], BEATS.vaporise[1]));
     tmpPos.z -= lean * 0.12;
     fov -= lean * 0.8;
+
+    // rebuild and turn: hold on the pillar, target its middle
+    const rb = ease.smooth(remap(p, BEATS.rebuild[0], BEATS.rebuild[0] + 0.06));
+    tmpLook.y = THREE.MathUtils.lerp(tmpLook.y, COLUMN_TOP * 0.55, rb);
+    tmpPos.y = THREE.MathUtils.lerp(tmpPos.y, 0.95, rb);
+    // lens breathing through the turn
+    const turn = remap(p, BEATS.turn[0], BEATS.turn[1]);
+    fov += Math.sin(turn * Math.PI) * 0.6;
+
+    // screen: fly along the screen's normal until it fills the frame
+    const sc = ease.inOut(remap(p, BEATS.screen[0], 0.985));
+    if (sc > 0 && screenState.ready) {
+      const fovRad = THREE.MathUtils.degToRad(fov);
+      const fill = THREE.MathUtils.lerp(0.18, 1.02, sc);
+      const dist = (screenState.height / 2) / Math.tan(fovRad / 2) / fill;
+      screenPos.copy(screenState.centre).addScaledVector(screenState.normal, dist);
+      tmpPos.lerp(screenPos, sc);
+      tmpLook.lerp(screenState.centre, sc);
+    }
 
     camera.position.copy(tmpPos);
     camera.lookAt(tmpLook);
