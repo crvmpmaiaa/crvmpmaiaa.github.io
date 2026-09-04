@@ -94,16 +94,13 @@ function Backdrop({ video }: { video?: HTMLVideoElement | null }) {
     if (video) { const t = new THREE.VideoTexture(video); t.colorSpace = THREE.SRGBColorSpace; return t; }
     return poster;
   }, [video, poster]);
-  // a shallow arc: 40 wide, radius 60, centred on the rail
-  const geo = useMemo(() => {
-    const g = new THREE.CylinderGeometry(60, 60, 26, 64, 1, true, -0.36, 0.72);
-    g.scale(-1, 1, 1);  // face inward
-    return g;
-  }, []);
+  // a shallow arc of radius 60 centred on the rail, its surface about 46 units behind the cards.
+  // three's cylinder puts theta 0 on +Z, so the arc is cut around pi to sit on the far side.
+  const geo = useMemo(() => new THREE.CylinderGeometry(60, 60, 30, 64, 1, true, Math.PI - 0.4, 0.8), []);
   return (
-    <mesh geometry={geo} position={[6.2, 0.4, -60 + 14]}>
+    <mesh geometry={geo} position={[6.2, 0.4, 14]}>
       {/* fog is for the cards and dust; the backdrop is the far distance itself */}
-      <meshBasicMaterial map={tex} side={THREE.FrontSide} toneMapped={false} fog={false} />
+      <meshBasicMaterial map={tex} side={THREE.DoubleSide} toneMapped={false} fog={false} />
     </mesh>
   );
 }
