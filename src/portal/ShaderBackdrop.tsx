@@ -36,6 +36,41 @@ const FRAG = /* glsl */ `
   void main() { mainImage(fragColor, vUv * iResolution.xy); }
 `;
 
+const FRAG_GEODE = /* glsl */ `
+  in vec2 vUv;
+  out vec4 fragColor;
+  uniform vec3 iResolution;
+  uniform float iTime;
+  uniform float uVariant;
+  // "Geode", supplied by Jack, verbatim
+  void mainImage(out vec4 fragColor, in vec2 fragCoord)
+  {
+    vec2  r  = iResolution.xy;
+    float t  = iTime;
+    vec3  FC = vec3(fragCoord, t);
+    vec4  o  = vec4(0.0);
+    vec3 p = vec3(0.0), v;
+    for (float i = 0.0, z = 0.0, d = 0.0; i++ < 40.0; )
+    {
+      o += (cos(i * 0.2 + t + vec4(0.0, 1.0, 3.0, 0.0)) + 1.0) / max(d, 1e-4);
+      p = z * normalize(FC.rgb * 2.0 - r.xyy);
+      v = normalize(cos(t * 0.25 + vec3(0.0, 1.0, 4.0)));
+      p = dot(v, p) * v + cross(v, p);
+      p.z -= t;
+      vec3 q = abs(fract(p) - 0.5);
+      p = q + q.yzx - sin(z * 0.7);
+      d = 0.3 * length(min(p, p.yzx));
+      z += d;
+    }
+    o = tanh(o / 2000.0);
+    fragColor = vec4(o.rgb, 1.0);
+  }
+  void main() { mainImage(fragColor, vUv * iResolution.xy); }
+`;
+
+export const SHADERS = { cathedral: FRAG, geode: FRAG_GEODE } as const;
+export type ShaderName = keyof typeof SHADERS;
+
 const VERT = /* glsl */ `
   out vec2 vUv;
   void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }
@@ -46,16 +81,16 @@ const VERT = /* glsl */ `
  * raymarch running per pixel. Works identically in the laptop's target and in the direct render, because it
  * ignores the camera and reads the size of whatever is being rendered to.
  */
-export function ShaderQuad({ frozen = false, variant = 0 }: { frozen?: boolean; variant?: number }) {
+export function ShaderQuad({ frozen = false, variant = 0, shader = "geode" }: { frozen?: boolean; variant?: number; shader?: ShaderName }) {
   const mat = useMemo(() => new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL3,
     vertexShader: VERT,
-    fragmentShader: FRAG,
+    fragmentShader: SHADERS[shader],
     uniforms: { iResolution: { value: new THREE.Vector3(1, 1, 1) }, iTime: { value: 0 }, uVariant: { value: variant } },
     depthTest: false,
     depthWrite: false,
     toneMapped: false,
-  }), []);
+  }), [shader]);
   const clock = useRef(0);
   const size = useMemo(() => new THREE.Vector2(), []);
   useFrame((_, dt) => {
