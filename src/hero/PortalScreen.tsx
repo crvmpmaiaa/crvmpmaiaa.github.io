@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { progress } from "./progress";
 import { Q, ease, remap } from "./beats";
 import { PORTAL_LAYER } from "@/portal/PortalScene";
-import { ENTRY, PORTAL_OFFSET } from "@/portal/rail";
+import { ENTRY, PORTAL_OFFSET, portalClock, entryDrift } from "@/portal/rail";
 import { pointer } from "./pointer";
 
 /**
@@ -25,7 +25,6 @@ export function PortalScreen({ onTexture, frozen = false }: { onTexture: (t: THR
   const scene = useThree((s) => s.scene);
   const mainCam = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const size = useThree((s) => s.size);
-  const clock = useRef(0);
   const clear = useMemo(() => new THREE.Color(), []);
 
   useEffect(() => () => { target.current?.dispose(); }, []);
@@ -34,21 +33,21 @@ export function PortalScreen({ onTexture, frozen = false }: { onTexture: (t: THR
     const p = progress.p, q = progress.q;
     if (p < 0.79) return;
     if (q > Q.cross && q < Q.crossBack) return;  // inside: the main camera draws the world directly
-    if (!frozen) clock.current += Math.min(dt, 0.05);
-    const t = clock.current;
+    const t = portalClock.t;
     // entry pose with a gentle drift; pushes forward a little through the first beat so the crossing has motion
     const through = ease.inOut(remap(q, Q.through[0], Q.cross));
     const back = 1 - ease.inOut(remap(q, Q.crossBack, Q.backThrough[1]));  // symmetric on the way out
     const push = q < Q.cross ? through : back;
     const mx = pointer.active ? pointer.x : 0, my = pointer.active ? pointer.y : 0;
-    portalCamState.pos.set(ENTRY.pos[0] + Math.sin(t * 0.18) * 0.1 + mx * 0.08, ENTRY.pos[1] + Math.sin(t * 0.13) * 0.05 + my * 0.05, ENTRY.pos[2] - push * 0.9);
-    portalCamState.look.set(ENTRY.look[0] + Math.sin(t * 0.09) * 0.15 + mx * 0.4, ENTRY.look[1] + my * 0.25, ENTRY.look[2]);
+    const drift = entryDrift(t, mx, my);
+    portalCamState.pos.set(ENTRY.pos[0] + drift.pos[0], ENTRY.pos[1] + drift.pos[1], ENTRY.pos[2] - push * 0.9);
+    portalCamState.look.set(ENTRY.look[0] + drift.look[0], ENTRY.look[1] + drift.look[1], ENTRY.look[2]);
     cam.position.set(PORTAL_OFFSET[0] + portalCamState.pos.x, PORTAL_OFFSET[1] + portalCamState.pos.y, PORTAL_OFFSET[2] + portalCamState.pos.z);
     cam.lookAt(PORTAL_OFFSET[0] + portalCamState.look.x, PORTAL_OFFSET[1] + portalCamState.look.y, PORTAL_OFFSET[2] + portalCamState.look.z);
     // match the main camera through the screen: the screen overfills the viewport by `fill`, so this camera
     // sees `fill` times more than the main one, and the visible centre lines up exactly
     const vAspect = size.width / size.height;
-    const fill = Math.max(1, vAspect / screenAspect.value) * 1.01;
+    const fill = Math.max(1, vAspect / screenAspect.value);
     portalCamState.fill = fill;
     const mainFov = THREE.MathUtils.degToRad(mainCam.fov);
     cam.fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(mainFov / 2) * fill));

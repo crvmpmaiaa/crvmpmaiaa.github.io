@@ -61,3 +61,14 @@ export function litFor(cardX: number, camX: number): number {
   const d = Math.abs(cardX - camX);
   return 1 - ease.smooth(remap(d, 0.35, 1.6));
 }
+
+/** shared wall clock for the portal cameras, advanced once per frame by the camera rig */
+export const portalClock = { t: 0 };
+
+/** the entry camera's handheld drift and mouse look, used identically by the screen camera and the inside camera */
+export function entryDrift(t: number, mx: number, my: number) {
+  return {
+    pos: [Math.sin(t * 0.18) * 0.1 + mx * 0.08, Math.sin(t * 0.13) * 0.05 + my * 0.05, 0] as const,
+    look: [Math.sin(t * 0.09) * 0.15 + mx * 0.4, my * 0.25, 0] as const,
+  };
+}

@@ -9,7 +9,7 @@ import { COLUMN_TOP, stageTarget, screenState } from "./Rebuild";
 import { Q } from "./beats";
 import { portalCamState } from "./PortalScreen";
 import { PORTAL_LAYER, CARDS, portalLit } from "@/portal/PortalScene";
-import { ENTRY, PORTAL_OFFSET, RAIL_Y, RAIL_Z, railX, litFor } from "@/portal/rail";
+import { ENTRY, PORTAL_OFFSET, RAIL_Y, RAIL_Z, railX, litFor, portalClock, entryDrift } from "@/portal/rail";
 import { pointer, bindPointer } from "./pointer";
 
 /**
@@ -63,6 +63,7 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
     const p = progress.p;
     if (!frozen) clock.current += Math.min(dt, 0.05);
     const t = clock.current;
+    if (!frozen) portalClock.t += Math.min(dt, 0.05);
 
     const reveal = ease.inOut(remap(p, BEATS.reveal[0], BEATS.reveal[1]));
     bezier(tmpPos, CLOSE.pos, CTRL, WIDE.pos, reveal);
@@ -128,8 +129,12 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
       // turn back and reverse toward the screen plane
       const backTurn = ease.inOut(remap(q, Q.turnBack[0], Q.turnBack[1]));
       const reverse = ease.inOut(remap(q, Q.turnBack[1], Q.crossBack));
-      const entryPos = new THREE.Vector3(ENTRY.pos[0], ENTRY.pos[1], ENTRY.pos[2] - 0.9);
-      const entryLook = new THREE.Vector3(ENTRY.look[0], ENTRY.look[1], ENTRY.look[2]);
+      // the entry pose carries the same drift the screen camera had, fading out over the arrival,
+      // so the crossing frame is the same camera
+      const drift = entryDrift(portalClock.t, mx, my);
+      const carry = 1 - arrive;
+      const entryPos = new THREE.Vector3(ENTRY.pos[0] + drift.pos[0] * carry, ENTRY.pos[1] + drift.pos[1] * carry, ENTRY.pos[2] - 0.9);
+      const entryLook = new THREE.Vector3(ENTRY.look[0] + drift.look[0] * carry, ENTRY.look[1] + drift.look[1] * carry, ENTRY.look[2]);
       const railPos = new THREE.Vector3(x, RAIL_Y, RAIL_Z);
       const railLook = new THREE.Vector3(x + mx * 0.9, RAIL_Y + my * 0.5, RAIL_Z - 4);
       const pos = new THREE.Vector3().lerpVectors(entryPos, railPos, arrive);
@@ -141,7 +146,7 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
         pos.lerp(entryPos, reverse);
         look.lerp(entryLook, reverse);
       }
-      pos.x += mx * 0.15; pos.y += my * 0.08;
+      pos.x += mx * 0.15 * arrive; pos.y += my * 0.08 * arrive;
       camera.position.set(PORTAL_OFFSET[0] + pos.x, PORTAL_OFFSET[1] + pos.y, PORTAL_OFFSET[2] + pos.z);
       camera.lookAt(PORTAL_OFFSET[0] + look.x, PORTAL_OFFSET[1] + look.y, PORTAL_OFFSET[2] + look.z);
       camera.fov = fov;
