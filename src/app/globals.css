@@ -218,12 +218,12 @@ body {
   filter: none;
 }
 
-/* the statue fades up under the flight */
+/* the statue fades up as the letters rise, once the B and D have landed */
 .hero__canvas--statue {
   opacity: 0;
-  transition: opacity 1100ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 900ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-.is-entering .hero__canvas--statue,
+.is-revealed .hero__canvas--statue,
 .hero.is-static .hero__canvas--statue {
   opacity: 1;
 }

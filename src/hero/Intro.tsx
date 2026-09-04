@@ -30,11 +30,14 @@ export function Intro({ stage }: { stage: React.RefObject<HTMLDivElement | null>
       const leadB = st.querySelector<HTMLElement>(".word--top .letter--lead");
       const leadD = st.querySelector<HTMLElement>(".word--bottom .letter--lead");
       if (!b.current || !d.current || !leadB || !leadD) { finish(); return; }
-      st.classList.add("is-entering");  // statue fades up under the flight
       const pairs: [HTMLElement, HTMLElement][] = [[b.current, leadB], [d.current, leadD]];
       const anims = pairs.map(([from, to]) => {
         const a = from.getBoundingClientRect();
+        // the lead letter is parked below its line until the reveal: measure it where it will land
+        const savedTransform = to.style.transform;
+        to.style.transform = "none";
         const t = to.getBoundingClientRect();
+        to.style.transform = savedTransform;
         const s = t.height / a.height;
         const dx = t.left + t.width / 2 - (a.left + a.width / 2);
         const dy = t.top + t.height / 2 - (a.top + a.height / 2);
