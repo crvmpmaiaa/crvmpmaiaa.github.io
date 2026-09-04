@@ -10,6 +10,9 @@ import { Sky } from "./Sky";
 import { Statue } from "./Statue";
 import { Morph } from "./Morph";
 import { Rebuild } from "./Rebuild";
+import { Universe } from "./Universe";
+import { useCallback, useState } from "react";
+import type { Texture } from "three";
 
 /** Key light orbits the statue through the hold, so the light moves instead of the model. */
 function Lights() {
@@ -76,6 +79,8 @@ export function Scene({
   video?: HTMLVideoElement | null;
 }) {
   const mobile = typeof window !== "undefined" && window.innerWidth < 820;
+  const [screenTexture, setScreenTexture] = useState<Texture | null>(null);
+  const onTexture = useCallback((t: Texture) => setScreenTexture(t), []);
   return (
     <div className="hero__canvas hero__canvas--statue">
       <Canvas
@@ -106,7 +111,8 @@ export function Scene({
         </Suspense>
         <Suspense fallback={null}>
           <Morph set={mobile ? "mobile" : "desktop"} frozen={frozen} />
-          <Rebuild video={video} />
+          <Rebuild video={video} screenTexture={screenTexture} />
+          <Universe onTexture={onTexture} frozen={frozen} />
         </Suspense>
         <Lights />
         <CameraRig frozen={frozen} />

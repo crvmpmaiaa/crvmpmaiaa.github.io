@@ -23,7 +23,7 @@ export const stageTarget = { look: new THREE.Vector3(0, 0.66, 0), camPos: new TH
 const rebuildDissolve = makeDissolve(COLUMN_TOP + 0.3, true);
 
 /** Column and laptop surface beneath the settling dust, then turn, open and light up. */
-export function Rebuild({ video }: { video: HTMLVideoElement | null }) {
+export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | null; screenTexture?: THREE.Texture | null }) {
   const column = useGLTF(COLUMN, DRACO);
   const laptop = useGLTF(LAPTOP, DRACO);
   const group = useRef<THREE.Group>(null);
@@ -56,6 +56,19 @@ export function Rebuild({ video }: { video: HTMLVideoElement | null }) {
     const sc = l.getObjectByName("ScreenSurface") as THREE.Mesh | null;
     screen.current = sc;
     if (sc) {
+      // the export dropped the quad's texture coordinates: rebuild them from the geometry's own plane
+      const pos = sc.geometry.getAttribute("position");
+      const pts: THREE.Vector3[] = [];
+      for (let i = 0; i < pos.count; i++) pts.push(new THREE.Vector3().fromBufferAttribute(pos, i));
+      const n = new THREE.Vector3().crossVectors(pts[1].clone().sub(pts[0]), pts[2].clone().sub(pts[0])).normalize();
+      const up = Math.abs(n.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(0, 0, 1);
+      const uAxis = new THREE.Vector3().crossVectors(up, n).normalize();
+      const vAxis = new THREE.Vector3().crossVectors(n, uAxis).normalize();
+      const us = pts.map((q) => q.dot(uAxis)), vs = pts.map((q) => q.dot(vAxis));
+      const [u0, u1, v0, v1] = [Math.min(...us), Math.max(...us), Math.min(...vs), Math.max(...vs)];
+      const uv = new Float32Array(pos.count * 2);
+      for (let i = 0; i < pos.count; i++) { uv[i * 2] = (us[i] - u0) / (u1 - u0); uv[i * 2 + 1] = 1 - (vs[i] - v0) / (v1 - v0); }  // render targets read bottom up
+      sc.geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
       const sm = new THREE.MeshStandardMaterial({ color: 0x050607, roughness: 0.25, metalness: 0.0, emissive: 0xffffff, emissiveIntensity: 0, side: THREE.DoubleSide });
       applyDissolve(sm, rebuildDissolve, "rebuild-dissolve-screen");
       sc.material = sm;
@@ -68,16 +81,25 @@ export function Rebuild({ video }: { video: HTMLVideoElement | null }) {
     return { c, l };
   }, [column.scene, laptop.scene]);
 
+  // the screen shows the offscreen universe when there is one, else the video
   useEffect(() => {
-    if (!video || !screenMat.current) return;
+    const m = screenMat.current;
+    if (!m) return;
+    if (screenTexture) {
+      screenTexture.flipY = false;
+      m.emissiveMap = screenTexture;
+      m.needsUpdate = true;
+      return;
+    }
+    if (!video) return;
     const t = new THREE.VideoTexture(video);
     t.colorSpace = THREE.SRGBColorSpace;
     t.flipY = false;
     tex.current = t;
-    screenMat.current.emissiveMap = t;
-    screenMat.current.needsUpdate = true;
+    m.emissiveMap = t;
+    m.needsUpdate = true;
     return () => t.dispose();
-  }, [video]);
+  }, [video, screenTexture]);
 
   const tmpN = useMemo(() => new THREE.Vector3(), []);
   const tmpBox = useMemo(() => new THREE.Box3(), []);
