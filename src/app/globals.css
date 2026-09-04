@@ -419,7 +419,7 @@ footer.section {
   gap: calc(var(--pad) / var(--phi));
   padding: calc(var(--pad) / var(--phi) / var(--phi));
   border-radius: 999px;
-  background: rgba(6, 8, 14, 0.45);
+  background: rgba(6, 8, 14, 0.62);
   backdrop-filter: blur(18px) saturate(1.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -466,7 +466,7 @@ footer.section {
   width: 100%;
   padding: calc(var(--pad) * var(--phi)) calc(var(--pad) * var(--phi));
   border-radius: 1.25rem;
-  background: rgba(6, 8, 14, 0.52);
+  background: rgba(6, 8, 14, 0.74);
   backdrop-filter: blur(22px) saturate(1.1);
   -webkit-backdrop-filter: blur(22px) saturate(1.1);
   border: 1px solid rgba(255, 255, 255, 0.14);

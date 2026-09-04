@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { COPY } from "./lines";
 import { COPY_WINDOWS } from "./beats";
-import { onProgress } from "./progress";
+import { onProgress, progress } from "./progress";
 
 /** Copy blocks in DOM over the canvas. Opacity is a function of p, applied directly to style, no React state. */
 type Layer = "behind" | "front" | "all";
@@ -18,7 +18,7 @@ export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: L
         const el = refs.current[key];
         const win = COPY_WINDOWS[key.replace(/-front$/, "") as keyof typeof COPY_WINDOWS];
         if (!el || !win) continue;
-        const o = win(p);
+        const o = win(p, progress.q);
         el.style.opacity = o.toFixed(3);
         el.style.visibility = o < 0.01 ? "hidden" : "visible";
       }

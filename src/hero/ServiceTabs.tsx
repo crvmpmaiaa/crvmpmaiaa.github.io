@@ -28,8 +28,8 @@ export function ServiceTabs() {
       const q = progress.q;
       const inside = q > Q.arrive[0] && q < Q.turnBack[1];
       setVisible(inside);
-      setHeading(q > Q.arrive[0] && q < Q.truck[0] + 0.02);
-      setActive(q >= Q.truck[0] - 0.01 && q <= Q.turnBack[0] ? activeIndex(q) : -1);
+      setHeading(q > Q.arrive[0] && q < Q.truck[0] - 0.005);
+      setActive(q >= Q.truck[0] && q <= Q.turnBack[0] ? activeIndex(q) : -1);
     };
     apply();
     return onProgress(apply);
