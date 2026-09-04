@@ -1,6 +1,5 @@
 "use client";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useFBO } from "@react-three/drei";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { progress } from "./progress";
@@ -18,18 +17,18 @@ export const portalCamState = { pos: new THREE.Vector3(), look: new THREE.Vector
 export const screenAspect = { value: 1.475 };
 
 export function PortalScreen({ onTexture, frozen = false }: { onTexture: (t: THREE.Texture) => void; frozen?: boolean }) {
-  const full = useFBO(1600, Math.round(1600 / 1.475), { samples: 2 });
-  const half = useFBO(800, Math.round(800 / 1.475), { samples: 0 });
+  // one target, sized to the display's own pixels so the screen never shows a rescaled image
+  const target = useRef<THREE.WebGLRenderTarget | null>(null);
+  const bufSize = useMemo(() => new THREE.Vector2(), []);
   const cam = useMemo(() => { const c = new THREE.PerspectiveCamera(34, 1.475, 0.1, 400); c.layers.set(PORTAL_LAYER); return c; }, []);
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const mainCam = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const size = useThree((s) => s.size);
   const clock = useRef(0);
-  const current = useRef<THREE.WebGLRenderTarget | null>(null);
   const clear = useMemo(() => new THREE.Color(), []);
 
-  useEffect(() => { onTexture(full.texture); current.current = full; }, [full, onTexture]);
+  useEffect(() => () => { target.current?.dispose(); }, []);
 
   useFrame((_, dt) => {
     const p = progress.p, q = progress.q;
@@ -55,12 +54,20 @@ export function PortalScreen({ onTexture, frozen = false }: { onTexture: (t: THR
     cam.fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(mainFov / 2) * fill));
     cam.aspect = screenAspect.value;
     cam.updateProjectionMatrix();
-    const target = p > 0.93 ? full : half;
-    if (target !== current.current) { current.current = target; onTexture(target.texture); }
+    // the target covers the viewport times the overfill, in device pixels, so what shows through the screen
+    // is drawn at exactly the density the direct render will use
+    gl.getDrawingBufferSize(bufSize);
+    const tw = Math.round(bufSize.y * fill * screenAspect.value);
+    const th = Math.round(bufSize.y * fill);
+    if (!target.current || target.current.width !== tw || target.current.height !== th) {
+      target.current?.dispose();
+      target.current = new THREE.WebGLRenderTarget(tw, th, { samples: 2, depthBuffer: true });
+      onTexture(target.current.texture);
+    }
     const prev = gl.getRenderTarget();
     gl.getClearColor(clear);
     const prevAlpha = gl.getClearAlpha();
-    gl.setRenderTarget(target);
+    gl.setRenderTarget(target.current);
     gl.setClearColor(0x050607, 1);
     gl.clear();
     gl.render(scene, cam);
