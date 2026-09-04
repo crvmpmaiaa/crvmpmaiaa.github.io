@@ -14,6 +14,7 @@ const browser = await puppeteer.launch({
   args: ["--use-angle=metal", "--enable-gpu-rasterization", "--ignore-gpu-blocklist", "--autoplay-policy=no-user-gesture-required", `--window-size=${W},${H}`],
 });
 const page = await browser.newPage();
+if (process.env.FREEZE) await page.evaluateOnNewDocument(() => { window.__bdFreeze = true; });
 await page.setViewport({ width: W, height: H, deviceScaleFactor: 1 });
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));

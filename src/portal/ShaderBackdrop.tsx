@@ -34,7 +34,8 @@ const FRAG = /* glsl */ `
       o = tanh(o * uExposure / 5e1);
       fragColor = vec4(o.rgb, 1.0);
   }
-  void main() { mainImage(fragColor, vUv * iResolution.xy); }
+  uniform float uScale;   // 1 for the viewport, the overfill for the screen target: same centre, wider frame
+  void main() { mainImage(fragColor, (vUv - 0.5) * uScale * iResolution.xy + 0.5 * iResolution.xy); }
 `;
 
 const FRAG_GEODE = /* glsl */ `
@@ -69,7 +70,8 @@ const FRAG_GEODE = /* glsl */ `
     o = tanh(o * uExposure / 2000.0);
     fragColor = vec4(o.rgb, 1.0);
   }
-  void main() { mainImage(fragColor, vUv * iResolution.xy); }
+  uniform float uScale;
+  void main() { mainImage(fragColor, (vUv - 0.5) * uScale * iResolution.xy + 0.5 * iResolution.xy); }
 `;
 
 export const SHADERS = { cathedral: FRAG, geode: FRAG_GEODE } as const;
@@ -90,7 +92,7 @@ export function ShaderQuad({ frozen = false, variant = 0, shader = "geode", expo
     glslVersion: THREE.GLSL3,
     vertexShader: VERT,
     fragmentShader: SHADERS[shader],
-    uniforms: { iResolution: { value: new THREE.Vector3(1, 1, 1) }, iTime: { value: 0 }, uVariant: { value: variant }, uExposure: { value: exposure } },
+    uniforms: { iResolution: { value: new THREE.Vector3(1, 1, 1) }, iTime: { value: 0 }, uVariant: { value: variant }, uExposure: { value: exposure }, uScale: { value: 1 } },
     depthTest: false,
     depthWrite: false,
     toneMapped: false,
@@ -98,7 +100,8 @@ export function ShaderQuad({ frozen = false, variant = 0, shader = "geode", expo
   const clock = useRef(0);
   const size = useMemo(() => new THREE.Vector2(), []);
   useFrame((_, dt) => {
-    if (!frozen) clock.current += Math.min(dt, 0.05) * speed;
+    const freeze = (window as unknown as { __bdFreeze?: boolean }).__bdFreeze;  // QA: hold the clock
+    if (!frozen && !freeze) clock.current += Math.min(dt, 0.05) * speed;
     mat.uniforms.iTime.value = clock.current;
     mat.uniforms.uVariant.value = variant;
     mat.uniforms.uExposure.value = exposure;
@@ -109,9 +112,12 @@ export function ShaderQuad({ frozen = false, variant = 0, shader = "geode", expo
       renderOrder={-1000}
       material={mat}
       onBeforeRender={(renderer) => {
+        // the shader's own camera is built from the resolution, so every render gets the viewport's size;
+        // a taller target (the laptop screen with its overfill) draws a proportionally wider frame
+        renderer.getDrawingBufferSize(size);
         const t = renderer.getRenderTarget();
-        if (t) size.set(t.width, t.height); else renderer.getDrawingBufferSize(size);
         mat.uniforms.iResolution.value.set(size.x, size.y, 1);
+        mat.uniforms.uScale.value = t ? t.height / size.y : 1;
       }}
     >
       <planeGeometry args={[2, 2]} />
