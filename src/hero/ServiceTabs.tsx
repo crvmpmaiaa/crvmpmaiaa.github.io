@@ -62,13 +62,18 @@ export function ServiceTabs() {
       <div className="tabs__panels">
         {SERVICES.map((s, i) => (
           <section key={s.title} id={`service-${i}`} role="tabpanel" className={`tabs__panel${active === i ? " is-open" : ""}`} aria-hidden={active !== i}>
-            <h3 className="tabs__title tabs__in" style={{ "--i": 0 } as React.CSSProperties}>{s.title}</h3>
-            <p className="tabs__lead tabs__in" style={{ "--i": 1 } as React.CSSProperties}>{s.lead}</p>
-            {s.points.length > 0 && (
-              <ul className="tabs__points">
-                {s.points.map((p, j) => <li key={p} className="tabs__in" style={{ "--i": 2 + j * 0.5 } as React.CSSProperties}>{p}</li>)}
-              </ul>
-            )}
+            <div className="tabs__text">
+              <h3 className="tabs__title tabs__in" style={{ "--i": 0 } as React.CSSProperties}>{s.title}</h3>
+              <p className="tabs__lead tabs__in" style={{ "--i": 1 } as React.CSSProperties}>{s.lead}</p>
+              {s.points.length > 0 && (
+                <ul className="tabs__points">
+                  {s.points.map((p, j) => <li key={p} className="tabs__in" style={{ "--i": 2 + j * 0.5 } as React.CSSProperties}>{p}</li>)}
+                </ul>
+              )}
+            </div>
+            <figure className="tabs__figure tabs__in" style={{ "--i": 1.5 } as React.CSSProperties}>
+              <img src={s.image} alt={s.alt} loading="lazy" width={1200} height={742} />
+            </figure>
           </section>
         ))}
       </div>

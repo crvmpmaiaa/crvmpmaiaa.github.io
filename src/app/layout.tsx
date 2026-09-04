@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Anton, Cormorant_Garamond, Hanken_Grotesk } from "next/font/google";
+import { Anton, Cormorant_Garamond, Geist } from "next/font/google";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -15,7 +15,7 @@ const wordmark = Anton({
   weight: "400",
 });
 
-const body = Hanken_Grotesk({
+const body = Geist({
   variable: "--font-body-src",
   subsets: ["latin"],
 });
