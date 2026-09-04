@@ -141,7 +141,7 @@ function Dust({ count = 1600 }: { count?: number }) {
   );
 }
 
-export function PortalWorld({ material = "marble", video, lit, onSelect, standalone = false, backdrop = "shader", frozen = false, active, bare = false, variant = 0, shader = "geode", exposure = 1 }: { material?: "marble" | "glass"; video?: HTMLVideoElement | null; lit: React.MutableRefObject<number>[]; onSelect?: (i: number) => void; standalone?: boolean; backdrop?: "shader" | "video"; frozen?: boolean; active?: () => boolean; bare?: boolean; variant?: number; shader?: ShaderName; exposure?: number }) {
+export function PortalWorld({ material = "marble", video, lit, onSelect, standalone = false, backdrop = "shader", frozen = false, active, bare = false, variant = 0, shader = "geode", exposure = 0.55 }: { material?: "marble" | "glass"; video?: HTMLVideoElement | null; lit: React.MutableRefObject<number>[]; onSelect?: (i: number) => void; standalone?: boolean; backdrop?: "shader" | "video"; frozen?: boolean; active?: () => boolean; bare?: boolean; variant?: number; shader?: ShaderName; exposure?: number }) {
   const root = useRef<THREE.Group>(null);
   useEffect(() => {
     if (standalone || !root.current) return;
