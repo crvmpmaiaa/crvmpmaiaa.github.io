@@ -10,7 +10,7 @@ import { Sky } from "./Sky";
 import { Statue } from "./Statue";
 import { Morph } from "./Morph";
 import { Rebuild } from "./Rebuild";
-import { Universe } from "./Universe";
+import { PortalScreen } from "./PortalScreen";
 import { useCallback, useState } from "react";
 import type { Texture } from "three";
 
@@ -112,7 +112,7 @@ export function Scene({
         <Suspense fallback={null}>
           <Morph set={mobile ? "mobile" : "desktop"} frozen={frozen} />
           <Rebuild video={video} screenTexture={screenTexture} />
-          <Universe onTexture={onTexture} frozen={frozen} />
+          <PortalScreen video={video} onTexture={onTexture} frozen={frozen} />
         </Suspense>
         <Lights />
         <CameraRig frozen={frozen} />

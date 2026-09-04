@@ -67,7 +67,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
       const us = pts.map((q) => q.dot(uAxis)), vs = pts.map((q) => q.dot(vAxis));
       const [u0, u1, v0, v1] = [Math.min(...us), Math.max(...us), Math.min(...vs), Math.max(...vs)];
       const uv = new Float32Array(pos.count * 2);
-      for (let i = 0; i < pos.count; i++) { uv[i * 2] = (us[i] - u0) / (u1 - u0); uv[i * 2 + 1] = 1 - (vs[i] - v0) / (v1 - v0); }  // render targets read bottom up
+      for (let i = 0; i < pos.count; i++) { uv[i * 2] = 1 - (us[i] - u0) / (u1 - u0); uv[i * 2 + 1] = 1 - (vs[i] - v0) / (v1 - v0); }  // the quad faces the viewer, so u runs right to left; targets read bottom up
       sc.geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
       const sm = new THREE.MeshStandardMaterial({ color: 0x050607, roughness: 0.25, metalness: 0.0, emissive: 0xffffff, emissiveIntensity: 0, side: THREE.DoubleSide });
       applyDissolve(sm, rebuildDissolve, "rebuild-dissolve-screen");
@@ -143,7 +143,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     const light = ease.smooth(remap(p, 0.83, 0.86));
     screenState.light = light;
     if (screenMat.current) screenMat.current.emissiveIntensity = light * 1.4;
-    if (video && p > 0.84 && video.paused) video.play().catch(() => {});
+    if (video && p > 0.62 && video.paused) video.play().catch(() => {});
 
     // publish the screen's world centre and normal for the camera
     const sc = screen.current;
