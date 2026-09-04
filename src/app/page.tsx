@@ -9,16 +9,16 @@ export default function Page() {
       <main id="main">
         <section className="section" id="work" aria-labelledby="work-h">
           <h2 id="work-h">Work</h2>
-          <p>Selected projects arrive here. Each one gets a plain account of what it does, who it is for and what changed after it shipped.</p>
+          <p>Selected projects, each with what it does, who it is for and what changed after it shipped.</p>
         </section>
         <section className="section" id="approach" aria-labelledby="approach-h">
           <h2 id="approach-h">Approach</h2>
           <p>{COPY.block1}</p>
           <p>{COPY.block2} {COPY.block3}</p>
           <ul>
-            <li>One idea per page, built to be read.</li>
-            <li>Performance measured on real devices, not assumed.</li>
-            <li>Accessible by default: keyboard, screen readers, reduced motion.</li>
+            <li>One idea per page.</li>
+            <li>Speed measured on real phones and laptops before launch.</li>
+            <li>Works with a keyboard, a screen reader and reduced motion.</li>
           </ul>
         </section>
         <section className="section" id="contact" aria-labelledby="contact-h">
