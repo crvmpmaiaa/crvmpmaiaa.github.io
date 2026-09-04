@@ -101,7 +101,12 @@ const vert = /* glsl */ `
     vec3 wind = normalize(vec3(1.0, 0.22, 0.15));
     vec3 p = position;
     p += nrmA * smoothstep(0.0, 0.25, t) * 0.03;
-    p += curl(position * 1.6 + vec3(uTime * 0.08, 0.0, 0.0) + t * 1.5) * (0.06 + 0.5 * t) * t;
+    // the same swirl the pillar arrives on: curl noise that peaks mid flight, on top of the wind
+    p += curl(position * 1.6 + vec3(uTime * 0.08, 0.0, 0.0) + t * 1.5) * (0.45 * sin(t * 3.14159) + 0.35 * t);
+    // and a slow vortex around the figure's axis as the dust lifts, so it spirals up and out
+    float ang = t * t * 2.2 * (0.7 + 0.6 * seed);
+    vec2 rel = p.xz - vec2(0.0, 0.0);
+    p.xz = vec2(rel.x * cos(ang) - rel.y * sin(ang), rel.x * sin(ang) + rel.y * cos(ang));
     p += (wind + jitter * 0.35) * te * te * uScatter * (0.8 + 0.4 * seed);
     p.y += te * te * uRise * (0.5 + seed);
     // visible the moment the surface lets go, gone as it thins into the sky
@@ -228,8 +233,8 @@ export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "
       uSpread: { value: VAPORISE.spread },
       uTime: { value: 0 },
       uPixelRatio: { value: 1 },
-      uScatter: { value: 3.4 },
-      uRise: { value: 0.7 },
+      uScatter: { value: 3.0 },
+      uRise: { value: 1.4 },
     }),
     [],
   );
