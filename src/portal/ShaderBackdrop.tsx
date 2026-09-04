@@ -34,7 +34,7 @@ const FRAG = /* glsl */ `
       o = tanh(o * uExposure / 5e1);
       fragColor = vec4(o.rgb, 1.0);
   }
-  uniform float uScale;   // 1 for the viewport, the overfill for the screen target: same centre, wider frame
+  uniform vec2 uScale;   // 1 for the viewport; for the screen target, its size over the viewport's, per axis
   void main() { mainImage(fragColor, (vUv - 0.5) * uScale * iResolution.xy + 0.5 * iResolution.xy); }
 `;
 
@@ -70,7 +70,7 @@ const FRAG_GEODE = /* glsl */ `
     o = tanh(o * uExposure / 2000.0);
     fragColor = vec4(o.rgb, 1.0);
   }
-  uniform float uScale;
+  uniform vec2 uScale;
   void main() { mainImage(fragColor, (vUv - 0.5) * uScale * iResolution.xy + 0.5 * iResolution.xy); }
 `;
 
@@ -92,7 +92,7 @@ export function ShaderQuad({ frozen = false, variant = 0, shader = "geode", expo
     glslVersion: THREE.GLSL3,
     vertexShader: VERT,
     fragmentShader: SHADERS[shader],
-    uniforms: { iResolution: { value: new THREE.Vector3(1, 1, 1) }, iTime: { value: 0 }, uVariant: { value: variant }, uExposure: { value: exposure }, uScale: { value: 1 } },
+    uniforms: { iResolution: { value: new THREE.Vector3(1, 1, 1) }, iTime: { value: 0 }, uVariant: { value: variant }, uExposure: { value: exposure }, uScale: { value: new THREE.Vector2(1, 1) } },
     depthTest: false,
     depthWrite: false,
     toneMapped: false,
@@ -117,7 +117,7 @@ export function ShaderQuad({ frozen = false, variant = 0, shader = "geode", expo
         renderer.getDrawingBufferSize(size);
         const t = renderer.getRenderTarget();
         mat.uniforms.iResolution.value.set(size.x, size.y, 1);
-        mat.uniforms.uScale.value = t ? t.height / size.y : 1;
+        if (t) mat.uniforms.uScale.value.set(t.width / size.x, t.height / size.y); else mat.uniforms.uScale.value.set(1, 1);
       }}
     >
       <planeGeometry args={[2, 2]} />
