@@ -62,6 +62,8 @@ export function PortalScreen({ onTexture, frozen = false }: { onTexture: (t: THR
     if (!target.current || target.current.width !== tw || target.current.height !== th) {
       target.current?.dispose();
       target.current = new THREE.WebGLRenderTarget(tw, th, { samples: 2, depthBuffer: true });
+      // the target already holds display ready colour; mark it so the screen material does not encode it twice
+      target.current.texture.colorSpace = THREE.SRGBColorSpace;
       onTexture(target.current.texture);
     }
     const prev = gl.getRenderTarget();
