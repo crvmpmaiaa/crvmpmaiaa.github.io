@@ -11,6 +11,10 @@ import { Statue } from "./Statue";
 import { Morph } from "./Morph";
 import { Rebuild } from "./Rebuild";
 import { PortalScreen } from "./PortalScreen";
+import { PortalWorld, portalLit } from "@/portal/PortalScene";
+import { PORTAL_OFFSET, holdCentre, qForTruck } from "@/portal/rail";
+import { HERO_FRACTION } from "./beats";
+import { scrollControl } from "./progress";
 import { useCallback, useState } from "react";
 import type { Texture } from "three";
 
@@ -112,7 +116,10 @@ export function Scene({
         <Suspense fallback={null}>
           <Morph set={mobile ? "mobile" : "desktop"} frozen={frozen} />
           <Rebuild video={video} screenTexture={screenTexture} />
-          <PortalScreen video={video} onTexture={onTexture} frozen={frozen} />
+          <PortalScreen onTexture={onTexture} frozen={frozen} />
+          <group position={[PORTAL_OFFSET[0], PORTAL_OFFSET[1], PORTAL_OFFSET[2]]}>
+            <PortalWorld video={video} lit={portalLit} onSelect={(i) => scrollControl.toSection(HERO_FRACTION + (1 - HERO_FRACTION) * qForTruck(holdCentre(i)))} />
+          </group>
         </Suspense>
         <Lights />
         <CameraRig frozen={frozen} />

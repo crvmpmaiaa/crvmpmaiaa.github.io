@@ -17,7 +17,6 @@ export const ScreenVideo = forwardRef<HTMLVideoElement, { className?: string }>(
       poster="/media/cosmos-poster.jpg"
       aria-hidden="true"
     >
-      <source src="/media/cosmos.webm" type="video/webm" />
       <source src="/media/cosmos.mp4" type="video/mp4" />
     </video>
   );

@@ -12,7 +12,23 @@ export const BEATS = {
   screen: [0.87, 0.965],
 } as const;
 
-export const SCROLL_LENGTH_VH = 700;
+/** hero 700vh, then the portal section 600vh, all in one pin */
+export const HERO_VH = 700;
+export const PORTAL_VH = 600;
+export const SCROLL_LENGTH_VH = HERO_VH + PORTAL_VH;
+export const HERO_FRACTION = HERO_VH / SCROLL_LENGTH_VH;
+
+/** portal section beats on q in [0, 1] */
+export const Q = {
+  through: [0.0, 0.08],
+  cross: 0.04,
+  arrive: [0.08, 0.14],
+  truck: [0.14, 0.8],
+  turnBack: [0.8, 0.86],
+  backThrough: [0.86, 0.92],
+  crossBack: 0.9,
+  pullOut: [0.92, 1.0],
+} as const;
 
 /** 0 before a, 1 after b, linear between. */
 export function remap(p: number, a: number, b: number): number {

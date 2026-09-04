@@ -1,7 +1,7 @@
 "use client";
 import { useFrame, useLoader } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 /**
@@ -24,9 +24,14 @@ export const CARDS: CardSpec[] = [
   { title: "AI Consulting", x: 12.4, z: -1.3, rotY: -0.14, long: false },
 ];
 export const CARD = { w: 1.5, h: 0.95, d: 0.035 };
+/** per card light 0..1 from camera distance (written by the camera rig) and hover (written by pointer events) */
+export const portalLit = CARDS.map(() => ({ current: 0.2 }));
+export const portalHover = CARDS.map(() => ({ current: 0 }));
+/** everything in the portal world lives on layer 1 so the hero camera never sees it and vice versa */
+export const PORTAL_LAYER = 1;
 
 /** Marble card: thin slab of the pillar's marble with the service name glowing through as an inscription. */
-function MarbleCard({ spec, lit }: { spec: CardSpec; lit: React.MutableRefObject<number> }) {
+function MarbleCard({ spec, lit, index, onSelect }: { spec: CardSpec; lit: React.MutableRefObject<number>; index: number; onSelect?: (i: number) => void }) {
   const base = useLoader(THREE.TextureLoader, "/textures/marble-card.webp");
   // each card gets its own slice of the veining so no two read the same
   const marble = useMemo(() => {
@@ -41,7 +46,7 @@ function MarbleCard({ spec, lit }: { spec: CardSpec; lit: React.MutableRefObject
   const mat = useRef<THREE.MeshPhysicalMaterial>(null);
   const text = useRef<THREE.Mesh>(null);
   useFrame(() => {
-    const l = lit.current;
+    const l = Math.min(1, lit.current + portalHover[index].current * 0.6);
     if (mat.current) mat.current.emissiveIntensity = 0.05 + l * 0.25;
     if (text.current) {
       const m = text.current.material as THREE.MeshBasicMaterial;
@@ -52,9 +57,13 @@ function MarbleCard({ spec, lit }: { spec: CardSpec; lit: React.MutableRefObject
   });
   return (
     <group position={[spec.x, 0, spec.z]} rotation={[0, spec.rotY, 0]}>
-      <mesh>
+      <mesh
+        onPointerOver={(e) => { e.stopPropagation(); portalHover[index].current = 1; document.body.style.cursor = "pointer"; }}
+        onPointerOut={() => { portalHover[index].current = 0; document.body.style.cursor = ""; }}
+        onClick={(e) => { e.stopPropagation(); onSelect?.(index); }}
+      >
         <boxGeometry args={[CARD.w, CARD.h, CARD.d]} />
-        <meshPhysicalMaterial ref={mat} map={marble} roughness={0.28} metalness={0} clearcoat={0.7} clearcoatRoughness={0.22} emissive={new THREE.Color(ACCENT)} emissiveIntensity={0.05} envMapIntensity={0.9} />
+        <meshPhysicalMaterial ref={mat} map={marble} roughness={0.28} metalness={0} clearcoat={0.7} clearcoatRoughness={0.22} emissive={new THREE.Color(ACCENT)} emissiveIntensity={0.05} envMapIntensity={0.9} toneMapped={false} />
       </mesh>
       {/* inscription: sits a hair in front of the face so it reads as cut into the surface and lit from behind */}
       <Text ref={text} font="/fonts/CormorantGaramond-Regular.ttf" position={[0, 0, CARD.d / 2 + 0.002]} fontSize={0.15} maxWidth={CARD.w * 0.84} textAlign="center" anchorX="center" anchorY="middle" letterSpacing={-0.005} color={ACCENT}>
@@ -91,8 +100,13 @@ function Backdrop({ video }: { video?: HTMLVideoElement | null }) {
   const poster = useLoader(THREE.TextureLoader, "/media/cosmos-poster.jpg");
   poster.colorSpace = THREE.SRGBColorSpace;
   const tex = useMemo(() => {
-    if (video) { const t = new THREE.VideoTexture(video); t.colorSpace = THREE.SRGBColorSpace; return t; }
-    return poster;
+    const t = video ? new THREE.VideoTexture(video) : poster.clone();
+    t.colorSpace = THREE.SRGBColorSpace;
+    // tiled and mirrored across the arc so the field reads as distant and endless rather than one big picture
+    t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping;
+    t.repeat.set(3.4, 1.7);
+    t.needsUpdate = true;
+    return t;
   }, [video, poster]);
   // a shallow arc of radius 60 centred on the rail, its surface about 46 units behind the cards.
   // three's cylinder puts theta 0 on +Z, so the arc is cut around pi to sit on the far side.
@@ -119,22 +133,33 @@ function Dust({ count = 1600 }: { count?: number }) {
   useFrame((_, dt) => { if (pts.current) pts.current.position.x = (pts.current.position.x + dt * 0.02) % 1; });
   return (
     <points ref={pts} geometry={geo}>
-      <pointsMaterial ref={mat} size={2.2} sizeAttenuation={false} color="#c9d0d8" transparent opacity={0.55} depthWrite={false} />
+      <pointsMaterial ref={mat} size={2.2} sizeAttenuation={false} color="#c9d0d8" transparent opacity={0.55} depthWrite={false} toneMapped={false} />
     </points>
   );
 }
 
-export function PortalWorld({ material = "marble", video, lit }: { material?: "marble" | "glass"; video?: HTMLVideoElement | null; lit: React.MutableRefObject<number>[] }) {
+export function PortalWorld({ material = "marble", video, lit, onSelect, standalone = false }: { material?: "marble" | "glass"; video?: HTMLVideoElement | null; lit: React.MutableRefObject<number>[]; onSelect?: (i: number) => void; standalone?: boolean }) {
+  const root = useRef<THREE.Group>(null);
+  useEffect(() => {
+    if (standalone || !root.current) return;
+    root.current.traverse((o) => o.layers.set(PORTAL_LAYER));
+  });
   return (
-    <group>
-      <color attach="background" args={[PALETTE.black]} />
-      <fog attach="fog" args={[PALETTE.black, 18, 60]} />
+    <group ref={root}>
+      {standalone && <color attach="background" args={[PALETTE.black]} />}
+      {/* inside the hero canvas there is no scene background, so the portal carries its own black sky */}
+      {!standalone && (
+        <mesh>
+          <sphereGeometry args={[150, 16, 12]} />
+          <meshBasicMaterial color={PALETTE.black} side={THREE.BackSide} fog={false} />
+        </mesh>
+      )}
       <ambientLight intensity={0.12} color="#9fb1c6" />
       <directionalLight position={[-6, 8, 6]} intensity={2.4} color="#dfe8f2" />
       <directionalLight position={[10, 2, -4]} intensity={0.5} color={ACCENT} />
       <Backdrop video={video} />
       <Dust />
-      {CARDS.map((c, i) => material === "glass" ? <GlassCard key={c.title} spec={c} lit={lit[i]} /> : <MarbleCard key={c.title} spec={c} lit={lit[i]} />)}
+      {CARDS.map((c, i) => material === "glass" ? <GlassCard key={c.title} spec={c} lit={lit[i]} /> : <MarbleCard key={c.title} spec={c} lit={lit[i]} index={i} onSelect={onSelect} />)}
     </group>
   );
 }

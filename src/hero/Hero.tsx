@@ -6,7 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { Copy } from "./Copy";
 import { SCROLL_LENGTH_VH } from "./beats";
-import { setProgress } from "./progress";
+import { setProgress, scrollControl } from "./progress";
 
 const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false });
 import { SkyVideo } from "./SkyVideo";
@@ -66,6 +66,10 @@ export function Hero() {
       onUpdate: (self) => setProgress(self.progress),
     });
     setProgress(st.progress);
+    scrollControl.toSection = (s) => {
+      const y = st.start + (st.end - st.start) * Math.min(1, Math.max(0, s));
+      lenis.scrollTo(y, { duration: 1.2 });
+    };
 
     return () => {
       st.kill();

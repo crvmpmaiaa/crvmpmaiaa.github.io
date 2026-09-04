@@ -1,11 +1,16 @@
 "use client";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { BEATS, ease, remap } from "./beats";
 import { progress } from "./progress";
 import { STATUE } from "./Statue";
 import { COLUMN_TOP, stageTarget, screenState } from "./Rebuild";
+import { Q } from "./beats";
+import { portalCamState } from "./PortalScreen";
+import { PORTAL_LAYER, CARDS, portalLit } from "@/portal/PortalScene";
+import { ENTRY, PORTAL_OFFSET, RAIL_Y, RAIL_Z, railX, litFor } from "@/portal/rail";
+import { pointer, bindPointer } from "./pointer";
 
 /**
  * Camera as a pure function of p, plus a wall clock handheld drift in beat 1 that fades out with the dolly.
@@ -47,6 +52,8 @@ function bezier(out: THREE.Vector3, a: THREE.Vector3, c: THREE.Vector3, b: THREE
 export function CameraRig({ frozen = false }: { frozen?: boolean }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const clock = useRef(0);
+  const inside = useRef(false);
+  useEffect(() => { bindPointer(); }, []);
   const noise = useMemo(() => {
     // three incommensurate sines make a cheap, loopless handheld drift
     return (t: number, k: number) => Math.sin(t * 0.7 + k) * 0.5 + Math.sin(t * 1.3 + k * 2.1) * 0.3 + Math.sin(t * 2.9 + k * 0.7) * 0.2;
@@ -97,16 +104,63 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
       // both ends are fixed: the screen finishes on the look point's height, so aim there from the start
       // and let the rig bring the screen to meet the camera. No snap at the first frame.
       const fovRad = THREE.MathUtils.degToRad(fov);
-      const dist = (screenState.height / 2) / Math.tan(fovRad / 2) / 1.04;
+      const dist = (screenState.height / 2) / Math.tan(fovRad / 2) / portalCamState.fill;
       screenPos.set(screenState.centre.x, tmpLook.y, screenState.centre.z + dist);
       screenLook.set(screenState.centre.x, tmpLook.y, screenState.centre.z);
       tmpPos.lerp(screenPos, dolly);
       tmpLook.lerp(screenLook, dolly);
     }
 
+    // ---------- portal section ----------
+    const q = progress.q;
+    const isInside = q > Q.cross && q < Q.crossBack;
+    if (isInside !== inside.current) {
+      inside.current = isInside;
+      camera.layers.set(isInside ? PORTAL_LAYER : 0);
+    }
+    if (isInside) {
+      const mx = pointer.active ? pointer.x : 0, my = pointer.active ? pointer.y : 0;
+      // arrive: decelerate forward from the entry pose, turning to look along the rail
+      const arrive = ease.out(remap(q, Q.cross, Q.arrive[1]));
+      // truck: rail position with plateaus
+      const u = remap(q, Q.truck[0], Q.truck[1]);
+      const x = railX(u);
+      // turn back and reverse toward the screen plane
+      const backTurn = ease.inOut(remap(q, Q.turnBack[0], Q.turnBack[1]));
+      const reverse = ease.inOut(remap(q, Q.turnBack[1], Q.crossBack));
+      const entryPos = new THREE.Vector3(ENTRY.pos[0], ENTRY.pos[1], ENTRY.pos[2] - 0.9);
+      const entryLook = new THREE.Vector3(ENTRY.look[0], ENTRY.look[1], ENTRY.look[2]);
+      const railPos = new THREE.Vector3(x, RAIL_Y, RAIL_Z);
+      const railLook = new THREE.Vector3(x + mx * 0.9, RAIL_Y + my * 0.5, RAIL_Z - 4);
+      const pos = new THREE.Vector3().lerpVectors(entryPos, railPos, arrive);
+      const look = new THREE.Vector3().lerpVectors(entryLook, railLook, arrive);
+      // exit: turn to face back the way we came, then reverse to the entry pose
+      if (backTurn > 0) {
+        const backLook = new THREE.Vector3(x - 4, RAIL_Y, RAIL_Z + 1.5);
+        look.lerp(backLook, backTurn);
+        pos.lerp(entryPos, reverse);
+        look.lerp(entryLook, reverse);
+      }
+      pos.x += mx * 0.15; pos.y += my * 0.08;
+      camera.position.set(PORTAL_OFFSET[0] + pos.x, PORTAL_OFFSET[1] + pos.y, PORTAL_OFFSET[2] + pos.z);
+      camera.lookAt(PORTAL_OFFSET[0] + look.x, PORTAL_OFFSET[1] + look.y, PORTAL_OFFSET[2] + look.z);
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
+      for (let i = 0; i < CARDS.length; i++) portalLit[i].current = litFor(CARDS[i].x, pos.x) * (1 - backTurn * 0.7);
+      (window as unknown as { __bdCam?: unknown }).__bdCam = { q: +q.toFixed(3), inside: true, pos: pos.toArray().map((v) => +v.toFixed(3)), look: look.toArray().map((v) => +v.toFixed(3)), fov: +fov.toFixed(2) };
+      return;
+    }
+    // outside after the return crossing: pull back and up to a composition of pillar and laptop against the sky
+    const out = ease.inOut(remap(q, Q.pullOut[0], Q.pullOut[1]));
+    if (out > 0) {
+      const endPos = new THREE.Vector3(0.4, 1.35, 4.2);
+      const endLook = new THREE.Vector3(0, 0.55, 0);
+      tmpPos.lerp(endPos, out);
+      tmpLook.lerp(endLook, out);
+    }
     camera.position.copy(tmpPos);
     camera.lookAt(tmpLook);
-    (window as unknown as { __bdCam?: unknown }).__bdCam = { p: +p.toFixed(3), pos: tmpPos.toArray().map((v) => +v.toFixed(3)), look: tmpLook.toArray().map((v) => +v.toFixed(3)), fov: +fov.toFixed(2), dolly: +dolly.toFixed(3) };
+    (window as unknown as { __bdCam?: unknown }).__bdCam = { p: +p.toFixed(3), fill: +portalCamState.fill.toFixed(3), sh: +screenState.height.toFixed(4), pos: tmpPos.toArray().map((v) => +v.toFixed(3)), look: tmpLook.toArray().map((v) => +v.toFixed(3)), fov: +fov.toFixed(2), dolly: +dolly.toFixed(3) };
     if (Math.abs(camera.fov - fov) > 0.01) {
       camera.fov = fov;
       camera.updateProjectionMatrix();

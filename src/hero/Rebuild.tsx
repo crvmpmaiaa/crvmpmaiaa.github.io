@@ -8,6 +8,7 @@ import { progress } from "./progress";
 import { MODEL_VERSION } from "./Statue";
 import { SETTLE } from "./Morph";
 import { makeDissolve, applyDissolve } from "./dissolve";
+import { screenAspect, portalCamState } from "./PortalScreen";
 
 const COLUMN = `/models/column.glb?v=${MODEL_VERSION}`;
 const LAPTOP = `/models/laptop.glb?v=${MODEL_VERSION}`;
@@ -29,7 +30,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
   const group = useRef<THREE.Group>(null);
   const lid = useRef<THREE.Object3D | null>(null);
   const screen = useRef<THREE.Mesh | null>(null);
-  const screenMat = useRef<THREE.MeshStandardMaterial | null>(null);
+  const screenMat = useRef<THREE.MeshBasicMaterial | null>(null);
   const tex = useRef<THREE.VideoTexture | null>(null);
   const shadows = useRef(true);
 
@@ -69,14 +70,18 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
       const uv = new Float32Array(pos.count * 2);
       for (let i = 0; i < pos.count; i++) { uv[i * 2] = 1 - (us[i] - u0) / (u1 - u0); uv[i * 2 + 1] = 1 - (vs[i] - v0) / (v1 - v0); }  // the quad faces the viewer, so u runs right to left; targets read bottom up
       sc.geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
-      const sm = new THREE.MeshStandardMaterial({ color: 0x050607, roughness: 0.25, metalness: 0.0, emissive: 0xffffff, emissiveIntensity: 0, side: THREE.DoubleSide });
-      applyDissolve(sm, rebuildDissolve, "rebuild-dissolve-screen");
+      // unlit and untonemapped: the screen shows the portal target exactly as the direct render will draw it,
+      // the backlight ramp is a plain multiply from black to white
+      const sm = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide, toneMapped: false });
+      applyDissolve(sm as unknown as THREE.MeshStandardMaterial, rebuildDissolve, "rebuild-dissolve-screen");
       sc.material = sm;
       screenMat.current = sm;
       // find the quad's height for the camera framing
       sc.geometry.computeBoundingBox();
       const bb = sc.geometry.boundingBox!;
-      screenState.height = Math.max(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z) * 0.68;
+      const ext = [bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z].sort((a, b) => b - a);
+      screenState.height = ext[1];
+      screenAspect.value = ext[0] / ext[1];
     }
     return { c, l };
   }, [column.scene, laptop.scene]);
@@ -87,7 +92,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     if (!m) return;
     if (screenTexture) {
       screenTexture.flipY = false;
-      m.emissiveMap = screenTexture;
+      m.map = screenTexture;
       m.needsUpdate = true;
       return;
     }
@@ -96,7 +101,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     t.colorSpace = THREE.SRGBColorSpace;
     t.flipY = false;
     tex.current = t;
-    m.emissiveMap = t;
+    m.map = t;
     m.needsUpdate = true;
     return () => t.dispose();
   }, [video, screenTexture]);
@@ -142,7 +147,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     (window as unknown as { __bdRig?: unknown }).__bdRig = { gy: +g.position.y.toFixed(3), rot: +g.rotation.y.toFixed(3), lid: +lidDeg.toFixed(1), down: +down.toFixed(3), sc: screenState.centre.toArray().map((v) => +v.toFixed(3)) };
     const light = ease.smooth(remap(p, 0.83, 0.86));
     screenState.light = light;
-    if (screenMat.current) screenMat.current.emissiveIntensity = light * 1.4;
+    if (screenMat.current) screenMat.current.color.setScalar(light);
     if (video && p > 0.62 && video.paused) video.play().catch(() => {});
 
     // publish the screen's world centre and normal for the camera

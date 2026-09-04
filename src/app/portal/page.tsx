@@ -16,14 +16,13 @@ export default function PortalDebug() {
   return (
     <div style={{ position: "fixed", inset: 0, background: "#050607" }}>
       <video ref={(el) => { if (el && el !== video) { setVideo(el); el.play().catch(() => {}); } }} muted loop playsInline autoPlay preload="auto" style={{ position: "absolute", width: 1, height: 1, opacity: 0 }}>
-        <source src="/media/cosmos.webm" type="video/webm" />
         <source src="/media/cosmos.mp4" type="video/mp4" />
       </video>
       <Canvas dpr={[1, 2]} camera={{ fov: 34, position: [target.x, 0.1, target.z + (card >= 0 ? 2.4 : 6.5)], near: 0.05, far: 200 }}
         gl={{ antialias: true }} onCreated={({ gl }) => { gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.0; }}>
         <Suspense fallback={null}>
           <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.35} />
-          <PortalWorld material={material} lit={lit} video={video} />
+          <PortalWorld material={material} lit={lit} video={video} standalone />
         </Suspense>
         <OrbitControls target={[target.x, 0, target.z]} />
       </Canvas>
