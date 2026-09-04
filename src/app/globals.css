@@ -294,6 +294,29 @@ body {
   to { opacity: 1; transform: none; }
 }
 
+.cta {
+  display: inline-block;
+  padding: 1rem 1.75rem;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  text-decoration: none;
+  color: white;
+  background: var(--ink);
+  box-shadow: 0 12px 32px rgba(20, 32, 46, 0.22);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(20, 32, 46, 0.3);
+}
+.cta:active {
+  transform: none;
+}
+
 .scroll-hint {
   position: absolute;
   right: clamp(1.25rem, 6vw, 6rem);
@@ -419,7 +442,7 @@ footer.section {
   gap: calc(var(--pad) / var(--phi));
   padding: calc(var(--pad) / var(--phi) / var(--phi));
   border-radius: 999px;
-  background: rgba(6, 8, 14, 0.62);
+  background: rgba(7, 9, 15, 0.82);
   backdrop-filter: blur(18px) saturate(1.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -483,7 +506,7 @@ footer.section {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: min(61.8vw, 44rem);
+  width: min(61.8vw, 40rem);
 }
 .tabs__panel {
   position: absolute;
@@ -491,11 +514,11 @@ footer.section {
   width: 100%;
   padding: calc(var(--pad) * var(--phi)) calc(var(--pad) * var(--phi));
   border-radius: 1.25rem;
-  background: rgba(6, 8, 14, 0.74);
+  background: rgba(7, 9, 15, 0.9);
   backdrop-filter: blur(22px) saturate(1.1);
   -webkit-backdrop-filter: blur(22px) saturate(1.1);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   opacity: 0;
   transform: translateY(1.2rem) scale(0.985);
   transition: opacity 420ms cubic-bezier(0.2, 0.7, 0.2, 1), transform 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -533,22 +556,36 @@ footer.section {
   font-size: clamp(var(--step-1), 1.8vw, var(--step-3));
   line-height: 1.2;
   color: rgba(255, 255, 255, 0.86);
-  max-width: 34ch;
+  max-width: 30ch;
+  text-wrap: balance;
 }
 .tabs__points {
-  margin: calc(var(--pad)) 0 0;
+  margin: calc(var(--pad) * var(--phi)) 0 0;
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: calc(var(--pad) / var(--phi)) var(--pad);
+  gap: 0;
   font-family: var(--font-body);
   font-size: var(--step-0);
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.82);
 }
 .tabs__points li {
-  padding-top: calc(var(--pad) / var(--phi) / var(--phi));
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  padding: calc(var(--pad) / var(--phi)) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: baseline;
+  gap: var(--pad);
+}
+.tabs__points li::before {
+  content: "";
+  flex: none;
+  width: 0.5rem;
+  height: 1px;
+  background: var(--accent-cold, #9fb1c6);
+  transform: translateY(-0.35em);
+}
+.tabs__points li:last-child {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 @media (prefers-reduced-motion: reduce) {
   .tabs, .tabs__heading, .tabs__panel { transition: none; }
