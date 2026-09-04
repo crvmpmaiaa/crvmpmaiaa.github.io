@@ -13,6 +13,7 @@ export default function PortalDebug() {
   const bare = params.get("bare") === "1";
   const variant = Number(params.get("variant") ?? 0);
   const shader = (params.get("shader") as "geode" | "cathedral") ?? "geode";
+  const exposure = Number(params.get("exposure") ?? 1);
   const lit = useMemo(() => CARDS.map((_, i) => ({ current: card < 0 ? (i === 0 ? 1 : 0.15) : i === card ? 1 : 0.1 })), [card]);
   const target = card >= 0 ? CARDS[card] : { x: 3.0, z: -0.5 };
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
@@ -25,7 +26,7 @@ export default function PortalDebug() {
         gl={{ antialias: true }} onCreated={({ gl }) => { gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.0; }}>
         <Suspense fallback={null}>
           <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.35} />
-          <PortalWorld material={material} lit={lit} video={video} standalone bare={bare} variant={variant} shader={shader} />
+          <PortalWorld material={material} lit={lit} video={video} standalone bare={bare} variant={variant} shader={shader} exposure={exposure} />
         </Suspense>
         <OrbitControls target={[target.x, 0, target.z]} />
       </Canvas>

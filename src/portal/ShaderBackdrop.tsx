@@ -14,7 +14,8 @@ const FRAG = /* glsl */ `
   uniform vec3 iResolution;
   uniform float iTime;
   uniform float uVariant;   // 0: as supplied, 1: camera fixed forward
-  // original, verbatim apart from the variant switch on the third ray component
+  uniform float uExposure;
+  // original, verbatim apart from the variant switch and the exposure dial
   void mainImage(out vec4 fragColor, in vec2 fragCoord)
   {
       vec2  r  = iResolution.xy;
@@ -30,7 +31,7 @@ const FRAG = /* glsl */ `
               min(d = p.z - t + 9., d * .1) * .5
           ));
       }
-      o = tanh(o / 5e1);
+      o = tanh(o * uExposure / 5e1);
       fragColor = vec4(o.rgb, 1.0);
   }
   void main() { mainImage(fragColor, vUv * iResolution.xy); }
@@ -42,7 +43,8 @@ const FRAG_GEODE = /* glsl */ `
   uniform vec3 iResolution;
   uniform float iTime;
   uniform float uVariant;
-  // "Geode", supplied by Jack, verbatim
+  uniform float uExposure;
+  // "Geode", supplied by Jack, loop order corrected
   void mainImage(out vec4 fragColor, in vec2 fragCoord)
   {
     vec2  r  = iResolution.xy;
@@ -50,9 +52,10 @@ const FRAG_GEODE = /* glsl */ `
     vec3  FC = vec3(fragCoord, t);
     vec4  o  = vec4(0.0);
     vec3 p = vec3(0.0), v;
+    // the supplied loop accumulated before the first march step, dividing by a zero distance and blowing the
+    // frame out to white; accumulating after the step is what the shader clearly intends
     for (float i = 0.0, z = 0.0, d = 0.0; i++ < 40.0; )
     {
-      o += (cos(i * 0.2 + t + vec4(0.0, 1.0, 3.0, 0.0)) + 1.0) / max(d, 1e-4);
       p = z * normalize(FC.rgb * 2.0 - r.xyy);
       v = normalize(cos(t * 0.25 + vec3(0.0, 1.0, 4.0)));
       p = dot(v, p) * v + cross(v, p);
@@ -61,8 +64,9 @@ const FRAG_GEODE = /* glsl */ `
       p = q + q.yzx - sin(z * 0.7);
       d = 0.3 * length(min(p, p.yzx));
       z += d;
+      o += (cos(i * 0.2 + t + vec4(0.0, 1.0, 3.0, 0.0)) + 1.0) / max(d, 1e-4);
     }
-    o = tanh(o / 2000.0);
+    o = tanh(o * uExposure / 2000.0);
     fragColor = vec4(o.rgb, 1.0);
   }
   void main() { mainImage(fragColor, vUv * iResolution.xy); }
@@ -81,12 +85,12 @@ const VERT = /* glsl */ `
  * raymarch running per pixel. Works identically in the laptop's target and in the direct render, because it
  * ignores the camera and reads the size of whatever is being rendered to.
  */
-export function ShaderQuad({ frozen = false, variant = 0, shader = "geode" }: { frozen?: boolean; variant?: number; shader?: ShaderName }) {
+export function ShaderQuad({ frozen = false, variant = 0, shader = "geode", exposure = 1 }: { frozen?: boolean; variant?: number; shader?: ShaderName; exposure?: number }) {
   const mat = useMemo(() => new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL3,
     vertexShader: VERT,
     fragmentShader: SHADERS[shader],
-    uniforms: { iResolution: { value: new THREE.Vector3(1, 1, 1) }, iTime: { value: 0 }, uVariant: { value: variant } },
+    uniforms: { iResolution: { value: new THREE.Vector3(1, 1, 1) }, iTime: { value: 0 }, uVariant: { value: variant }, uExposure: { value: exposure } },
     depthTest: false,
     depthWrite: false,
     toneMapped: false,
@@ -97,6 +101,7 @@ export function ShaderQuad({ frozen = false, variant = 0, shader = "geode" }: { 
     if (!frozen) clock.current += Math.min(dt, 0.05);
     mat.uniforms.iTime.value = clock.current;
     mat.uniforms.uVariant.value = variant;
+    mat.uniforms.uExposure.value = exposure;
   });
   return (
     <mesh
@@ -146,6 +151,7 @@ export function ShaderBackdrop({ frozen = false, width = 1280, height = 800, act
     if (!frozen) clock.current += Math.min(dt, 0.05);
     mat.uniforms.iTime.value = clock.current;
     mat.uniforms.uVariant.value = variant;
+    mat.uniforms.uExposure.value = exposure;
     const prev = gl.getRenderTarget();
     gl.setRenderTarget(fbo);
     gl.render(scene, cam);
