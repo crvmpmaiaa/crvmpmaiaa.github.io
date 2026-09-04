@@ -42,6 +42,9 @@ export function Hero() {
   // the video only feeds the laptop screen texture; the element itself stays hidden
 
   useEffect(() => {
+    // every visit starts at the top: the browser must not restore a mid sequence scroll position on refresh
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
     setMode(detectMode());
   }, []);
 
@@ -49,6 +52,7 @@ export function Hero() {
     if (mode !== "scroll" || !section.current) return;
     gsap.registerPlugin(ScrollTrigger);
     const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+    lenis.scrollTo(0, { immediate: true });
     const raf = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
