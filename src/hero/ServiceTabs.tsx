@@ -22,6 +22,7 @@ export function ServiceTabs() {
   const [active, setActive] = useState(-1);
   const [visible, setVisible] = useState(false);
   const [heading, setHeading] = useState(false);
+  const [rail, setRail] = useState(0);
 
   useEffect(() => {
     const apply = () => {
@@ -30,6 +31,8 @@ export function ServiceTabs() {
       setVisible(inside);
       setHeading(q > Q.arrive[0] && q < Q.truck[0] - 0.005);
       setActive(q >= Q.truck[0] && q <= Q.turnBack[0] ? activeIndex(q) : -1);
+      const u = remap(q, Q.truck[0], Q.truck[1]);
+      setRail(Math.round(u * 1000) / 1000);
     };
     apply();
     return onProgress(apply);
@@ -40,7 +43,8 @@ export function ServiceTabs() {
   return (
     <div className={`tabs${visible ? " is-visible" : ""}`} aria-label="Services">
       <h2 className={`tabs__heading${heading ? " is-on" : ""}`}>{SECTION_HEADING}</h2>
-      <div className="tabs__bar" role="tablist">
+      <div className="tabs__bar" role="tablist" style={{ "--rail": rail } as React.CSSProperties}>
+        <span className="tabs__rail" aria-hidden="true" />
         {SERVICES.map((s, i) => (
           <button
             key={s.title}
@@ -58,11 +62,11 @@ export function ServiceTabs() {
       <div className="tabs__panels">
         {SERVICES.map((s, i) => (
           <section key={s.title} id={`service-${i}`} role="tabpanel" className={`tabs__panel${active === i ? " is-open" : ""}`} aria-hidden={active !== i}>
-            <h3 className="tabs__title">{s.title}</h3>
-            <p className="tabs__lead">{s.lead}</p>
+            <h3 className="tabs__title tabs__in" style={{ "--i": 0 } as React.CSSProperties}>{s.title}</h3>
+            <p className="tabs__lead tabs__in" style={{ "--i": 1 } as React.CSSProperties}>{s.lead}</p>
             {s.points.length > 0 && (
               <ul className="tabs__points">
-                {s.points.map((p) => <li key={p}>{p}</li>)}
+                {s.points.map((p, j) => <li key={p} className="tabs__in" style={{ "--i": 2 + j * 0.5 } as React.CSSProperties}>{p}</li>)}
               </ul>
             )}
           </section>

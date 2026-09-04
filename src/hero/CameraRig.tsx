@@ -158,8 +158,9 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
     // outside after the return crossing: pull back and up to a composition of pillar and laptop against the sky
     const out = ease.inOut(remap(q, Q.pullOut[0], Q.pullOut[1]));
     if (out > 0) {
-      const endPos = new THREE.Vector3(0.4, 1.35, 4.2);
-      const endLook = new THREE.Vector3(0, 0.55, 0);
+      // pillar on the right golden line, room on the left for the button, laptop still open and playing
+      const endPos = new THREE.Vector3(-0.85, 1.3, 4.0);
+      const endLook = new THREE.Vector3(-0.85, 0.5, 0);
       tmpPos.lerp(endPos, out);
       tmpLook.lerp(endLook, out);
     }

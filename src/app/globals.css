@@ -284,10 +284,9 @@ body {
   right: clamp(1.25rem, 6vw, 6rem);
 }
 .copy--cta {
-  left: 50%;
+  left: clamp(1.25rem, 6vw, 6rem);
   bottom: clamp(1.5rem, 10vh, 7rem);
-  transform: translateX(-50%);
-  color: white;  /* it sits over the dark world inside the screen */
+  color: var(--ink);  /* it sits over the sky on the pull out, left of the pillar */
 }
 
 @keyframes headline-in {
@@ -416,6 +415,7 @@ footer.section {
   top: clamp(1rem, 4.5vh, 3rem);
   transform: translateX(-50%);
   display: flex;
+  --rail: 0;
   gap: calc(var(--pad) / var(--phi));
   padding: calc(var(--pad) / var(--phi) / var(--phi));
   border-radius: 999px;
@@ -427,6 +427,31 @@ footer.section {
   max-width: calc(100vw - 2rem);
   overflow-x: auto;
   scrollbar-width: none;
+}
+/* a hairline that travels the bar with the scroll, so you always know where you are in the six */
+.tabs__rail {
+  position: absolute;
+  left: calc(var(--pad) / var(--phi) / var(--phi));
+  right: calc(var(--pad) / var(--phi) / var(--phi));
+  bottom: 0.3rem;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+}
+.tabs__rail::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  height: 3px;
+  width: 2.2rem;
+  border-radius: 2px;
+  background: white;
+  transform: translateX(calc(var(--rail) * (100% * 1)));
+  /* travel across the rail's width minus the marker's own width */
+  left: calc(var(--rail) * (100% - 2.2rem));
+  transform: none;
+  transition: left 120ms linear;
 }
 .tabs__tab {
   appearance: none;
@@ -480,6 +505,18 @@ footer.section {
   opacity: 1;
   transform: none;
   pointer-events: auto;
+}
+/* children arrive in order once the panel opens */
+.tabs__in {
+  opacity: 0;
+  transform: translateY(0.5rem);
+  transition: opacity 420ms ease, transform 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: 0ms;
+}
+.tabs__panel.is-open .tabs__in {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(90ms + var(--i) * 70ms);
 }
 .tabs__title {
   margin: 0 0 calc(var(--pad) / var(--phi));
