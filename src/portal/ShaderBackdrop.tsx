@@ -85,7 +85,7 @@ const VERT = /* glsl */ `
  * raymarch running per pixel. Works identically in the laptop's target and in the direct render, because it
  * ignores the camera and reads the size of whatever is being rendered to.
  */
-export function ShaderQuad({ frozen = false, variant = 0, shader = "geode", exposure = 1 }: { frozen?: boolean; variant?: number; shader?: ShaderName; exposure?: number }) {
+export function ShaderQuad({ frozen = false, variant = 0, shader = "geode", exposure = 1, speed = 1 }: { frozen?: boolean; variant?: number; shader?: ShaderName; exposure?: number; speed?: number }) {
   const mat = useMemo(() => new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL3,
     vertexShader: VERT,
@@ -98,7 +98,7 @@ export function ShaderQuad({ frozen = false, variant = 0, shader = "geode", expo
   const clock = useRef(0);
   const size = useMemo(() => new THREE.Vector2(), []);
   useFrame((_, dt) => {
-    if (!frozen) clock.current += Math.min(dt, 0.05);
+    if (!frozen) clock.current += Math.min(dt, 0.05) * speed;
     mat.uniforms.iTime.value = clock.current;
     mat.uniforms.uVariant.value = variant;
     mat.uniforms.uExposure.value = exposure;

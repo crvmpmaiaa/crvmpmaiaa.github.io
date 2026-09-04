@@ -141,7 +141,7 @@ function Dust({ count = 1600 }: { count?: number }) {
   );
 }
 
-export function PortalWorld({ material = "marble", video, lit, onSelect, standalone = false, backdrop = "shader", frozen = false, active, bare = false, variant = 0, shader = "geode", exposure = 0.55 }: { material?: "marble" | "glass"; video?: HTMLVideoElement | null; lit: React.MutableRefObject<number>[]; onSelect?: (i: number) => void; standalone?: boolean; backdrop?: "shader" | "video"; frozen?: boolean; active?: () => boolean; bare?: boolean; variant?: number; shader?: ShaderName; exposure?: number }) {
+export function PortalWorld({ material = "marble", video, lit, onSelect, standalone = false, backdrop = "shader", frozen = false, active, bare = false, variant = 0, shader = "geode", exposure = 0.55, speed = 0.3 }: { material?: "marble" | "glass"; video?: HTMLVideoElement | null; lit: React.MutableRefObject<number>[]; onSelect?: (i: number) => void; standalone?: boolean; backdrop?: "shader" | "video"; frozen?: boolean; active?: () => boolean; bare?: boolean; variant?: number; shader?: ShaderName; exposure?: number; speed?: number }) {
   const root = useRef<THREE.Group>(null);
   useEffect(() => {
     if (standalone || !root.current) return;
@@ -160,7 +160,7 @@ export function PortalWorld({ material = "marble", video, lit, onSelect, standal
       <ambientLight intensity={0.12} color="#9fb1c6" />
       <directionalLight position={[-6, 8, 6]} intensity={2.4} color="#dfe8f2" />
       <directionalLight position={[10, 2, -4]} intensity={0.5} color={ACCENT} />
-      {backdrop === "shader" && <ShaderQuad frozen={frozen} variant={variant} shader={shader} exposure={exposure} />}
+      {backdrop === "shader" && <ShaderQuad frozen={frozen} variant={variant} shader={shader} exposure={exposure} speed={speed} />}
       <Backdrop video={video} shader={backdrop === "shader"} />
       {!bare && <Dust />}
       {!bare && CARDS.map((c, i) => material === "glass" ? <GlassCard key={c.title} spec={c} lit={lit[i]} /> : <MarbleCard key={c.title} spec={c} lit={lit[i]} index={i} onSelect={onSelect} />)}
