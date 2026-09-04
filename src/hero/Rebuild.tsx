@@ -74,6 +74,13 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
       // the backlight ramp is a plain multiply from black to white
       const sm = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide, toneMapped: false });
       applyDissolve(sm as unknown as THREE.MeshStandardMaterial, rebuildDissolve, "rebuild-dissolve-screen");
+      // the portal target holds raw shader output that the direct render shows untouched: the screen must not
+      // encode it on the way out, or the picture on the screen is brighter than the picture inside
+      const withDissolve = sm.onBeforeCompile;
+      sm.onBeforeCompile = (shader, renderer) => {
+        withDissolve.call(sm, shader, renderer);
+        shader.fragmentShader = shader.fragmentShader.replace("#include <colorspace_fragment>", "");
+      };
       sc.material = sm;
       screenMat.current = sm;
       // find the quad's height for the camera framing
@@ -92,6 +99,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     if (!m) return;
     if (screenTexture) {
       screenTexture.flipY = false;
+      screenTexture.colorSpace = THREE.NoColorSpace;
       m.map = screenTexture;
       m.needsUpdate = true;
       return;
