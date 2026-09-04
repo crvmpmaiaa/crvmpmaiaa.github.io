@@ -100,6 +100,7 @@ function Backdrop({ video }: { video?: HTMLVideoElement | null }) {
     g.scale(-1, 1, 1);  // face inward
     return g;
   }, []);
+  useFrame(() => { (window as unknown as { __bdBackdrop?: unknown }).__bdBackdrop = { isVideo: tex instanceof THREE.VideoTexture, hasVideo: !!video, img: (tex.image as { width?: number })?.width }; });
   return (
     <mesh geometry={geo} position={[6.2, 0.4, -60 + 14]}>
       <meshBasicMaterial map={tex} side={THREE.FrontSide} toneMapped={false} />

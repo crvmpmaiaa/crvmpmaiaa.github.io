@@ -11,7 +11,7 @@ const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const browser = await puppeteer.launch({
   executablePath: CHROME,
   headless: "new",
-  args: ["--use-angle=metal", "--enable-gpu-rasterization", "--ignore-gpu-blocklist", `--window-size=${W},${H}`],
+  args: ["--use-angle=metal", "--enable-gpu-rasterization", "--ignore-gpu-blocklist", "--autoplay-policy=no-user-gesture-required", `--window-size=${W},${H}`],
 });
 const page = await browser.newPage();
 await page.setViewport({ width: W, height: H, deviceScaleFactor: 1 });
