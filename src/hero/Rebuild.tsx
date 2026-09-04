@@ -17,6 +17,8 @@ export const LID_OPEN_DEG = 110;
 
 /** Shared with the camera rig: where the screen is and which way it faces, in world space. */
 export const screenState = { centre: new THREE.Vector3(), normal: new THREE.Vector3(0, 0, 1), height: 0.19, ready: false, light: 0 };
+/** Where the camera looks during the turn and the screen beat; the camera rig writes this each frame. */
+export const stageTarget = { look: new THREE.Vector3(0, 0.66, 0), camPos: new THREE.Vector3(0, 0.95, 3.5), fov: 34 };
 
 const rebuildDissolve = makeDissolve(COLUMN_TOP + 0.3, true);
 
@@ -79,6 +81,8 @@ export function Rebuild({ video }: { video: HTMLVideoElement | null }) {
 
   const tmpN = useMemo(() => new THREE.Vector3(), []);
   const tmpBox = useMemo(() => new THREE.Box3(), []);
+  const tmpC = useMemo(() => new THREE.Vector3(), []);
+  const tmpInv = useMemo(() => new THREE.Matrix4(), []);
 
   useFrame(() => {
     const g = group.current;
@@ -86,7 +90,8 @@ export function Rebuild({ video }: { video: HTMLVideoElement | null }) {
     const p = progress.p;
     // surface from the ground up in step with the settling dust
     const settle = ease.smooth(remap(p, SETTLE.start, SETTLE.end));
-    rebuildDissolve.uCut.value = settle <= 0 ? -1 : settle * 1.15;
+    // once fully surfaced the cut goes away entirely, so the laptop can grow past it later
+    rebuildDissolve.uCut.value = settle <= 0 ? -1 : settle >= 0.999 ? 1e3 : settle * 1.15;
     if (shadows.current !== settle > 0) {
       shadows.current = settle > 0;
       g.traverse((o) => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = shadows.current; });
@@ -96,9 +101,22 @@ export function Rebuild({ video }: { video: HTMLVideoElement | null }) {
     const turn = ease.inOut(remap(p, BEATS.turn[0], BEATS.turn[1]));
     g.rotation.y = turn * Math.PI * 2;
 
-    // the lid lifts from 0.80 to 0.89 to its open angle, backlight comes up 0.84 to 0.88
+    // the lid lifts from 0.80 to 0.89 to its open angle, then squares to vertical as the rig comes down
     const open = ease.inOut(remap(p, 0.8, 0.89));
-    if (lid.current) lid.current.rotation.x = THREE.MathUtils.degToRad(LID_OPEN_DEG) * open;
+    const down = ease.inOut(remap(p, BEATS.screen[0], 0.94));
+    const lidDeg = THREE.MathUtils.lerp(LID_OPEN_DEG * open, 90, down);
+    if (lid.current) lid.current.rotation.x = THREE.MathUtils.degToRad(lidDeg);
+
+    // screen beat, part one: the whole rig slides down until the screen is at the centre of the frame
+    const l = scenes.l;
+    l.position.set(0, COLUMN_TOP, 0);
+    g.position.y = 0;
+    if (down > 0 && screen.current) {
+      g.updateMatrixWorld(true);
+      tmpBox.setFromObject(screen.current);
+      tmpBox.getCenter(tmpC);
+      g.position.y = -down * (tmpC.y - stageTarget.look.y);
+    }
     const light = ease.smooth(remap(p, 0.84, 0.88));
     screenState.light = light;
     if (screenMat.current) screenMat.current.emissiveIntensity = light * 1.4;

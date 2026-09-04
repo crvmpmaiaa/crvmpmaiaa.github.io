@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { BEATS, ease, remap } from "./beats";
 import { progress } from "./progress";
 import { STATUE } from "./Statue";
-import { screenState, COLUMN_TOP } from "./Rebuild";
+import { COLUMN_TOP, stageTarget, screenState } from "./Rebuild";
 
 /**
  * Camera as a pure function of p, plus a wall clock handheld drift in beat 1 that fades out with the dolly.
@@ -86,15 +86,18 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
     const turn = remap(p, BEATS.turn[0], BEATS.turn[1]);
     fov += Math.sin(turn * Math.PI) * 0.6;
 
-    // screen: fly along the screen's normal until it fills the frame
-    const sc = ease.inOut(remap(p, BEATS.screen[0], 0.985));
-    if (sc > 0 && screenState.ready) {
+    // screen beat: the rig slides down to the look point (see Rebuild), then the camera dollies straight in,
+    // level, until the screen fills the frame
+    stageTarget.camPos.copy(tmpPos);
+    stageTarget.look.copy(tmpLook);
+    stageTarget.fov = fov;
+    const dolly = ease.inOut(remap(p, 0.94, 0.985));
+    if (dolly > 0 && screenState.ready) {
       const fovRad = THREE.MathUtils.degToRad(fov);
-      const fill = THREE.MathUtils.lerp(0.18, 1.02, sc);
-      const dist = (screenState.height / 2) / Math.tan(fovRad / 2) / fill;
-      screenPos.copy(screenState.centre).addScaledVector(screenState.normal, dist);
-      tmpPos.lerp(screenPos, sc);
-      tmpLook.lerp(screenState.centre, sc);
+      const dist = (screenState.height / 2) / Math.tan(fovRad / 2) / 1.04;
+      screenPos.set(screenState.centre.x, screenState.centre.y, screenState.centre.z + dist);
+      tmpPos.lerp(screenPos, dolly);
+      tmpLook.set(screenState.centre.x, screenState.centre.y, THREE.MathUtils.lerp(tmpLook.z, screenState.centre.z, dolly));
     }
 
     camera.position.copy(tmpPos);

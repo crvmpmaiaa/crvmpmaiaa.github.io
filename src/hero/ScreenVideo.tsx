@@ -16,7 +16,6 @@ export const ScreenVideo = forwardRef<HTMLVideoElement, { className?: string }>(
       playsInline
       preload="metadata"
       poster="/media/screen-poster.jpg"
-      crossOrigin="anonymous"
       aria-hidden="true"
     >
       <source src="/media/screen.webm" type="video/webm" />
