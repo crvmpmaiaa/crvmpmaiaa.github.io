@@ -11,8 +11,6 @@ import { setProgress } from "./progress";
 const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false });
 import { SkyVideo } from "./SkyVideo";
 import { ScreenVideo } from "./ScreenVideo";
-import { onProgress } from "./progress";
-import { ease, remap } from "./beats";
 
 type Mode = "pending" | "scroll" | "reduced" | "static";
 
@@ -39,15 +37,7 @@ export function Hero() {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
   const videoRef = (el: HTMLVideoElement | null) => setVideo(el);
 
-  // fullscreen hand off over the last five percent
-  useEffect(() => {
-    if (!video) return;
-    return onProgress((p) => {
-      const o = ease.smooth(remap(p, 0.95, 0.99));
-      video.style.opacity = o.toFixed(3);
-      video.style.visibility = o < 0.01 ? "hidden" : "visible";
-    });
-  }, [video]);
+  // the video only feeds the laptop screen texture; the element itself stays hidden
 
   useEffect(() => {
     setMode(detectMode());

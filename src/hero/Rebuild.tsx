@@ -102,8 +102,8 @@ export function Rebuild({ video }: { video: HTMLVideoElement | null }) {
     g.rotation.y = turn * Math.PI * 2;
 
     // the lid lifts from 0.80 to 0.89 to its open angle, then squares to vertical as the rig comes down
-    const open = ease.inOut(remap(p, 0.8, 0.89));
-    const down = ease.inOut(remap(p, BEATS.screen[0], 0.985));
+    const open = ease.inOut(remap(p, 0.79, 0.865));
+    const down = ease.inOut(remap(p, BEATS.screen[0], BEATS.screen[1]));
     const lidDeg = THREE.MathUtils.lerp(LID_OPEN_DEG * open, 90, down);
     if (lid.current) lid.current.rotation.x = THREE.MathUtils.degToRad(lidDeg);
 
@@ -117,10 +117,10 @@ export function Rebuild({ video }: { video: HTMLVideoElement | null }) {
       tmpBox.getCenter(tmpC);
       g.position.y = -down * (tmpC.y - stageTarget.look.y);
     }
-    const light = ease.smooth(remap(p, 0.84, 0.88));
+    const light = ease.smooth(remap(p, 0.83, 0.86));
     screenState.light = light;
     if (screenMat.current) screenMat.current.emissiveIntensity = light * 1.4;
-    if (video && p > 0.86 && video.paused) video.play().catch(() => {});
+    if (video && p > 0.84 && video.paused) video.play().catch(() => {});
 
     // publish the screen's world centre and normal for the camera
     const sc = screen.current;
