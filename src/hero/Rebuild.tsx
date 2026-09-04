@@ -117,6 +117,7 @@ export function Rebuild({ video }: { video: HTMLVideoElement | null }) {
       tmpBox.getCenter(tmpC);
       g.position.y = -down * (tmpC.y - stageTarget.look.y);
     }
+    (window as unknown as { __bdRig?: unknown }).__bdRig = { gy: +g.position.y.toFixed(3), rot: +g.rotation.y.toFixed(3), lid: +lidDeg.toFixed(1), down: +down.toFixed(3), sc: screenState.centre.toArray().map((v) => +v.toFixed(3)) };
     const light = ease.smooth(remap(p, 0.83, 0.86));
     screenState.light = light;
     if (screenMat.current) screenMat.current.emissiveIntensity = light * 1.4;

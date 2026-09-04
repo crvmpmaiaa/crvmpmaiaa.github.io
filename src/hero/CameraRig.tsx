@@ -32,6 +32,7 @@ const CTRL = new THREE.Vector3(1.6, 1.25, 2.2);
 const tmpPos = new THREE.Vector3();
 const tmpLook = new THREE.Vector3();
 const screenPos = new THREE.Vector3();
+const screenLook = new THREE.Vector3();
 
 function bezier(out: THREE.Vector3, a: THREE.Vector3, c: THREE.Vector3, b: THREE.Vector3, t: number) {
   const u = 1 - t;
@@ -93,15 +94,19 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
     stageTarget.fov = fov;
     const dolly = ease.inOut(remap(p, BEATS.screen[0], BEATS.screen[1]));  // one motion with the slide down, then a hold
     if (dolly > 0 && screenState.ready) {
+      // both ends are fixed: the screen finishes on the look point's height, so aim there from the start
+      // and let the rig bring the screen to meet the camera. No snap at the first frame.
       const fovRad = THREE.MathUtils.degToRad(fov);
       const dist = (screenState.height / 2) / Math.tan(fovRad / 2) / 1.04;
-      screenPos.set(screenState.centre.x, screenState.centre.y, screenState.centre.z + dist);
+      screenPos.set(screenState.centre.x, tmpLook.y, screenState.centre.z + dist);
+      screenLook.set(screenState.centre.x, tmpLook.y, screenState.centre.z);
       tmpPos.lerp(screenPos, dolly);
-      tmpLook.set(screenState.centre.x, screenState.centre.y, THREE.MathUtils.lerp(tmpLook.z, screenState.centre.z, dolly));
+      tmpLook.lerp(screenLook, dolly);
     }
 
     camera.position.copy(tmpPos);
     camera.lookAt(tmpLook);
+    (window as unknown as { __bdCam?: unknown }).__bdCam = { p: +p.toFixed(3), pos: tmpPos.toArray().map((v) => +v.toFixed(3)), look: tmpLook.toArray().map((v) => +v.toFixed(3)), fov: +fov.toFixed(2), dolly: +dolly.toFixed(3) };
     if (Math.abs(camera.fov - fov) > 0.01) {
       camera.fov = fov;
       camera.updateProjectionMatrix();
