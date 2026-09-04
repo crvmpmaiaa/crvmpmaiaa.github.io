@@ -12,6 +12,7 @@ const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false
 import { SkyVideo } from "./SkyVideo";
 import { ScreenVideo } from "./ScreenVideo";
 import { Intro } from "./Intro";
+import { ServiceTabs } from "./ServiceTabs";
 
 type Mode = "pending" | "scroll" | "reduced" | "static";
 
@@ -101,6 +102,7 @@ export function Hero() {
           </>
         )}
         {!isStatic && <Copy isStatic={false} layer="front" />}
+        {!isStatic && <ServiceTabs />}
       </div>
       {isStatic && <Copy isStatic />}
     </section>
