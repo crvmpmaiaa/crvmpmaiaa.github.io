@@ -91,7 +91,7 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
     stageTarget.camPos.copy(tmpPos);
     stageTarget.look.copy(tmpLook);
     stageTarget.fov = fov;
-    const dolly = ease.inOut(remap(p, 0.94, 0.985));
+    const dolly = ease.inOut(remap(p, BEATS.screen[0], 0.985));  // one motion with the slide down
     if (dolly > 0 && screenState.ready) {
       const fovRad = THREE.MathUtils.degToRad(fov);
       const dist = (screenState.height / 2) / Math.tan(fovRad / 2) / 1.04;

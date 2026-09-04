@@ -103,13 +103,13 @@ export function Rebuild({ video }: { video: HTMLVideoElement | null }) {
 
     // the lid lifts from 0.80 to 0.89 to its open angle, then squares to vertical as the rig comes down
     const open = ease.inOut(remap(p, 0.8, 0.89));
-    const down = ease.inOut(remap(p, BEATS.screen[0], 0.94));
+    const down = ease.inOut(remap(p, BEATS.screen[0], 0.985));
     const lidDeg = THREE.MathUtils.lerp(LID_OPEN_DEG * open, 90, down);
     if (lid.current) lid.current.rotation.x = THREE.MathUtils.degToRad(lidDeg);
 
     // screen beat, part one: the whole rig slides down until the screen is at the centre of the frame
     const l = scenes.l;
-    l.position.set(0, COLUMN_TOP, 0);
+    l.position.set(0, COLUMN_TOP - 0.003, 0);  // sunk a hair so the base always reads as sitting on the marble
     g.position.y = 0;
     if (down > 0 && screen.current) {
       g.updateMatrixWorld(true);
