@@ -3,9 +3,9 @@ export const COPY = {
   preloader: "Cutting the marble.",
   wordmark: ["Build", "Different"],
   headline1: "We build things that age well.",
-  block1: "Permanence used to take a quarry, a chisel and most of a lifetime. The brief has not changed. The material has.",
-  block2: "Nothing on the internet is carved. Everything is rendered, and most of it is rendered badly.",
-  block3: "So we render it properly. Websites and software with the weight of something built to stand.",
+  block1: "Most websites look fine.\nFew are built to last.",
+  block2: "Nothing online is carved.\nEverything is rendered.\nMost of it badly.",
+  block3: "We render it properly.\nSites and software\nwith weight.",
   cta: "Start a project",
   scrollHint: "Scroll",
 } as const;

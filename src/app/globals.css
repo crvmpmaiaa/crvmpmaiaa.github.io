@@ -268,13 +268,16 @@ body {
   left: clamp(1.25rem, 6vw, 6rem);
   top: 50%;
   transform: translateY(-50%);
-  width: min(34vw, 30ch);
+  width: min(40vw, 22ch);
   font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(var(--step-2), 2.4vw, var(--step-4));
-  line-height: 1.18;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(var(--step-3), 3.6vw, var(--step-6));
+  line-height: 1.04;
+  letter-spacing: -0.012em;
   color: var(--ink);
-  text-wrap: pretty;
+  white-space: pre-line;
+  text-wrap: balance;
 }
 .copy--block.copy--right {
   left: auto;
