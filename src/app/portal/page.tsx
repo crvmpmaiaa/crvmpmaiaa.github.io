@@ -10,6 +10,8 @@ export default function PortalDebug() {
   const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const material = (params.get("material") as "marble" | "glass") ?? "marble";
   const card = Number(params.get("card") ?? -1);
+  const bare = params.get("bare") === "1";
+  const variant = Number(params.get("variant") ?? 0);
   const lit = useMemo(() => CARDS.map((_, i) => ({ current: card < 0 ? (i === 0 ? 1 : 0.15) : i === card ? 1 : 0.1 })), [card]);
   const target = card >= 0 ? CARDS[card] : { x: 3.0, z: -0.5 };
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
@@ -22,7 +24,7 @@ export default function PortalDebug() {
         gl={{ antialias: true }} onCreated={({ gl }) => { gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.0; }}>
         <Suspense fallback={null}>
           <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.35} />
-          <PortalWorld material={material} lit={lit} video={video} standalone />
+          <PortalWorld material={material} lit={lit} video={video} standalone bare={bare} variant={variant} />
         </Suspense>
         <OrbitControls target={[target.x, 0, target.z]} />
       </Canvas>

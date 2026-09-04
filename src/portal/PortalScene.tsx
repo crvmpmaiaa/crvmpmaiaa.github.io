@@ -2,6 +2,7 @@
 import { useFrame, useLoader } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import { useEffect, useMemo, useRef } from "react";
+import { ShaderQuad } from "./ShaderBackdrop";
 import * as THREE from "three";
 
 /**
@@ -96,9 +97,10 @@ function GlassCard({ spec, lit }: { spec: CardSpec; lit: React.MutableRefObject<
 }
 
 /** Slightly cylindrical backdrop far behind the rail so lateral moves keep parallax and never show an edge. */
-function Backdrop({ video }: { video?: HTMLVideoElement | null }) {
+function Backdrop({ video, shader = true }: { video?: HTMLVideoElement | null; shader?: boolean }) {
   const poster = useLoader(THREE.TextureLoader, "/media/cosmos-poster.jpg");
   poster.colorSpace = THREE.SRGBColorSpace;
+  const matRef = useRef<THREE.MeshBasicMaterial>(null);
   const tex = useMemo(() => {
     const t = video ? new THREE.VideoTexture(video) : poster.clone();
     t.colorSpace = THREE.SRGBColorSpace;
@@ -108,13 +110,14 @@ function Backdrop({ video }: { video?: HTMLVideoElement | null }) {
     t.needsUpdate = true;
     return t;
   }, [video, poster]);
+  if (shader) return null;
   // a shallow arc of radius 60 centred on the rail, its surface about 46 units behind the cards.
   // three's cylinder puts theta 0 on +Z, so the arc is cut around pi to sit on the far side.
   const geo = useMemo(() => new THREE.CylinderGeometry(60, 60, 90, 128, 1, true, Math.PI - 1.3, 2.6), []);
   return (
     <mesh geometry={geo} position={[6.2, 0.4, 14]}>
       {/* fog is for the cards and dust; the backdrop is the far distance itself */}
-      <meshBasicMaterial map={tex} side={THREE.DoubleSide} toneMapped={false} fog={false} />
+      <meshBasicMaterial ref={matRef} map={tex} side={THREE.DoubleSide} toneMapped={false} fog={false} />
     </mesh>
   );
 }
@@ -138,7 +141,7 @@ function Dust({ count = 1600 }: { count?: number }) {
   );
 }
 
-export function PortalWorld({ material = "marble", video, lit, onSelect, standalone = false }: { material?: "marble" | "glass"; video?: HTMLVideoElement | null; lit: React.MutableRefObject<number>[]; onSelect?: (i: number) => void; standalone?: boolean }) {
+export function PortalWorld({ material = "marble", video, lit, onSelect, standalone = false, backdrop = "shader", frozen = false, active, bare = false, variant = 0 }: { material?: "marble" | "glass"; video?: HTMLVideoElement | null; lit: React.MutableRefObject<number>[]; onSelect?: (i: number) => void; standalone?: boolean; backdrop?: "shader" | "video"; frozen?: boolean; active?: () => boolean; bare?: boolean; variant?: number }) {
   const root = useRef<THREE.Group>(null);
   useEffect(() => {
     if (standalone || !root.current) return;
@@ -148,7 +151,7 @@ export function PortalWorld({ material = "marble", video, lit, onSelect, standal
     <group ref={root}>
       {standalone && <color attach="background" args={[PALETTE.black]} />}
       {/* inside the hero canvas there is no scene background, so the portal carries its own black sky */}
-      {!standalone && (
+      {!standalone && backdrop !== "shader" && (
         <mesh>
           <sphereGeometry args={[150, 16, 12]} />
           <meshBasicMaterial color={PALETTE.black} side={THREE.BackSide} fog={false} />
@@ -157,9 +160,10 @@ export function PortalWorld({ material = "marble", video, lit, onSelect, standal
       <ambientLight intensity={0.12} color="#9fb1c6" />
       <directionalLight position={[-6, 8, 6]} intensity={2.4} color="#dfe8f2" />
       <directionalLight position={[10, 2, -4]} intensity={0.5} color={ACCENT} />
-      <Backdrop video={video} />
-      <Dust />
-      {CARDS.map((c, i) => material === "glass" ? <GlassCard key={c.title} spec={c} lit={lit[i]} /> : <MarbleCard key={c.title} spec={c} lit={lit[i]} index={i} onSelect={onSelect} />)}
+      {backdrop === "shader" && <ShaderQuad frozen={frozen} variant={variant} />}
+      <Backdrop video={video} shader={backdrop === "shader"} />
+      {!bare && <Dust />}
+      {!bare && CARDS.map((c, i) => material === "glass" ? <GlassCard key={c.title} spec={c} lit={lit[i]} /> : <MarbleCard key={c.title} spec={c} lit={lit[i]} index={i} onSelect={onSelect} />)}
     </group>
   );
 }

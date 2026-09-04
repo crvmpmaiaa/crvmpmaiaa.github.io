@@ -118,7 +118,7 @@ export function Scene({
           <Rebuild video={video} screenTexture={screenTexture} />
           <PortalScreen onTexture={onTexture} frozen={frozen} />
           <group position={[PORTAL_OFFSET[0], PORTAL_OFFSET[1], PORTAL_OFFSET[2]]}>
-            <PortalWorld video={video} lit={portalLit} onSelect={(i) => scrollControl.toSection(HERO_FRACTION + (1 - HERO_FRACTION) * qForTruck(holdCentre(i)))} />
+            <PortalWorld video={video} lit={portalLit} frozen={frozen} bare active={() => progress.p > 0.79} onSelect={(i) => scrollControl.toSection(HERO_FRACTION + (1 - HERO_FRACTION) * qForTruck(holdCentre(i)))} />
           </group>
         </Suspense>
         <Lights />
