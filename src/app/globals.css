@@ -204,8 +204,54 @@ body {
   transform: translateY(110%) rotate(2deg);
   opacity: 0;
   filter: blur(6px);
-  animation: letter-in 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, filter, opacity;
+}
+/* letters rise only once the flying B and D have landed */
+.is-revealed .copy--wordmark .letter {
+  animation: letter-in 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* the lead letters do not rise: they are where the flight lands, so they simply appear */
+.is-revealed .copy--wordmark .letter--lead {
+  animation: none;
+  transform: none;
+  opacity: 1;
+  filter: none;
+}
+
+/* the statue fades up under the flight */
+.hero__canvas--statue {
+  opacity: 0;
+  transition: opacity 1100ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.is-entering .hero__canvas--statue,
+.hero.is-static .hero__canvas--statue {
+  opacity: 1;
+}
+
+/* BD centred over the sky before the flight */
+.intro {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.intro__mark {
+  font-family: var(--font-wordmark);
+  text-transform: uppercase;
+  font-size: clamp(6rem, 22vw, 30rem);
+  line-height: 0.82;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  display: flex;
+  gap: 0.02em;
+  animation: headline-in 500ms ease-out 80ms backwards;
+}
+.intro__letter {
+  display: inline-block;
+  transform-origin: center center;
+  will-change: transform;
 }
 @keyframes letter-in {
   0% { transform: translateY(110%) rotate(2deg); opacity: 0; filter: blur(6px); }
@@ -213,7 +259,9 @@ body {
   100% { transform: none; opacity: 1; filter: blur(0); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .copy--wordmark .letter { animation: none; transform: none; opacity: 1; filter: none; }
+  .copy--wordmark .letter { animation: none !important; transform: none; opacity: 1; filter: none; }
+  .hero__canvas--statue { opacity: 1; transition: none; }
+  .intro { display: none; }
 }
 
 .copy--block {

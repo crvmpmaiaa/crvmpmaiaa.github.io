@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { BEATS, ease, remap } from "./beats";
 import { VAPORISE } from "./Morph";
 import { makeDissolve, applyDissolve } from "./dissolve";
+import { signalStatueReady } from "./introState";
 import { progress } from "./progress";
 
 // the version stamp defeats browser caching whenever the bake changes
@@ -56,6 +57,9 @@ export function Statue({ frozen = false }: { frozen?: boolean }) {
 
   useEffect(() => {
     scenes.b.visible = false;
+    // one frame after the first model is in the scene graph, the intro can start
+    const id = requestAnimationFrame(() => signalStatueReady());
+    return () => cancelAnimationFrame(id);
   }, [scenes]);
 
   useFrame((_, dt) => {

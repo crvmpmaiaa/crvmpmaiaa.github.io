@@ -35,7 +35,7 @@ export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: L
   const word = (text: string, cls: string, delay: number) => (
     <span className={`word ${cls}`} aria-label={text} role="text">
       {Array.from(text).map((ch, i) => (
-        <span className="letter" aria-hidden="true" key={i} style={{ animationDelay: `${delay + i * 45}ms` }}>
+        <span className={i === 0 ? "letter letter--lead" : "letter"} aria-hidden="true" key={i} style={{ animationDelay: `${delay + i * 45}ms` }}>
           {ch}
         </span>
       ))}

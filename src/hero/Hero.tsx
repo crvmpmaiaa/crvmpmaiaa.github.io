@@ -11,6 +11,7 @@ import { setProgress } from "./progress";
 const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false });
 import { SkyVideo } from "./SkyVideo";
 import { ScreenVideo } from "./ScreenVideo";
+import { Intro } from "./Intro";
 
 type Mode = "pending" | "scroll" | "reduced" | "static";
 
@@ -35,6 +36,7 @@ export function Hero() {
   const [mode, setMode] = useState<Mode>("pending");
   const section = useRef<HTMLElement>(null);
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
+  const stage = useRef<HTMLDivElement>(null);
   const videoRef = (el: HTMLVideoElement | null) => setVideo(el);
 
   // the video only feeds the laptop screen texture; the element itself stays hidden
@@ -78,7 +80,7 @@ export function Hero() {
       aria-label="Introduction"
       style={isStatic ? undefined : { height: `${SCROLL_LENGTH_VH}svh` }}
     >
-      <div className="hero__stage">
+      <div className="hero__stage" ref={stage}>
         {mode === "static" || mode === "pending" ? (
           <img className="hero__still" src="/hero-still.png" alt="A marble figure of Hercules, leaning on his club" width={1280} height={1280} />
         ) : (
@@ -87,6 +89,7 @@ export function Hero() {
             <Copy isStatic={false} layer="behind" />
             <Scene frozen={frozen} video={video} />
             <ScreenVideo ref={videoRef} />
+            <Intro stage={stage} />
           </>
         )}
         {!isStatic && <Copy isStatic={false} layer="front" />}
