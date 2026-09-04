@@ -34,7 +34,7 @@ for (const p of POSITIONS) {
   await new Promise((r) => setTimeout(r, 1400));
   const got = await page.evaluate(() => window.__bdProgress);
   console.log(`p ${p.toFixed(2)} -> progress ${got?.toFixed(3)}`);
-  await page.screenshot({ path: `assets/shots/p-${p.toFixed(2)}.png` });
+  await page.screenshot({ path: `assets/shots/p-${p.toFixed(4)}.png` });
 }
 // frame rate probe at p = 0.06 and 0.3 (headless GPU is not the M3 in Safari, treat as a floor)
 const fps = {};

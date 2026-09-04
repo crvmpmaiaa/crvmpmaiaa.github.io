@@ -121,7 +121,7 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
     if (isInside) {
       const mx = pointer.active ? pointer.x : 0, my = pointer.active ? pointer.y : 0;
       // arrive: decelerate forward from the entry pose, turning to look along the rail
-      const arrive = ease.out(remap(q, Q.cross, Q.arrive[1]));
+      const arrive = ease.inOut(remap(q, Q.cross, Q.arrive[1]));  // starts from rest, so the crossing has no velocity step
       // truck: rail position with plateaus
       const u = remap(q, Q.truck[0], Q.truck[1]);
       const x = railX(u);
