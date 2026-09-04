@@ -96,7 +96,7 @@ function Backdrop({ video }: { video?: HTMLVideoElement | null }) {
   }, [video, poster]);
   // a shallow arc of radius 60 centred on the rail, its surface about 46 units behind the cards.
   // three's cylinder puts theta 0 on +Z, so the arc is cut around pi to sit on the far side.
-  const geo = useMemo(() => new THREE.CylinderGeometry(60, 60, 30, 64, 1, true, Math.PI - 0.4, 0.8), []);
+  const geo = useMemo(() => new THREE.CylinderGeometry(60, 60, 70, 96, 1, true, Math.PI - 0.75, 1.5), []);
   return (
     <mesh geometry={geo} position={[6.2, 0.4, 14]}>
       {/* fog is for the cards and dust; the backdrop is the far distance itself */}
