@@ -1045,7 +1045,7 @@ footer.section {
   transition: opacity 500ms ease;
 }
 .is-revealed .hero-nav { opacity: 1; visibility: visible; }
-.hero-nav a { color: #8a929c; text-decoration: none; transition: color 200ms ease; }
+.hero-nav a { color: #5f6873; text-decoration: none; transition: color 200ms ease; }
 .hero-nav a:hover, .hero-nav a:focus-visible { color: var(--ink); text-decoration: underline; text-underline-offset: 0.3em; }
 
 /* the contact page: the footer on its own, full height */
