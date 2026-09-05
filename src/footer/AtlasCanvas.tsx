@@ -76,7 +76,7 @@ export function AtlasCanvas() {
           <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.45} />
           <Atlas visible={visible} />
           {/* a soft shadow on the ground so he stands rather than floats */}
-          <ContactShadows position={[0, -1.36, 0]} opacity={0.45} scale={5} blur={2.4} far={2.5} color="#0b1a2e" />
+          <ContactShadows position={[0, -1.36, 0]} opacity={0.32} scale={10} blur={3.2} far={3.5} resolution={512} color="#0b1a2e" />
         </Suspense>
         {/* the hero's light: warm key from the upper left, cool sky fill, a cold rim from behind */}
         <directionalLight position={[-3, 5, 3]} intensity={2.6} color="#fff3e6" castShadow shadow-mapSize={[1024, 1024]} />
