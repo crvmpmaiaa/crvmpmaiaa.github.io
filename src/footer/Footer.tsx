@@ -1,13 +1,18 @@
+"use client";
+import { useEffect, useState } from "react";
+import { qa } from "@/hero/qa";
 import { AtlasCanvas } from "./AtlasCanvas";
 import { WavesBackground } from "./WavesBackground";
 import { FooterParallax } from "./Parallax";
 
 /** One viewport at the end: Atlas turning, and the form. Also the whole of the contact page. */
 export function Footer({ standalone = false }: { standalone?: boolean }) {
+  const [plain, setPlain] = useState(false);  // QA switch: ?plain leaves the WebGL out of the footer
+  useEffect(() => { setPlain(qa("plain")); }, []);
   return (
     <footer className={`footer${standalone ? " footer--page" : ""}`} id="contact">
-      <WavesBackground />
-      <FooterParallax />
+      {!plain && <WavesBackground />}
+      {!plain && <FooterParallax />}
       <div className="footer__inner">
         <div className="footer__copy">
           <h2 className="footer__title">Let us take the weight<br />off your shoulders.</h2>
@@ -27,7 +32,7 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
             <button className="cta" type="submit">Start a project</button>
           </form>
         </div>
-        <AtlasCanvas />
+        {!plain && <AtlasCanvas />}
       </div>
       <div className="footer__foot">
         <span className="footer__brand">Build Different</span>

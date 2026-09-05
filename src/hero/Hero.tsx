@@ -30,6 +30,7 @@ function detectMode(): Mode {
     webgl2 = false;
   }
   if (!webgl2 || lowMemory) return "static";
+  if (new URLSearchParams(window.location.search).has("static")) return "static";  // QA switch
   if (reduced) return "reduced";
   return "scroll";
 }
