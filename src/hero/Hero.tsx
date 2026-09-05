@@ -10,7 +10,6 @@ import { setProgress, scrollControl } from "./progress";
 
 const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false });
 import { SkyVideo } from "./SkyVideo";
-import { ScreenVideo } from "./ScreenVideo";
 import { Intro } from "./Intro";
 import { introState } from "./introState";
 import { ServiceTabs } from "./ServiceTabs";
@@ -38,11 +37,8 @@ function detectMode(): Mode {
 export function Hero() {
   const [mode, setMode] = useState<Mode>("pending");
   const section = useRef<HTMLElement>(null);
-  const [video, setVideo] = useState<HTMLVideoElement | null>(null);
   const stage = useRef<HTMLDivElement>(null);
-  const videoRef = (el: HTMLVideoElement | null) => setVideo(el);
 
-  // the video only feeds the laptop screen texture; the element itself stays hidden
 
   useEffect(() => {
     // every visit starts at the top: the browser must not restore a mid sequence scroll position on refresh
@@ -103,13 +99,12 @@ export function Hero() {
     >
       <div className="hero__stage" ref={stage}>
         {mode === "static" || mode === "pending" ? (
-          <img className="hero__still" src="/hero-still.png" alt="A marble figure of Hercules, leaning on his club" width={1280} height={1280} />
+          <img className="hero__still" src="/hero-still.webp" alt="A marble figure of Hercules, leaning on his club" width={1280} height={1280} />
         ) : (
           <>
             <SkyVideo frozen={frozen} />
             <Copy isStatic={false} layer="behind" />
-            <Scene frozen={frozen} video={video} />
-            <ScreenVideo ref={videoRef} />
+            <Scene frozen={frozen} />
             <Intro stage={stage} />
           </>
         )}

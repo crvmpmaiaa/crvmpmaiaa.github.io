@@ -48,4 +48,4 @@ assets/export/
 assets/*.log
 
 # regenerable point buffers (tools/blender/03_sample_points.py), 15 MB
-public/points/*.bin
+# public/points/*.bin (committed so GitHub Pages can serve them)

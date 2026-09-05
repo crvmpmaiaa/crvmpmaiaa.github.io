@@ -192,30 +192,49 @@ const frag = /* glsl */ `
 
 type Buffers = { pos: Float32Array; nrm: Float32Array; col: Float32Array; delay: Float32Array; posB: Float32Array; colB: Float32Array; delayB: Float32Array; count: number };
 
+type Manifest = { count: number; format?: "q1"; qlo?: number[]; qhi?: number[] };
+
+/** the packed buffer from tools/quantise-points.mjs, or the sampler's raw float32 layout */
 async function loadPoints(set: "desktop" | "mobile"): Promise<Buffers> {
   const [bin, meta] = await Promise.all([
     fetch(`/points/${set}.bin?v=${MODEL_VERSION}`).then((r) => r.arrayBuffer()),
-    fetch(`/points/${set}.json?v=${MODEL_VERSION}`).then((r) => r.json() as Promise<{ count: number }>),
+    fetch(`/points/${set}.json?v=${MODEL_VERSION}`).then((r) => r.json() as Promise<Manifest>),
   ]);
-  const f = new Float32Array(bin);
   const n = meta.count;
   const pos = new Float32Array(n * 3), nrm = new Float32Array(n * 3), col = new Float32Array(n * 3), delay = new Float32Array(n);
   const posB = new Float32Array(n * 3), colB = new Float32Array(n * 3), delayB = new Float32Array(n);
+  if (meta.format === "q1" && meta.qlo && meta.qhi) {
+    const dv = new DataView(bin), lo = meta.qlo, hi = meta.qhi, B = 22;
+    const d16 = (v: number, k: number) => ((v + 32768) / 65535) * (hi[k] - lo[k]) + lo[k];
+    for (let i = 0; i < n; i++) {
+      const b = i * B;
+      for (let k = 0; k < 3; k++) {
+        pos[i * 3 + k] = d16(dv.getInt16(b + k * 2, true), k);
+        nrm[i * 3 + k] = dv.getInt8(b + 6 + k) / 127;
+        col[i * 3 + k] = dv.getUint8(b + 9 + k) / 255;
+        posB[i * 3 + k] = d16(dv.getInt16(b + 12 + k * 2, true), k);
+        colB[i * 3 + k] = dv.getUint8(b + 18 + k) / 255;
+      }
+      delay[i] = dv.getUint8(b + 21) / 255;
+    }
+  } else {
+    const f = new Float32Array(bin);
+    for (let i = 0; i < n; i++) {
+      const o = i * FLOATS;
+      pos[i * 3] = f[o]; pos[i * 3 + 1] = f[o + 1]; pos[i * 3 + 2] = f[o + 2];
+      nrm[i * 3] = f[o + 3]; nrm[i * 3 + 1] = f[o + 4]; nrm[i * 3 + 2] = f[o + 5];
+      col[i * 3] = f[o + 6]; col[i * 3 + 1] = f[o + 7]; col[i * 3 + 2] = f[o + 8];
+      posB[i * 3] = f[o + 9]; posB[i * 3 + 1] = f[o + 10]; posB[i * 3 + 2] = f[o + 11];
+      colB[i * 3] = f[o + 15]; colB[i * 3 + 1] = f[o + 16]; colB[i * 3 + 2] = f[o + 17];
+      delay[i] = f[o + 18];
+    }
+  }
   let maxY = 0;
-  for (let i = 0; i < n; i++) maxY = Math.max(maxY, f[i * FLOATS + 10]);
+  for (let i = 0; i < n; i++) maxY = Math.max(maxY, posB[i * 3 + 1]);
   pointsState.maxYB = maxY;
   pointsState.loaded = true;
-  for (let i = 0; i < n; i++) {
-    const o = i * FLOATS;
-    pos[i * 3] = f[o]; pos[i * 3 + 1] = f[o + 1]; pos[i * 3 + 2] = f[o + 2];
-    nrm[i * 3] = f[o + 3]; nrm[i * 3 + 1] = f[o + 4]; nrm[i * 3 + 2] = f[o + 5];
-    col[i * 3] = f[o + 6]; col[i * 3 + 1] = f[o + 7]; col[i * 3 + 2] = f[o + 8];
-    posB[i * 3] = f[o + 9]; posB[i * 3 + 1] = f[o + 10]; posB[i * 3 + 2] = f[o + 11];
-    colB[i * 3] = f[o + 15]; colB[i * 3 + 1] = f[o + 16]; colB[i * 3 + 2] = f[o + 17];
-    delay[i] = f[o + 18];
-    // rebuild order: ground up on the pillar, with a little grain so the front is ragged
-    delayB[i] = Math.min(1, (f[o + 10] / maxY) * 0.9 + ((i * 7919) % 1000) / 1000 * 0.06);
-  }
+  // rebuild order: ground up on the pillar, with a little grain so the front is ragged
+  for (let i = 0; i < n; i++) delayB[i] = Math.min(1, (posB[i * 3 + 1] / maxY) * 0.9 + ((i * 7919) % 1000) / 1000 * 0.06);
   return { pos, nrm, col, delay, posB, colB, delayB, count: n };
 }
 
