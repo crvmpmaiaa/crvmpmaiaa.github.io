@@ -2,10 +2,10 @@ import { AtlasCanvas } from "./AtlasCanvas";
 import { WavesBackground } from "./WavesBackground";
 import { FooterParallax } from "./Parallax";
 
-/** One viewport of marble at the end: Atlas turning, and the form. */
-export function Footer() {
+/** One viewport at the end: Atlas turning, and the form. Also the whole of the contact page. */
+export function Footer({ standalone = false }: { standalone?: boolean }) {
   return (
-    <footer className="footer" id="contact">
+    <footer className={`footer${standalone ? " footer--page" : ""}`} id="contact">
       <WavesBackground />
       <FooterParallax />
       <div className="footer__inner">

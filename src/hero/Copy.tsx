@@ -2,7 +2,8 @@
 import { useEffect, useRef } from "react";
 import { LINES, WORDMARK, CTA, SCROLL_HINT } from "./lines";
 import { COPY_WINDOWS, window as win, ease, remap } from "./beats";
-import { onProgress, progress } from "./progress";
+import { onProgress, progress, scrollControl } from "./progress";
+import { HERO_FRACTION, Q } from "./beats";
 
 type Layer = "behind" | "front" | "all";
 
@@ -100,8 +101,16 @@ export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: L
         );
       })}
       <p className="copy copy--cta" ref={set("cta")}>
-        <a className="cta" href="#contact">{CTA}</a>
+        <a className="cta" href="/contact">{CTA}</a>
       </p>
+      {!isStatic && (
+        <nav className="hero-nav" aria-label="Site">
+          <a href="/work">Work</a>
+          <a href="#services" onClick={(e) => { e.preventDefault(); scrollControl.toSection(HERO_FRACTION + (1 - HERO_FRACTION) * Q.arrive[0]); }}>Services</a>
+          <a href="/about">About us</a>
+          <a href="/contact">Contact</a>
+        </nav>
+      )}
       {!isStatic && (
         <p className="scroll-hint" ref={set("scrollHint")} aria-hidden="true">{SCROLL_HINT}</p>
       )}

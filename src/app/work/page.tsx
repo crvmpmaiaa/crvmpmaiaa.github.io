@@ -15,7 +15,7 @@ export default function WorkPage() {
       <h2 className="wp__sub">Selected projects</h2>
       <WorkGrid projects={ALL_PROJECTS} />
       <footer className="wp__foot">
-        <a href="/#contact" className="cta">Start a project</a>
+        <a href="/contact" className="cta">Start a project</a>
       </footer>
     </main>
   );

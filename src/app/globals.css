@@ -1015,3 +1015,31 @@ footer.section {
   .wp__glitch { display: none; }
   .wp__link:hover img { animation: none; }
 }
+
+
+/* ---------- hero nav: small, bottom left, appears with the scroll hint ---------- */
+.hero-nav {
+  position: absolute;
+  left: clamp(1.25rem, 6vw, 6rem);
+  bottom: clamp(1.5rem, 10vh, 7rem);
+  z-index: 6;
+  display: flex;
+  gap: clamp(0.9rem, 1.6vw, 1.6rem);
+  font-family: var(--font-copy);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: var(--step--1);
+  pointer-events: auto;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 500ms ease;
+}
+.is-revealed .hero-nav { opacity: 1; visibility: visible; }
+.hero-nav a { color: var(--ink); text-decoration: none; opacity: 0.75; }
+.hero-nav a:hover, .hero-nav a:focus-visible { opacity: 1; text-decoration: underline; text-underline-offset: 0.25em; }
+
+/* the contact page: the footer on its own, full height */
+.page--contact { position: relative; }
+.page__home { position: absolute; left: clamp(1.25rem, 6vw, 6rem); top: clamp(1.25rem, 3vw, 2.5rem); z-index: 5; color: var(--ink); }
+.footer--page { min-height: 100svh; padding-top: clamp(5rem, 10vw, 8rem); }
