@@ -23,6 +23,8 @@ export function Intro({ stage }: { stage: React.RefObject<HTMLDivElement | null>
     scrollControl.lock();
     window.scrollTo(0, 0);
     const release = () => { introState.locked = false; scrollControl.unlock(); };
+    // whatever happens, the page is never locked for more than a few seconds
+    const safety = window.setTimeout(release, 6000);
     const finish = () => {
       if (done) return;
       done = true;
@@ -57,8 +59,8 @@ export function Intro({ stage }: { stage: React.RefObject<HTMLDivElement | null>
         done = true;
         st.classList.add("is-revealed");
         overlay.current?.remove();
-        // the remaining letters rise and the statue fades over the next second, then the page is free
-        window.setTimeout(release, 1100);
+        // the wordmark has landed: the scroll hint shows and the page is free straight away
+        release();
       }).catch(finish);
     };
 
@@ -66,7 +68,7 @@ export function Intro({ stage }: { stage: React.RefObject<HTMLDivElement | null>
     let holdTimer = 0;
     const off = onStatueReady(() => { holdTimer = window.setTimeout(fly, 450); });
     const ceiling = window.setTimeout(fly, 4000);
-    return () => { off(); clearTimeout(holdTimer); clearTimeout(ceiling); };
+    return () => { off(); clearTimeout(holdTimer); clearTimeout(ceiling); clearTimeout(safety); release(); };
   }, [stage]);
 
   return (
