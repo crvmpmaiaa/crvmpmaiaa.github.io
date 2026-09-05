@@ -72,7 +72,7 @@ export function ServiceTabs() {
               )}
             </div>
             <figure className="tabs__figure tabs__in" style={{ "--i": 1.5 } as React.CSSProperties}>
-              <img src={s.image} alt={s.alt} loading="lazy" width={1200} height={742} />
+              <img src={s.image} alt={s.alt} loading="lazy" width={1200} height={1200} />
             </figure>
           </section>
         ))}
