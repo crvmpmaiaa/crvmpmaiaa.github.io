@@ -20,7 +20,7 @@ export default function WorkPage() {
           <li key={p.slug} className="wp__card">
             <a className="wp__link" href={p.url || "#"} target={p.url ? "_blank" : undefined} rel={p.url ? "noreferrer" : undefined}>
               <figure className="wp__preview">
-                <img src={p.site} alt={p.alt} loading="lazy" width={1440} height={900} />
+                <img src={p.site} alt={p.alt} width={1440} height={900} />
                 <span className="wp__view" aria-hidden="true">View</span>
               </figure>
               <ul className="wp__tags" aria-label="Tags">
