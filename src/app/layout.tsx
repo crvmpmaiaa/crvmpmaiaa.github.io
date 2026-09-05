@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Anton, Cormorant_Garamond, Geist } from "next/font/google";
+import { Anton, Cormorant_Garamond, Fraunces, Geist } from "next/font/google";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -7,6 +7,14 @@ const display = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   style: ["normal", "italic"],
+});
+
+const copyFace = Fraunces({
+  variable: "--font-copy-src",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
+  axes: ["opsz", "SOFT"],
 });
 
 const wordmark = Anton({
@@ -27,7 +35,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${wordmark.variable} h-full antialiased`}>
+    <html lang="en" className={`${display.variable} ${body.variable} ${wordmark.variable} ${copyFace.variable} h-full antialiased`}>
       <body className="min-h-full">{children}</body>
     </html>
   );
