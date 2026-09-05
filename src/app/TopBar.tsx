@@ -20,11 +20,19 @@ export function TopBar() {
   }, []);
   return (
     <div className="bar" ref={ref}>
+      <nav className="bar__nav bar__nav--l" aria-label="Site">
+        <a href="/work">Work</a>
+        <a href="/#services">Services</a>
+      </nav>
       <a className="bd" href="/" aria-label="Build Different, home">
         <span className="bd__l">B</span><span className="bd__x" aria-hidden="true">UILD</span>
         <span className="bd__gap" aria-hidden="true" />
         <span className="bd__l">D</span><span className="bd__x" aria-hidden="true">IFFERENT</span>
       </a>
+      <nav className="bar__nav bar__nav--r" aria-label="Site">
+        <a href="/about">About us</a>
+        <a href="/contact">Contact</a>
+      </nav>
     </div>
   );
 }

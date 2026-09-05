@@ -1,4 +1,5 @@
 "use client";
+import { goToServices } from "./services";
 import { useEffect, useRef } from "react";
 import { onStatueReady, introState } from "./introState";
 import { scrollControl } from "./progress";
@@ -22,7 +23,11 @@ export function Intro({ stage }: { stage: React.RefObject<HTMLDivElement | null>
     introState.locked = true;
     scrollControl.lock();
     window.scrollTo(0, 0);
-    const release = () => { introState.locked = false; scrollControl.unlock(); };
+    const release = () => {
+      introState.locked = false;
+      scrollControl.unlock();
+      if (window.location.hash === "#services") window.setTimeout(goToServices, 60);
+    };
     // whatever happens, the page is never locked for more than a few seconds
     const safety = window.setTimeout(release, 6000);
     const finish = () => {
