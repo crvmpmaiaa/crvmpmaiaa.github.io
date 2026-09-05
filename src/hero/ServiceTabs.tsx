@@ -54,7 +54,8 @@ export function ServiceTabs() {
       {SERVICES.map((s, i) => (
         <section key={s.title} className="deck__card" ref={(el) => { cards.current[i] = el; }}>
           <div className="deck__text">
-            <h3 className="deck__title">{s.title}</h3>
+            <span className="deck__index" aria-hidden="true">{String(i + 1).padStart(2, "0")}<span className="deck__of"> / {String(SERVICES.length).padStart(2, "0")}</span></span>
+            <h3 className="deck__title"><span className="sr-only">{i + 1} of {SERVICES.length}. </span>{s.title}</h3>
             <p className="deck__lead">{s.lead}</p>
             {s.points.length > 0 && (
               <ul className="deck__points">
