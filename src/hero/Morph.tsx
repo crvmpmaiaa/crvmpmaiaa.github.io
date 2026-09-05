@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { BEATS, Q, ease, remap } from "./beats";
 import { progress } from "./progress";
 import { MODEL_VERSION } from "./Statue";
+import { rigState } from "./rigState";
 
 /**
  * The vaporise. One THREE.Points over the statue's sampled surface (tools/blender/03_sample_points.py).
@@ -25,6 +26,7 @@ const vert = /* glsl */ `
   uniform float uProgress;   // 0..1 across the vaporise
   uniform float uRebuild;    // 0..1 across the rebuild
   uniform float uUnbuild;    // 0..1 as the pillar and laptop come apart again, top down
+  uniform float uRigY;       // where the pillar rig sits now, relative to where it was sampled
   uniform float uSettle;     // 0..1 as the meshes surface and the settled dust dies from the base up
   uniform float uSpread;     // how much of the range the delay sweep takes
   uniform float uTime;
@@ -69,9 +71,10 @@ const vert = /* glsl */ `
       vT = t;
       vec3 jitter = normalize(hash3(vec3(seed * 5.3, seed * 8.9, seed * 2.7)));
       vec3 wind = normalize(vec3(-0.8, 0.9, 0.2));
-      vec3 p = posB;
-      p += curl(posB * 1.6 + vec3(uTime * 0.08, 0.0, 0.0) + t * 1.5) * (0.4 * sin(t * 3.14159) + 0.3 * t);
-      p += (wind + jitter * 0.35) * te * te * 3.0 * (0.8 + 0.4 * seed);
+      vec3 p = posB + vec3(0.0, uRigY, 0.0);
+      float w = t * t;   // from rest, gathering speed
+      p += curl(posB * 1.6 + vec3(uTime * 0.08, 0.0, 0.0) + t * 1.5) * (0.3 * sin(t * 3.14159) + 0.25 * t);
+      p += (wind + jitter * 0.35) * w * 2.4 * (0.8 + 0.4 * seed);
       vFade = smoothstep(0.0, 0.02, t) * (1.0 - smoothstep(0.35, 1.0, t));
       vec3 stone = clamp(colB * 1.25 + 0.06, 0.0, 1.0);
       vec3 col = mix(stone, vec3(0.88, 0.92, 0.97), smoothstep(0.3, 1.0, t));
@@ -205,7 +208,7 @@ async function loadPoints(set: "desktop" | "mobile"): Promise<Buffers> {
     colB[i * 3] = f[o + 15]; colB[i * 3 + 1] = f[o + 16]; colB[i * 3 + 2] = f[o + 17];
     delay[i] = f[o + 18];
     // rebuild order: ground up on the pillar, with a little grain so the front is ragged
-    delayB[i] = Math.min(1, (f[o + 10] / maxY) * 0.85 + ((i * 7919) % 1000) / 1000 * 0.15);
+    delayB[i] = Math.min(1, (f[o + 10] / maxY) * 0.9 + ((i * 7919) % 1000) / 1000 * 0.06);
   }
   return { pos, nrm, col, delay, posB, colB, delayB, count: n };
 }
@@ -261,6 +264,7 @@ export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "
       uProgress: { value: 0 },
       uRebuild: { value: 0 },
       uUnbuild: { value: 0 },
+      uRigY: { value: 0 },
       uSettle: { value: 0 },
       uSpread: { value: VAPORISE.spread },
       uTime: { value: 0 },
@@ -283,6 +287,7 @@ export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "
     m.uniforms.uRebuild.value = r;
     m.uniforms.uSettle.value = settle;
     m.uniforms.uUnbuild.value = unb;
+    m.uniforms.uRigY.value = rigState.y;
     (window as unknown as { __bdMorphU?: number }).__bdMorphU = u;
     m.uniforms.uPixelRatio.value = dpr;
     if (!frozen) m.uniforms.uTime.value += Math.min(dt, 0.05);

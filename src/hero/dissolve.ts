@@ -41,7 +41,9 @@ export function applyDissolve(mat: THREE.MeshStandardMaterial, d: Dissolve, key:
         float d = uInvert > 0.5 ? (uCut - edge) : (edge - uCut);
         if (d < 0.0) discard;
         float rim = 1.0 - smoothstep(0.0, uEdge, d);
-        gl_FragColor.rgb *= 1.0 - rim * 0.35;`,
+        gl_FragColor.rgb *= 1.0 - rim * 0.35;
+        // back faces are the inside of a shell seen through the cut: flat dark stone, no lighting tricks
+        if (!gl_FrontFacing) gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.16, 0.16, 0.17), 0.85);`,
       );
   };
   mat.customProgramCacheKey = () => key;

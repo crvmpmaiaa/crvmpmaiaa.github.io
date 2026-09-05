@@ -8,6 +8,7 @@ import { progress } from "./progress";
 import { MODEL_VERSION } from "./Statue";
 import { SETTLE } from "./Morph";
 import { makeDissolve, applyDissolve } from "./dissolve";
+import { rigState } from "./rigState";
 import { screenAspect, portalCamState } from "./PortalScreen";
 
 const COLUMN = `/models/column.glb?v=${MODEL_VERSION}`;
@@ -46,7 +47,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
           m.frustumCulled = false;
           const mat = m.material as THREE.MeshStandardMaterial;
           if (mat) {
-            mat.side = THREE.DoubleSide;  // the lid and bezel are thin single sided shells
+            mat.side = THREE.DoubleSide;  // thin shells: the cut must show an inside, not a hole
             applyDissolve(mat, rebuildDissolve, "rebuild-dissolve");
           }
         }
@@ -130,8 +131,8 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     // the cut must sit exactly where the dust is launching: a point at normalised height h leaves when
     // unb > (1 - (0.85 h)) * spread, so the surviving surface is everything below h = (1 - unb / spread) / 0.85,
     // converted from the point buffer's height to the dissolve's own height scale
-    const spread = 0.6, sweep = 0.85, maxY = 1.2124, height = COLUMN_TOP + 0.3;
-    const cutForUnbuild = ((1 - unb / spread) / sweep) * (maxY / height);
+    const spread = 0.6, sweep = 0.9, grainMean = 0.03, maxY = 1.2124, height = COLUMN_TOP + 0.3;
+    const cutForUnbuild = (((1 - unb / spread - grainMean) / sweep) * maxY + rigState.y) / height;
     rebuildDissolve.uCut.value = unb > 0 ? Math.max(-0.05, cutForUnbuild) : settle <= 0 ? -1 : settle >= 0.999 ? 1e3 : settle * 1.15;
     g.visible = unb < 0.999;
     const wantShadows = settle > 0 && unb < 0.5;
@@ -160,6 +161,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
       tmpBox.getCenter(tmpC);
       g.position.y = -down * (tmpC.y - stageTarget.look.y);
     }
+    rigState.y = g.position.y;
     (window as unknown as { __bdRig?: unknown }).__bdRig = { gy: +g.position.y.toFixed(3), rot: +g.rotation.y.toFixed(3), lid: +lidDeg.toFixed(1), down: +down.toFixed(3), sc: screenState.centre.toArray().map((v) => +v.toFixed(3)) };
     const light = ease.smooth(remap(p, 0.83, 0.86));
     screenState.light = light;
