@@ -55,6 +55,7 @@ export function Hero() {
     if (mode !== "scroll" || !section.current) return;
     gsap.registerPlugin(ScrollTrigger);
     const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+    (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
     lenis.scrollTo(0, { immediate: true });
     const raf = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(raf);
@@ -75,7 +76,12 @@ export function Hero() {
     };
     // the intro holds the page at the top until the wordmark and the statue are fully in
     scrollControl.lock = () => { lenis.stop(); document.documentElement.classList.add("is-locked"); };
-    scrollControl.unlock = () => { lenis.start(); document.documentElement.classList.remove("is-locked"); };
+    scrollControl.unlock = () => {
+      document.documentElement.classList.remove("is-locked");
+      lenis.start();
+      // Lenis measured the page while it was locked: measure again now the page has its full height
+      requestAnimationFrame(() => { lenis.resize(); ScrollTrigger.refresh(); });
+    };
     if (introState.locked) scrollControl.lock();
 
     return () => {

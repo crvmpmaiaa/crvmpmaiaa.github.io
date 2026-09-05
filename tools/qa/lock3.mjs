@@ -1,0 +1,11 @@
+import puppeteer from "puppeteer-core";
+const b = await puppeteer.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: "new", args: ["--use-angle=metal", "--autoplay-policy=no-user-gesture-required", "--window-size=1440,900"] });
+const pg = await b.newPage(); await pg.setViewport({ width: 1440, height: 900 });
+await pg.goto("http://localhost:3000", { waitUntil: "domcontentloaded" });
+await new Promise((r) => setTimeout(r, 5000));
+console.log("state", await pg.evaluate(() => { const l = window.__lenis; return { isStopped: l?.isStopped, isLocked: l?.isLocked, isSmooth: l?.isSmooth, limit: l?.limit, cls: document.documentElement.className, bodyOverflow: getComputedStyle(document.body).overflow, htmlOverflow: getComputedStyle(document.documentElement).overflow, h: document.documentElement.scrollHeight }; }));
+await pg.mouse.move(700, 450);
+await pg.mouse.wheel({ deltaY: 1200 });
+await new Promise((r) => setTimeout(r, 1500));
+console.log("after wheel", await pg.evaluate(() => ({ y: scrollY, lenisScroll: window.__lenis?.scroll, target: window.__lenis?.targetScroll })));
+await b.close();

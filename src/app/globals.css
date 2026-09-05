@@ -46,7 +46,6 @@ html {
 }
 html.is-locked, html.is-locked body {
   overflow: hidden;
-  height: 100%;
 }
 
 body {
