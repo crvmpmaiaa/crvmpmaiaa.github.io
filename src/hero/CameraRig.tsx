@@ -165,8 +165,8 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
       tmpLook.lerp(endLook, out);
       // the hand and temple are taller than the pillar: ease back and up to frame the whole piece as it rises
       const hand = ease.inOut(remap(q, Q.hand[0], Q.hand[1]));
-      const handPos = new THREE.Vector3(0, 1.7, 7.2);
-      const handLook = new THREE.Vector3(0, 1.45, 0);
+      const handPos = new THREE.Vector3(0, 2.0, 8.4);
+      const handLook = new THREE.Vector3(0, 1.72, 0);
       tmpPos.lerp(handPos, hand);
       tmpLook.lerp(handLook, hand);
     }

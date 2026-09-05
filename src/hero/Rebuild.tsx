@@ -127,7 +127,12 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     const settle = ease.smooth(remap(p, SETTLE.start, SETTLE.end));
     // once fully surfaced the cut goes away entirely; when the pillar vanishes it runs back down from the top
     const unb = ease.smooth(remap(progress.q, Q.vanish[0], Q.vanish[1]));
-    rebuildDissolve.uCut.value = unb > 0 ? 1.15 * (1 - unb) : settle <= 0 ? -1 : settle >= 0.999 ? 1e3 : settle * 1.15;
+    // the cut must sit exactly where the dust is launching: a point at normalised height h leaves when
+    // unb > (1 - (0.85 h)) * spread, so the surviving surface is everything below h = (1 - unb / spread) / 0.85,
+    // converted from the point buffer's height to the dissolve's own height scale
+    const spread = 0.6, sweep = 0.85, maxY = 1.2124, height = COLUMN_TOP + 0.3;
+    const cutForUnbuild = ((1 - unb / spread) / sweep) * (maxY / height);
+    rebuildDissolve.uCut.value = unb > 0 ? Math.max(-0.05, cutForUnbuild) : settle <= 0 ? -1 : settle >= 0.999 ? 1e3 : settle * 1.15;
     g.visible = unb < 0.999;
     const wantShadows = settle > 0 && unb < 0.5;
     if (shadows.current !== wantShadows) {
