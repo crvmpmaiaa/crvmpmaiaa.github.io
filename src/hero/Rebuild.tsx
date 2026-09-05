@@ -142,7 +142,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     const floor = (rigState.y - 0.4) / height;
     rebuildDissolve.uCut.value = unb > 0 ? Math.max(floor, cutForUnbuild) : settle <= 0 ? -1 : settle >= 0.999 ? 1e3 : settle * 1.15;
     // the laptop surfaces bottom up once the column is solid, over a short run, and leaves with the column
-    const reveal = ease.smooth(remap(p, SETTLE.end, SETTLE.end + 0.025));
+    const reveal = ease.smooth(remap(p, SETTLE.end - 0.005, SETTLE.end + 0.015));
     laptopDissolve.uCut.value = unb > 0 ? rebuildDissolve.uCut.value : reveal <= 0 ? -1 : reveal >= 0.999 ? 1e3 : (COLUMN_TOP + rigState.y + reveal * 0.3) / height;
     g.visible = unb < 0.999;
     const wantShadows = settle > 0 && unb < 0.5;
@@ -156,7 +156,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     g.rotation.y = turn * Math.PI * 2;
 
     // the lid lifts from 0.80 to 0.89 to its open angle, then squares to vertical as the rig comes down
-    const open = ease.inOut(remap(p, 0.79, 0.865));
+    const open = ease.inOut(remap(p, 0.815, 0.87));  // the laptop is fully there before it opens
     const down = ease.inOut(remap(p, BEATS.screen[0], BEATS.screen[1]));
     const lidDeg = THREE.MathUtils.lerp(LID_OPEN_DEG * open, 90, down);
     if (lid.current) lid.current.rotation.x = THREE.MathUtils.degToRad(lidDeg);
@@ -173,7 +173,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     }
     rigState.y = g.position.y;
     (window as unknown as { __bdRig?: unknown }).__bdRig = { gy: +g.position.y.toFixed(3), rot: +g.rotation.y.toFixed(3), lid: +lidDeg.toFixed(1), down: +down.toFixed(3), sc: screenState.centre.toArray().map((v) => +v.toFixed(3)) };
-    const light = ease.smooth(remap(p, 0.83, 0.86));
+    const light = ease.smooth(remap(p, 0.845, 0.865));
     screenState.light = light;
     if (screenMat.current) screenMat.current.color.setScalar(light);
     if (video && p > 0.62 && video.paused) video.play().catch(() => {});
