@@ -1027,7 +1027,7 @@ footer.section {
 /* ---------- hero nav: the words turned on their side, running down the right edge from the top ---------- */
 .hero-nav {
   position: absolute;
-  right: clamp(1.25rem, 5vw, 5rem);
+  right: clamp(0.9rem, 1.6vw, 1.6rem);
   top: clamp(1.5rem, 8vh, 5rem);
   z-index: 6;
   display: flex;
@@ -1045,8 +1045,8 @@ footer.section {
   transition: opacity 500ms ease;
 }
 .is-revealed .hero-nav { opacity: 1; visibility: visible; }
-.hero-nav a { color: var(--ink); text-decoration: none; opacity: 0.7; transition: opacity 200ms ease; }
-.hero-nav a:hover, .hero-nav a:focus-visible { opacity: 1; text-decoration: underline; text-underline-offset: 0.3em; }
+.hero-nav a { color: #8a929c; text-decoration: none; transition: color 200ms ease; }
+.hero-nav a:hover, .hero-nav a:focus-visible { color: var(--ink); text-decoration: underline; text-underline-offset: 0.3em; }
 
 /* the contact page: the footer on its own, full height */
 .page--contact { position: relative; }
