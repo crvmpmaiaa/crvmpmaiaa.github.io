@@ -12,7 +12,7 @@ const display = Cormorant_Garamond({
 const copyFace = Fraunces({
   variable: "--font-copy-src",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: "variable",
   style: ["normal", "italic"],
   axes: ["opsz", "SOFT"],
 });
