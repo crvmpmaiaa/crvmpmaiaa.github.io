@@ -552,7 +552,7 @@ footer.section {
   gap: calc(var(--pad) * var(--phi));
   padding: calc(var(--pad) * var(--phi));
   border-radius: 1.25rem;
-  background: rgba(233, 231, 226, 0.94);
+  background: #edecE8;
   border: 1px solid rgba(20, 32, 46, 0.1);
   box-shadow: 0 30px 70px rgba(20, 32, 46, 0.28);
   transform-origin: 50% 0%;
@@ -633,3 +633,49 @@ footer.section {
   .work__card { left: 50%; width: calc(100vw - 2rem); margin-left: calc((100vw - 2rem) / -2); grid-template-columns: 1fr; }
   .work__phone { display: none; }
 }
+
+/* ---------- portfolio page ---------- */
+.work-page {
+  padding: clamp(3rem, 8vw, 7rem) clamp(1.25rem, 6vw, 6rem);
+  background: var(--marble);
+  color: var(--ink);
+  min-height: 100svh;
+}
+.work-page h1 {
+  font-family: var(--font-wordmark);
+  text-transform: uppercase;
+  font-weight: 400;
+  font-size: clamp(var(--step-5), 7vw, var(--step-7));
+  line-height: 0.9;
+  margin: 0 0 1rem;
+}
+.work-page > p {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--step-2);
+  max-width: 34ch;
+  margin: 0 0 clamp(2rem, 5vw, 4rem);
+}
+.work-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: clamp(1.5rem, 3vw, 3rem);
+}
+.work-grid article {
+  display: grid;
+  gap: 0.75rem;
+}
+.work-grid figure {
+  margin: 0;
+  aspect-ratio: 9 / 19.5;
+  border-radius: 1.4rem;
+  overflow: hidden;
+  border: 5px solid white;
+  box-shadow: 0 20px 50px rgba(20, 32, 46, 0.2);
+  background: var(--quarry);
+}
+.work-grid img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.work-grid h2 { margin: 0.5rem 0 0; font-family: var(--font-wordmark); text-transform: uppercase; font-weight: 400; font-size: var(--step-3); line-height: 0.95; }
+.work-grid .kind { margin: 0; font-size: var(--step--1); color: rgba(20, 32, 46, 0.6); }
+.work-grid .line { margin: 0; font-family: var(--font-display); font-style: italic; font-size: var(--step-1); line-height: 1.25; }
+.work-page a.back { display: inline-block; margin-top: clamp(2rem, 5vw, 4rem); color: inherit; }

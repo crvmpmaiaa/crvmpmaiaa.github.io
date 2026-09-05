@@ -9,3 +9,8 @@ export const PROJECTS: Project[] = [
 ];
 
 export const WORK_MORE = { label: "See all work", href: "/work" };
+
+/** the rest, shown on the portfolio page with the four above */
+export const MORE_PROJECTS: Project[] = [
+  { name: "Jack Crump", kind: "Portfolio site", line: "A photographer's site: the pictures, the profile, nothing in the way.", image: "/images/work/jack-crump.webp", alt: "Jack Crump photography site on a phone" },
+];
