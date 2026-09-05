@@ -29,7 +29,7 @@ export function Temple({ frozen = false }: { frozen?: boolean }) {
     g.visible = rise > 0;
     g.position.y = THREE.MathUtils.lerp(-5.2, 0, rise);
     // clockwise seen from above, steady
-    g.rotation.y = -0.35 - clock.current * 0.16;
+    g.rotation.y = -0.35 + clock.current * 0.16;
   });
 
   return (

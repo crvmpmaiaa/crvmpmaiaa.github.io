@@ -133,7 +133,9 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     // converted from the point buffer's height to the dissolve's own height scale
     const spread = 0.6, sweep = 0.9, grainMean = 0.03, maxY = 1.2124, height = COLUMN_TOP + 0.3;
     const cutForUnbuild = (((1 - unb / spread - grainMean) / sweep) * maxY + rigState.y) / height;
-    rebuildDissolve.uCut.value = unb > 0 ? Math.max(-0.05, cutForUnbuild) : settle <= 0 ? -1 : settle >= 0.999 ? 1e3 : settle * 1.15;
+    // the floor of the cut sits below the rig's own base, wherever the rig has slid to, so nothing survives
+    const floor = (rigState.y - 0.4) / height;
+    rebuildDissolve.uCut.value = unb > 0 ? Math.max(floor, cutForUnbuild) : settle <= 0 ? -1 : settle >= 0.999 ? 1e3 : settle * 1.15;
     g.visible = unb < 0.999;
     const wantShadows = settle > 0 && unb < 0.5;
     if (shadows.current !== wantShadows) {
