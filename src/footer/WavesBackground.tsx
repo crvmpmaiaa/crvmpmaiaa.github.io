@@ -3,11 +3,12 @@ import { useEffect, useRef } from "react";
 import { WAVES_FRAG } from "./waves.frag";
 
 const VERT = `attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }`;
+// the hero's own sky: quarry black low, then the sky blues up to the horizon light
 const COLORS = [
-  [0.102, 0.078, 0.137],
-  [0.718, 0.365, 0.412],
-  [0.918, 0.804, 0.761],
-  [1.0, 0.961, 0.922],
+  [0.043, 0.043, 0.047],   // #0b0b0c
+  [0.165, 0.388, 0.769],   // #2a63c4
+  [0.498, 0.690, 0.902],   // #7fb0e6
+  [0.859, 0.914, 0.965],   // #dbe9f6
 ];
 
 /**
@@ -45,8 +46,8 @@ export function WavesBackground() {
     COLORS.forEach((c, i) => { flat[i * 3] = c[0]; flat[i * 3 + 1] = c[1]; flat[i * 3 + 2] = c[2]; });
     gl.uniform3fv(u("u_colors"), flat);
     gl.uniform4f(u("u_shape"), 1.32, 0.49, 0.84, 0.01);
-    gl.uniform4f(u("u_surface"), 1.73, 1.08, 0.07, 2.0);
-    gl.uniform4f(u("u_finish"), 2.27, 0.0, 0.04, 0.35);
+    gl.uniform4f(u("u_surface"), 1.73, 1.08, 0.04, 1.25);
+    gl.uniform4f(u("u_finish"), 0.0, 0.0, 0.04, 0.35);   // no hue shift: the colours are the palette as given
     gl.uniform4f(u("u_transform"), 4984.0, 3.37, 0.4, 1.0);
     gl.uniform4f(u("u_space"), -0.13, 0.05, 0.0, 0.0);
     gl.uniform4f(u("u_cursor"), 0.0, 3.0, 0.54, 0.56);
