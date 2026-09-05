@@ -13,7 +13,7 @@ export const SERVICES: Service[] = [
     title: "Web Development",
     image: "/images/services/web.webp",
     alt: "A marble head resolving into pixels",
-    lead: "Sites that load fast, read well and still look right in five years.",
+    lead: "Timeless sites that load fast and read well.",
     points: ["Design and build in one team", "Redesigns of tired sites", "Structure that turns visits into enquiries", "Speed and accessibility as standard"],
   },
   {
