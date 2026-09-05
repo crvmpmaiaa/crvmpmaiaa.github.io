@@ -14,12 +14,13 @@ export const BEATS = {
 
 /** hero 700vh, then the portal section 600vh, all in one pin */
 export const HERO_VH = 700;
-export const PORTAL_VH = 840;
+export const PORTAL_VH = 1140;
 export const SCROLL_LENGTH_VH = HERO_VH + PORTAL_VH;
 export const HERO_FRACTION = HERO_VH / SCROLL_LENGTH_VH;
 
 /** portal section beats on q in [0, 1]. The first 600vh worth is the portal, then the pillar vanishes and the hand rises. */
-const K = 600 / 840;
+const K = 600 / 1140;
+const K2 = 840 / 1140;
 export const Q = {
   through: [0.0, 0.08 * K],
   cross: 0.04 * K,
@@ -29,8 +30,10 @@ export const Q = {
   backThrough: [0.86 * K, 0.92 * K],
   crossBack: 0.9 * K,
   pullOut: [0.92 * K, 1.0 * K],
-  vanish: [0.74, 0.86],
-  hand: [0.84, 0.97],
+  vanish: [0.74 * K2, 0.86 * K2],
+  hand: [0.84 * K2, 0.97 * K2],
+  /** the work deck plays over the hand */
+  work: [0.74, 0.98],
 } as const;
 
 /** 0 before a, 1 after b, linear between. */

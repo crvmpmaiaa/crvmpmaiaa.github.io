@@ -28,6 +28,9 @@ export function Temple({ frozen = false }: { frozen?: boolean }) {
     const rise = ease.out(remap(progress.q, Q.hand[0], Q.hand[1]));
     g.visible = rise > 0;
     g.position.y = THREE.MathUtils.lerp(-5.2, 0, rise);
+    // during the work deck the hand sits on the left golden line and the cards take the right
+    const work = ease.inOut(remap(progress.q, Q.work[0] - 0.03, Q.work[0] + 0.05));
+    g.position.x = THREE.MathUtils.lerp(0, -1.9, work);
     // clockwise seen from above, steady
     g.rotation.y = -0.35 + clock.current * 0.16;
   });

@@ -522,3 +522,114 @@ footer.section {
   .deck__card { width: calc(100vw - 2rem); margin-left: calc((100vw - 2rem) / -2); grid-template-columns: 1fr; }
   .deck__figure { display: none; }
 }
+
+
+/* ---------- selected work over the hand ----------
+   A stack: each project rises from below and lands on the last, which shrinks a step behind it. */
+.work {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 400ms ease;
+  color: var(--ink);
+  --phi: 1.618;
+  --pad: clamp(1rem, 2vw, 2rem);
+}
+.work.is-visible {
+  opacity: 1;
+}
+.work__card {
+  position: absolute;
+  left: 63%;
+  top: 50%;
+  width: min(48vw, 46rem);
+  height: min(70vh, 40rem);
+  margin: calc(min(70vh, 40rem) / -2) 0 0 calc(min(48vw, 46rem) / -2);
+  display: grid;
+  grid-template-columns: 1fr 0.618fr;
+  gap: calc(var(--pad) * var(--phi));
+  padding: calc(var(--pad) * var(--phi));
+  border-radius: 1.25rem;
+  background: rgba(233, 231, 226, 0.94);
+  border: 1px solid rgba(20, 32, 46, 0.1);
+  box-shadow: 0 30px 70px rgba(20, 32, 46, 0.28);
+  transform-origin: 50% 0%;
+  will-change: transform;
+  pointer-events: auto;
+  visibility: hidden;
+  overflow: hidden;
+}
+.work__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.work__phone {
+  margin: 0;
+  align-self: stretch;
+  border-radius: clamp(1rem, 2vw, 1.6rem);
+  overflow: hidden;
+  border: 5px solid var(--marble);
+  box-shadow: 0 20px 50px rgba(20, 32, 46, 0.3), inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  background: var(--quarry);
+}
+.work__phone img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  display: block;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+.work__index {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  margin-bottom: calc(var(--pad) / var(--phi));
+}
+.work__of {
+  color: rgba(20, 32, 46, 0.45);
+}
+.work__kind {
+  margin: 0 0 calc(var(--pad) / var(--phi) / var(--phi));
+  font-family: var(--font-body);
+  font-size: var(--step--1);
+  color: rgba(20, 32, 46, 0.6);
+}
+.work__name {
+  margin: 0 0 calc(var(--pad) / var(--phi));
+  font-family: var(--font-wordmark);
+  text-transform: uppercase;
+  font-weight: 400;
+  font-size: clamp(var(--step-3), 3vw, var(--step-6));
+  line-height: 0.92;
+}
+.work__line {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(var(--step-1), 1.5vw, var(--step-2));
+  line-height: 1.22;
+  color: rgba(20, 32, 46, 0.86);
+  text-wrap: pretty;
+}
+.work__more {
+  display: inline-block;
+  margin-top: auto;
+  padding-top: var(--pad);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+@media (max-width: 820px) {
+  .work__card { left: 50%; width: calc(100vw - 2rem); margin-left: calc((100vw - 2rem) / -2); grid-template-columns: 1fr; }
+  .work__phone { display: none; }
+}

@@ -13,6 +13,7 @@ import { SkyVideo } from "./SkyVideo";
 import { ScreenVideo } from "./ScreenVideo";
 import { Intro } from "./Intro";
 import { ServiceTabs } from "./ServiceTabs";
+import { WorkDeck } from "./WorkDeck";
 
 type Mode = "pending" | "scroll" | "reduced" | "static";
 
@@ -103,6 +104,7 @@ export function Hero() {
         )}
         {!isStatic && <Copy isStatic={false} layer="front" />}
         {!isStatic && <ServiceTabs />}
+        {!isStatic && <WorkDeck />}
       </div>
       {isStatic && <Copy isStatic />}
     </section>
