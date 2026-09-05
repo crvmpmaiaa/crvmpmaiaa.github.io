@@ -284,8 +284,8 @@ body {
 .copy--left { left: clamp(1.25rem, 6vw, 6rem); top: 50%; transform: translateY(-50%); }
 .copy--left-a { left: clamp(1.25rem, 6vw, 6rem); top: 34%; width: min(30vw, 22ch); }
 .copy--left-b { left: clamp(1.25rem, 6vw, 6rem); top: 56%; width: min(30vw, 22ch); color: var(--ink-soft); }
-.copy--top-left { left: clamp(1.25rem, 6vw, 6rem); top: 16%; }
-.copy--tight { width: min(34vw, 26ch); font-size: clamp(var(--step-1), 1.8vw, var(--step-3)); }
+.copy--top-left { left: clamp(1.25rem, 6vw, 6rem); top: 14%; }
+.copy--tight { width: min(38vw, 24ch); font-size: clamp(var(--step-2), 2.6vw, var(--step-5)); line-height: 1.3; letter-spacing: 0.07em; }
 .copy--right { right: clamp(1.25rem, 6vw, 6rem); top: 50%; text-align: right; width: min(46vw, 40ch); transform: translateY(-50%); }
 .copy--bottom { left: 50%; bottom: 5%; text-align: center; transform: translateX(-50%); width: min(70vw, 52ch); }
 .copy--stack-0 { left: clamp(1.25rem, 6vw, 6rem); top: 16%; }
