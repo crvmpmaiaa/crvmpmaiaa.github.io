@@ -683,20 +683,23 @@ footer.section {
 }
 .wp__title {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-wordmark);
   font-weight: 400;
+  text-transform: uppercase;
   font-size: clamp(var(--step-5), 7vw, 7.5rem);
-  line-height: 0.98;
-  letter-spacing: -0.015em;
+  line-height: 0.92;
+  letter-spacing: 0.01em;
 }
 .wp__intro {
   margin: 0 0 0.6rem;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: clamp(var(--step-1), 1.6vw, var(--step-3));
-  line-height: 1.25;
+  font-family: var(--font-copy);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: clamp(var(--step-0), 1.15vw, var(--step-1));
+  line-height: 1.45;
   color: rgba(222, 220, 216, 0.8);
-  max-width: 30ch;
+  max-width: 34ch;
 }
 .wp__cover {
   margin: clamp(2rem, 5vw, 4rem) 0 0;
@@ -708,10 +711,13 @@ footer.section {
 .wp__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .wp__sub {
   margin: clamp(3rem, 8vw, 7rem) 0 clamp(1.5rem, 3vw, 2.5rem);
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(var(--step-3), 3.5vw, var(--step-5));
+  font-family: var(--font-copy);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: var(--step-0);
   line-height: 1;
+  color: rgba(222, 220, 216, 0.7);
 }
 .wp__grid {
   list-style: none;
@@ -831,9 +837,9 @@ footer.section {
 .wp__head--article .wp__tags { margin-top: clamp(1rem, 2vw, 2rem); }
 .wp__head--article .wp__intro { max-width: 40ch; margin-top: 1rem; }
 .wp__body { max-width: 62ch; margin-top: clamp(2rem, 5vw, 4rem); font-family: var(--font-body); line-height: 1.6; color: rgba(222, 220, 216, 0.85); }
-.wp__body h2 { font-family: var(--font-display); font-weight: 400; font-size: var(--step-3); margin: 0 0 1rem; color: var(--marble); }
+.wp__body h2 { font-family: var(--font-wordmark); font-weight: 400; text-transform: uppercase; font-size: var(--step-3); margin: 0 0 1rem; color: var(--marble); }
 .wp__body p { margin: 0 0 1.25rem; }
-.wp__placeholder { color: rgba(222, 220, 216, 0.5); font-style: italic; font-family: var(--font-display); font-size: var(--step-1); }
+.wp__placeholder { color: rgba(222, 220, 216, 0.5); font-family: var(--font-copy); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step-0); }
 .wp__next { margin-top: clamp(3rem, 6vw, 6rem); display: grid; gap: 0.5rem; font-family: var(--font-body); color: rgba(222, 220, 216, 0.6); }
 .wp__next a { font-family: var(--font-wordmark); text-transform: uppercase; font-size: clamp(var(--step-3), 3vw, var(--step-5)); color: var(--marble); text-decoration: none; line-height: 0.95; }
 .wp__next a:hover { text-decoration: underline; text-underline-offset: 0.1em; }
