@@ -10,11 +10,11 @@ import { FooterParallax } from "./Parallax";
 export function Footer({ standalone = false }: { standalone?: boolean }) {
   // ?plain leaves all the WebGL out of the footer; ?nowaves and ?noatlas each drop one piece.
   // Phones get no Waves shader by default: its fragment loop stalls the iPhone GPU and the tab is killed.
-  const [flags, setFlags] = useState({ waves: true, atlas: true });
+  const [flags, setFlags] = useState({ waves: true, atlas: true, still: false });
   useEffect(() => {
     diag("footer mounted");
     const phone = window.innerWidth < 820;
-    setFlags({ waves: !qa("plain") && !qa("nowaves") && (!phone || qa("waves")), atlas: !qa("plain") && !qa("noatlas") });
+    setFlags({ waves: !qa("plain") && !qa("nowaves") && (!phone || qa("waves")), atlas: !qa("plain") && !qa("noatlas") && (!phone || qa("rig")), still: phone && !qa("rig") });
   }, []);
   return (
     <footer className={`footer${standalone ? " footer--page" : ""}`} id="contact">
@@ -40,6 +40,7 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
           </form>
         </div>
         {flags.atlas && <AtlasCanvas />}
+        {flags.still && <div className="footer__atlas footer__atlas--still"><img src="/images/mobile/atlas.webp" alt="Atlas carrying the world, in marble and bronze" width={1134} height={1278} /></div>}
       </div>
       <div className="footer__foot">
         <span className="footer__brand">Build Different</span>

@@ -1,5 +1,6 @@
 "use client";
 import { diag, diagStart } from "./diag";
+import { MobileHome } from "@/mobile/MobileHome";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
@@ -16,7 +17,7 @@ import { introState } from "./introState";
 import { ServiceTabs } from "./ServiceTabs";
 import { WorkDeck } from "./WorkDeck";
 
-type Mode = "pending" | "scroll" | "reduced" | "static";
+type Mode = "pending" | "scroll" | "reduced" | "static" | "phone";
 
 function detectMode(): Mode {
   if (typeof window === "undefined") return "pending";
@@ -32,6 +33,8 @@ function detectMode(): Mode {
   }
   if (!webgl2 || lowMemory) return "static";
   if (new URLSearchParams(window.location.search).has("static")) return "static";  // QA switch
+  // phones get the still version: the scroll rig runs, but its GPU memory has been killing Safari tabs
+  if (window.innerWidth < 820 && !new URLSearchParams(window.location.search).has("rig")) return "phone";
   if (reduced) return "reduced";
   return "scroll";
 }
@@ -91,6 +94,7 @@ export function Hero() {
     };
   }, [mode]);
 
+  if (mode === "phone") return <MobileHome />;
   const isStatic = mode === "static" || mode === "reduced";
   const frozen = mode === "reduced";
 
