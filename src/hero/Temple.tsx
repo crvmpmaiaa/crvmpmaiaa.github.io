@@ -5,9 +5,9 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { Q, ease, remap } from "./beats";
 import { progress } from "./progress";
-import { MODEL_VERSION } from "./Statue";
+import { MODEL_VERSION, PHONE } from "./Statue";
 
-const TEMPLE = `/models/temple.glb?v=${MODEL_VERSION}`;
+const TEMPLE = `/models/temple${PHONE ? "-m" : ""}.glb?v=${MODEL_VERSION}`;
 const DRACO = "/draco/";
 
 /** The hand holding the temple. Rises out of the dust where the pillar stood and holds, turning slowly. */

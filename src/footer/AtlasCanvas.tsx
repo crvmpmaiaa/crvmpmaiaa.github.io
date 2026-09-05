@@ -4,7 +4,7 @@ import { ContactShadows, Environment, useGLTF } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
-const ATLAS = "/models/atlas.glb?v=2026-09-05a";
+const ATLAS = `/models/atlas${typeof window !== "undefined" && window.innerWidth < 820 ? "-m" : ""}.glb?v=2026-09-05b`;
 const DRACO = "/draco/";
 
 /** the yaw at which Atlas faces the viewer; ?atlasYaw= on the URL overrides it and holds him still, for QA */
@@ -70,7 +70,7 @@ export function AtlasCanvas() {
   }, []);
   return (
     <div className="footer__atlas" ref={host} aria-hidden="true">
-      <Canvas dpr={[1, 1.75]} frameloop={visible ? "always" : "never"} gl={{ antialias: true, alpha: true }} shadows camera={{ fov: 30, position: [0, 0.2, 5.4], near: 0.1, far: 30 }}
+      <Canvas dpr={typeof window !== "undefined" && window.innerWidth < 820 ? [1, 1.25] : [1, 1.75]} frameloop={visible ? "always" : "never"} gl={{ antialias: true, alpha: true }} shadows camera={{ fov: 30, position: [0, 0.2, 5.4], near: 0.1, far: 30 }}
         onCreated={({ gl }) => { gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.0; gl.setClearColor(0x000000, 0); }}>
         <Suspense fallback={null}>
           <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.45} />

@@ -1,4 +1,5 @@
 "use client";
+import { PHONE } from "./Statue";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
@@ -60,7 +61,7 @@ export function PortalScreen({ onTexture, frozen = false }: { onTexture: (t: THR
     const th = Math.round(bufSize.y * fill);
     if (!target.current || target.current.width !== tw || target.current.height !== th) {
       target.current?.dispose();
-      target.current = new THREE.WebGLRenderTarget(tw, th, { samples: 2, depthBuffer: true });
+      target.current = new THREE.WebGLRenderTarget(tw, th, { samples: PHONE ? 0 : 2, depthBuffer: true });  // no MSAA target on phones, it doubles the memory
       target.current.texture.colorSpace = THREE.NoColorSpace;  // raw shader output, no GPU encode on write
       onTexture(target.current.texture);
     }

@@ -11,9 +11,11 @@ import { progress } from "./progress";
 
 // the version stamp defeats browser caching whenever the bake changes
 export const MODEL_VERSION = "2026-09-05b";
+/** phones get the 1024 texture bake: the 2048 set is about 130 MB of GPU memory per LOD and Safari kills the tab */
+export const PHONE = typeof window !== "undefined" && window.innerWidth < 820;
 export const STATUE = {
-  lod0: `/models/statue-lod0.glb?v=${MODEL_VERSION}`,
-  lod1: `/models/statue-lod1.glb?v=${MODEL_VERSION}`,
+  lod0: `/models/statue-lod0${PHONE ? "-m" : ""}.glb?v=${MODEL_VERSION}`,
+  lod1: `/models/statue-lod1${PHONE ? "-m" : ""}.glb?v=${MODEL_VERSION}`,
   /** LOD1 takes over during the dolly back */
   lodSwapAt: 0.2,
   height: 1.8,

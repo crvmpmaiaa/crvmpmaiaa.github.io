@@ -55,7 +55,7 @@ export function WavesBackground() {
 
     let w = 0, h = 0;
     const size = () => {
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const dpr = Math.min(window.innerWidth < 820 ? 1.25 : 2, window.devicePixelRatio || 1);
       const cw = canvas.clientWidth, ch = canvas.clientHeight;
       w = Math.max(1, Math.floor(cw * dpr)); h = Math.max(1, Math.floor(ch * dpr));
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }

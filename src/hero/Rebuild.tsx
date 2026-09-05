@@ -5,15 +5,15 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { BEATS, Q, ease, remap } from "./beats";
 import { progress } from "./progress";
-import { MODEL_VERSION } from "./Statue";
+import { MODEL_VERSION, PHONE } from "./Statue";
 import { SETTLE } from "./Morph";
 import { makeDissolve, applyDissolve } from "./dissolve";
 import { rigState } from "./rigState";
 import { pointsState } from "./pointsState";
 import { screenAspect, portalCamState } from "./PortalScreen";
 
-const COLUMN = `/models/column.glb?v=${MODEL_VERSION}`;
-const LAPTOP = `/models/laptop.glb?v=${MODEL_VERSION}`;
+const COLUMN = `/models/column${PHONE ? "-m" : ""}.glb?v=${MODEL_VERSION}`;
+const LAPTOP = `/models/laptop${PHONE ? "-m" : ""}.glb?v=${MODEL_VERSION}`;
 const DRACO = "/draco/";
 export const COLUMN_TOP = 1.2;
 export const LID_OPEN_DEG = 110;

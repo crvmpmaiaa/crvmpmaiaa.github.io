@@ -89,7 +89,7 @@ export function Scene({
   return (
     <div className="hero__canvas hero__canvas--statue">
       <Canvas
-        dpr={mobile ? [1, 1.5] : [1, 2]}
+        dpr={mobile ? [1, 1.25] : [1, 2]}
         gl={{
           antialias: true,
           powerPreference: "high-performance",
