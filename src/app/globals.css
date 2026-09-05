@@ -946,7 +946,8 @@ footer.section {
   border-top: 1px solid rgba(255, 245, 235, 0.16);
   font-family: var(--font-body);
   font-size: var(--step--1);
-  color: var(--ink);
+  color: white;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
 }
 .footer__brand {
   font-family: var(--font-wordmark);
