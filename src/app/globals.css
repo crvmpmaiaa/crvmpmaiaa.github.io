@@ -1134,3 +1134,6 @@ footer.section {
   .work__card { top: 45%; height: min(56vh, 30rem); margin-top: calc(min(56vh, 30rem) / -2); }
 }
 html.is-locked { touch-action: none; overscroll-behavior: none; }
+
+/* the footer without the shader: the same palette as a still gradient */
+.footer__waves--still { background: linear-gradient(180deg, #dbe9f6 0%, #7fb0e6 34%, #2a63c4 62%, #0a0a0b 100%); }

@@ -7,12 +7,17 @@ import { FooterParallax } from "./Parallax";
 
 /** One viewport at the end: Atlas turning, and the form. Also the whole of the contact page. */
 export function Footer({ standalone = false }: { standalone?: boolean }) {
-  const [plain, setPlain] = useState(false);  // QA switch: ?plain leaves the WebGL out of the footer
-  useEffect(() => { setPlain(qa("plain")); }, []);
+  // ?plain leaves all the WebGL out of the footer; ?nowaves and ?noatlas each drop one piece.
+  // Phones get no Waves shader by default: its fragment loop stalls the iPhone GPU and the tab is killed.
+  const [flags, setFlags] = useState({ waves: true, atlas: true });
+  useEffect(() => {
+    const phone = window.innerWidth < 820;
+    setFlags({ waves: !qa("plain") && !qa("nowaves") && (!phone || qa("waves")), atlas: !qa("plain") && !qa("noatlas") });
+  }, []);
   return (
     <footer className={`footer${standalone ? " footer--page" : ""}`} id="contact">
-      {!plain && <WavesBackground />}
-      {!plain && <FooterParallax />}
+      {flags.waves ? <WavesBackground /> : <div className="footer__waves footer__waves--still" aria-hidden="true" />}
+      <FooterParallax />
       <div className="footer__inner">
         <div className="footer__copy">
           <h2 className="footer__title">Let us take the weight<br />off your shoulders.</h2>
@@ -32,7 +37,7 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
             <button className="cta" type="submit">Start a project</button>
           </form>
         </div>
-        {!plain && <AtlasCanvas />}
+        {flags.atlas && <AtlasCanvas />}
       </div>
       <div className="footer__foot">
         <span className="footer__brand">Build Different</span>
