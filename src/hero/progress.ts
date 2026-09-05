@@ -22,4 +22,4 @@ export function setProgress(s: number) {
 }
 
 /** set by the Hero once Lenis exists: scroll the page so the section progress equals s */
-export const scrollControl: { toSection: (s: number) => void } = { toSection: () => {} };
+export const scrollControl: { toSection: (s: number) => void; lock: () => void; unlock: () => void } = { toSection: () => {}, lock: () => {}, unlock: () => {} };

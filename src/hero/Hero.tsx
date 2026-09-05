@@ -12,6 +12,7 @@ const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false
 import { SkyVideo } from "./SkyVideo";
 import { ScreenVideo } from "./ScreenVideo";
 import { Intro } from "./Intro";
+import { introState } from "./introState";
 import { ServiceTabs } from "./ServiceTabs";
 import { WorkDeck } from "./WorkDeck";
 
@@ -72,6 +73,10 @@ export function Hero() {
       const y = st.start + (st.end - st.start) * Math.min(1, Math.max(0, s));
       lenis.scrollTo(y, { duration: 1.2 });
     };
+    // the intro holds the page at the top until the wordmark and the statue are fully in
+    scrollControl.lock = () => { lenis.stop(); document.documentElement.classList.add("is-locked"); };
+    scrollControl.unlock = () => { lenis.start(); document.documentElement.classList.remove("is-locked"); };
+    if (introState.locked) scrollControl.lock();
 
     return () => {
       st.kill();

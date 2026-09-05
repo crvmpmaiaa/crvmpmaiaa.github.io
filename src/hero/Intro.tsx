@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { onStatueReady } from "./introState";
+import { onStatueReady, introState } from "./introState";
+import { scrollControl } from "./progress";
 
 /**
  * The load sequence. BD sits centred over the sky. Once the statue is ready (or after a ceiling wait) the B flies
@@ -17,11 +18,17 @@ export function Intro({ stage }: { stage: React.RefObject<HTMLDivElement | null>
     if (!st) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let done = false;
+    // no scrolling until the sequence has played out
+    introState.locked = true;
+    scrollControl.lock();
+    window.scrollTo(0, 0);
+    const release = () => { introState.locked = false; scrollControl.unlock(); };
     const finish = () => {
       if (done) return;
       done = true;
       st.classList.add("is-entering", "is-revealed");
       overlay.current?.remove();
+      release();
     };
     if (reduced) { finish(); return; }
 
@@ -50,6 +57,8 @@ export function Intro({ stage }: { stage: React.RefObject<HTMLDivElement | null>
         done = true;
         st.classList.add("is-revealed");
         overlay.current?.remove();
+        // the remaining letters rise and the statue fades over the next second, then the page is free
+        window.setTimeout(release, 1100);
       }).catch(finish);
     };
 

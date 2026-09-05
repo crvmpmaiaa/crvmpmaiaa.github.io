@@ -1,0 +1,11 @@
+import puppeteer from "puppeteer-core";
+const b = await puppeteer.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: "new", args: ["--use-angle=metal", "--autoplay-policy=no-user-gesture-required", "--window-size=1440,900"] });
+const pg = await b.newPage(); await pg.setViewport({ width: 1440, height: 900 });
+await pg.goto("http://localhost:3000", { waitUntil: "domcontentloaded" });
+await new Promise((r) => setTimeout(r, 900));
+await pg.mouse.wheel({ deltaY: 2000 }); await new Promise((r) => setTimeout(r, 300));
+console.log("during intro: scrollY", await pg.evaluate(() => scrollY), "locked", await pg.evaluate(() => document.documentElement.classList.contains("is-locked")));
+await new Promise((r) => setTimeout(r, 4500));
+await pg.mouse.wheel({ deltaY: 2000 }); await new Promise((r) => setTimeout(r, 1200));
+console.log("after intro: scrollY", await pg.evaluate(() => scrollY), "locked", await pg.evaluate(() => document.documentElement.classList.contains("is-locked")));
+await b.close();

@@ -44,6 +44,10 @@ html {
   color-scheme: light;
   scroll-behavior: auto;
 }
+html.is-locked, html.is-locked body {
+  overflow: hidden;
+  height: 100%;
+}
 
 body {
   margin: 0;
