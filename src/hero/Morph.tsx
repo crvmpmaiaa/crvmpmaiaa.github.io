@@ -28,6 +28,7 @@ const vert = /* glsl */ `
   uniform float uRebuild;    // 0..1 across the rebuild
   uniform float uUnbuild;    // 0..1 as the pillar and laptop come apart again, top down
   uniform float uRigY;       // where the pillar rig sits now, relative to where it was sampled
+  uniform float uColumnTop;  // the laptop's points sit above this: they take no part in the rebuild
   uniform float uSettle;     // 0..1 as the meshes surface and the settled dust dies from the base up
   uniform float uSpread;     // how much of the range the delay sweep takes
   uniform float uTime;
@@ -97,7 +98,9 @@ const vert = /* glsl */ `
       return;
     }
     if (uRebuild > 0.0) {
-      // phase B: the same motes come in from the left and settle onto the pillar and laptop, ground up
+      // phase B: the same motes come in from the left and settle onto the pillar, ground up.
+      // The laptop is not built from dust: its points stay hidden here and it surfaces on its own afterwards.
+      if (posB.y > uColumnTop + 0.005) { vFade = 0.0; vT = 0.0; vColor = vec3(0.0); gl_Position = vec4(0.0, 0.0, 2.0, 1.0); gl_PointSize = 0.0; return; }
       float t = clamp((uRebuild - delayB * uSpread) / (1.0 - uSpread), 0.0, 1.0);
       float te = easeOutBack(t);
       vT = t;
@@ -268,6 +271,7 @@ export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "
       uRebuild: { value: 0 },
       uUnbuild: { value: 0 },
       uRigY: { value: 0 },
+      uColumnTop: { value: 1.2 },
       uSettle: { value: 0 },
       uSpread: { value: VAPORISE.spread },
       uTime: { value: 0 },

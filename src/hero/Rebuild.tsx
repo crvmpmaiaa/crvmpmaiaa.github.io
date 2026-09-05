@@ -24,6 +24,8 @@ export const screenState = { centre: new THREE.Vector3(), normal: new THREE.Vect
 export const stageTarget = { look: new THREE.Vector3(0, 0.66, 0), camPos: new THREE.Vector3(0, 0.95, 3.5), fov: 34 };
 
 const rebuildDissolve = makeDissolve(COLUMN_TOP + 0.3, true, 0.06);
+/** the laptop has its own cut: it surfaces after the column is solid, bottom up, and leaves with the column */
+const laptopDissolve = makeDissolve(COLUMN_TOP + 0.3, true, 0.02);
 
 /** Column and laptop surface beneath the settling dust, then turn, open and light up. */
 export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | null; screenTexture?: THREE.Texture | null }) {
@@ -40,6 +42,8 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     const c = column.scene;
     const l = laptop.scene;
     for (const s of [c, l]) {
+      const d = s === c ? rebuildDissolve : laptopDissolve;
+      const key = s === c ? "rebuild-dissolve" : "laptop-dissolve";
       s.traverse((o) => {
         if ((o as THREE.Mesh).isMesh) {
           const m = o as THREE.Mesh;
@@ -49,7 +53,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
           const mat = m.material as THREE.MeshStandardMaterial;
           if (mat) {
             mat.side = THREE.DoubleSide;  // thin shells: the cut must show an inside, not a hole
-            applyDissolve(mat, rebuildDissolve, "rebuild-dissolve");
+            applyDissolve(mat, d, key);
           }
         }
       });
@@ -75,7 +79,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
       // unlit and untonemapped: the screen shows the portal target exactly as the direct render will draw it,
       // the backlight ramp is a plain multiply from black to white
       const sm = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide, toneMapped: false });
-      applyDissolve(sm as unknown as THREE.MeshStandardMaterial, rebuildDissolve, "rebuild-dissolve-screen");
+      applyDissolve(sm as unknown as THREE.MeshStandardMaterial, laptopDissolve, "laptop-dissolve-screen");
       // the portal target holds raw shader output that the direct render shows untouched: the screen must not
       // encode it on the way out, or the picture on the screen is brighter than the picture inside
       const withDissolve = sm.onBeforeCompile;
@@ -137,6 +141,9 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     // the floor of the cut sits below the rig's own base, wherever the rig has slid to, so nothing survives
     const floor = (rigState.y - 0.4) / height;
     rebuildDissolve.uCut.value = unb > 0 ? Math.max(floor, cutForUnbuild) : settle <= 0 ? -1 : settle >= 0.999 ? 1e3 : settle * 1.15;
+    // the laptop surfaces bottom up once the column is solid, over a short run, and leaves with the column
+    const reveal = ease.smooth(remap(p, SETTLE.end, SETTLE.end + 0.025));
+    laptopDissolve.uCut.value = unb > 0 ? rebuildDissolve.uCut.value : reveal <= 0 ? -1 : reveal >= 0.999 ? 1e3 : (COLUMN_TOP + rigState.y + reveal * 0.3) / height;
     g.visible = unb < 0.999;
     const wantShadows = settle > 0 && unb < 0.5;
     if (shadows.current !== wantShadows) {

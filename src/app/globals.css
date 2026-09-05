@@ -552,11 +552,11 @@ footer.section {
 }
 .work__card {
   position: absolute;
-  left: 63%;
+  left: 68%;
   top: 50%;
-  width: min(48vw, 46rem);
-  height: min(70vh, 40rem);
-  margin: calc(min(70vh, 40rem) / -2) 0 0 calc(min(48vw, 46rem) / -2);
+  width: min(42vw, 40rem);
+  height: min(62vh, 35rem);
+  margin: calc(min(62vh, 35rem) / -2) 0 0 calc(min(42vw, 40rem) / -2);
   display: grid;
   grid-template-columns: 1fr 0.618fr;
   gap: calc(var(--pad) * var(--phi));
