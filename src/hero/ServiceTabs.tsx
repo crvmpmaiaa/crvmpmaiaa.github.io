@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SERVICES, SECTION_HEADING } from "@/portal/services";
 import { onProgress, progress, scrollControl } from "./progress";
 import { HERO_FRACTION, Q, remap } from "./beats";
@@ -18,11 +18,22 @@ function activeIndex(q: number): number {
   return best;
 }
 
+/** continuous position along the tabs: 0 at the first card, 5 at the last, fractional while travelling */
+function tabPosition(q: number): number {
+  const x = railX(remap(q, Q.truck[0], Q.truck[1]));
+  for (let i = 0; i < CARDS.length - 1; i++) {
+    const a = CARDS[i].x, b = CARDS[i + 1].x;
+    if (x <= b) return i + Math.min(1, Math.max(0, (x - a) / (b - a)));
+  }
+  return CARDS.length - 1;
+}
+
 export function ServiceTabs() {
   const [active, setActive] = useState(-1);
   const [visible, setVisible] = useState(false);
   const [heading, setHeading] = useState(false);
-  const [rail, setRail] = useState(0);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const marker = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const apply = () => {
@@ -31,8 +42,17 @@ export function ServiceTabs() {
       setVisible(inside);
       setHeading(q > Q.arrive[0] && q < Q.truck[0] - 0.005);
       setActive(q >= Q.truck[0] && q <= Q.turnBack[0] ? activeIndex(q) : -1);
-      const u = remap(q, Q.truck[0], Q.truck[1]);
-      setRail(Math.round(u * 1000) / 1000);
+      // the marker sits under the tab you are on, and slides between tabs while travelling
+      const pos = tabPosition(q);
+      const i = Math.min(CARDS.length - 2, Math.floor(pos));
+      const f = pos - i;
+      const a = tabRefs.current[i], b = tabRefs.current[i + 1], m = marker.current;
+      if (a && b && m) {
+        const left = a.offsetLeft + (b.offsetLeft - a.offsetLeft) * f;
+        const width = a.offsetWidth + (b.offsetWidth - a.offsetWidth) * f;
+        m.style.transform = `translateX(${left}px)`;
+        m.style.width = `${width}px`;
+      }
     };
     apply();
     return onProgress(apply);
@@ -43,11 +63,12 @@ export function ServiceTabs() {
   return (
     <div className={`tabs${visible ? " is-visible" : ""}`} aria-label="Services">
       <h2 className={`tabs__heading${heading ? " is-on" : ""}`}>{SECTION_HEADING}</h2>
-      <div className="tabs__bar" role="tablist" style={{ "--rail": rail } as React.CSSProperties}>
-        <span className="tabs__rail" aria-hidden="true" />
+      <div className="tabs__bar" role="tablist">
+        <span className="tabs__marker" aria-hidden="true" ref={marker} />
         {SERVICES.map((s, i) => (
           <button
             key={s.title}
+            ref={(el) => { tabRefs.current[i] = el; }}
             role="tab"
             type="button"
             className={`tabs__tab${active === i ? " is-active" : ""}`}
