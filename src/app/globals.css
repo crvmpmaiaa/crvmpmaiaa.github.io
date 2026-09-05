@@ -892,7 +892,7 @@ footer.section {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: var(--step--1);
-  color: rgba(255, 245, 235, 0.8);
+  color: var(--ink);
 }
 .field--wide { grid-column: 1 / -1; }
 .field input, .field textarea {
@@ -938,7 +938,7 @@ footer.section {
   border-top: 1px solid rgba(255, 245, 235, 0.16);
   font-family: var(--font-body);
   font-size: var(--step--1);
-  color: rgba(255, 245, 235, 0.8);
+  color: var(--ink);
 }
 .footer__brand {
   font-family: var(--font-wordmark);
