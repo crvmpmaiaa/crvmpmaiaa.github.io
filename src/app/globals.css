@@ -268,12 +268,12 @@ body {
   left: clamp(1.25rem, 6vw, 6rem);
   top: 50%;
   transform: translateY(-50%);
-  width: min(40vw, 22ch);
+  width: min(44vw, 30ch);
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 500;
-  font-size: clamp(var(--step-3), 3.6vw, var(--step-6));
-  line-height: 1.04;
+  font-size: clamp(var(--step-2), 2.9vw, var(--step-5));
+  line-height: 1.08;
   letter-spacing: -0.012em;
   color: var(--ink);
   white-space: pre-line;
