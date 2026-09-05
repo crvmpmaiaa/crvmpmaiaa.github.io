@@ -25,6 +25,6 @@ export const ALL_PROJECTS: Project[] = [
   { slug: "lemovals", name: "Lemovals", kind: "Website", tags: ["removals", "landing page", "quote flow"], line: "A removals and man with a van service with an instant quote flow, clear pricing and a clean mobile first design.", image: "", site: "/images/work/sites/lemovals.webp", alt: "Lemovals site", url: "https://lemovals.co.uk/" },
 ];
 
-/** the four on show inside the front page */
-export const PROJECTS = ALL_PROJECTS.slice(0, 4);
+/** the five on show inside the front page, all with a phone hero */
+export const PROJECTS = ALL_PROJECTS.slice(0, 5);
 export const WORK_MORE = { label: "See all work", href: "/work" };
