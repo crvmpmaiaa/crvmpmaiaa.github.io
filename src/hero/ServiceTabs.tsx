@@ -1,25 +1,17 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { SERVICES, SECTION_HEADING } from "@/portal/services";
-import { onProgress, progress, scrollControl } from "./progress";
-import { HERO_FRACTION, Q, remap } from "./beats";
-import { holdCentre, qForTruck, railX } from "@/portal/rail";
+import { SERVICES } from "@/portal/services";
+import { onProgress, progress } from "./progress";
+import { Q, remap } from "./beats";
+import { railX } from "@/portal/rail";
 import { CARDS } from "@/portal/PortalScene";
 
 /**
- * The services inside the laptop. A row of tabs over the screen; the scroll opens each in turn as the rail
- * reaches its card, the open one shows the service's sentence and points. Click a tab to glide the scroll there.
+ * The services inside the laptop: a deck of cards driven by the scroll. Each card slides in from the right,
+ * holds at the centre while its stretch of scroll plays out, then slides off to the left as the next arrives.
+ * Position is a pure function of scroll, so it scrubs both ways.
  */
-function activeIndex(q: number): number {
-  const u = remap(q, Q.truck[0], Q.truck[1]);
-  const x = railX(u);
-  let best = 0, bd = Infinity;
-  CARDS.forEach((c, i) => { const d = Math.abs(c.x - x); if (d < bd) { bd = d; best = i; } });
-  return best;
-}
-
-/** continuous position along the tabs: 0 at the first card, 5 at the last, fractional while travelling */
-function tabPosition(q: number): number {
+function deckPosition(q: number): number {
   const x = railX(remap(q, Q.truck[0], Q.truck[1]));
   for (let i = 0; i < CARDS.length - 1; i++) {
     const a = CARDS[i].x, b = CARDS[i + 1].x;
@@ -29,75 +21,52 @@ function tabPosition(q: number): number {
 }
 
 export function ServiceTabs() {
-  const [active, setActive] = useState(-1);
   const [visible, setVisible] = useState(false);
-  const [heading, setHeading] = useState(false);
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const marker = useRef<HTMLSpanElement>(null);
+  const cards = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
     const apply = () => {
       const q = progress.q;
       const inside = q > Q.arrive[0] && q < Q.turnBack[1];
       setVisible(inside);
-      setHeading(q > Q.arrive[0] && q < Q.truck[0] - 0.005);
-      setActive(q >= Q.truck[0] && q <= Q.turnBack[0] ? activeIndex(q) : -1);
-      // the marker sits under the tab you are on, and slides between tabs while travelling
-      const pos = tabPosition(q);
-      const i = Math.min(CARDS.length - 2, Math.floor(pos));
-      const f = pos - i;
-      const a = tabRefs.current[i], b = tabRefs.current[i + 1], m = marker.current;
-      if (a && b && m) {
-        const left = a.offsetLeft + (b.offsetLeft - a.offsetLeft) * f;
-        const width = a.offsetWidth + (b.offsetWidth - a.offsetWidth) * f;
-        m.style.transform = `translateX(${left}px)`;
-        m.style.width = `${width}px`;
-      }
+      // before the deck starts the first card is still off to the right; after it ends the last has left
+      const lead = remap(q, Q.arrive[0] + 0.02, Q.truck[0]);          // first card arriving
+      const tail = remap(q, Q.turnBack[0], Q.turnBack[1]);             // last card leaving
+      const pos = q < Q.truck[0] ? -1 + lead : q > Q.turnBack[0] ? CARDS.length - 1 + tail : deckPosition(q);
+      const step = window.innerWidth * 0.92;
+      cards.current.forEach((el, i) => {
+        if (!el) return;
+        const d = i - pos;                       // 0 centred, +1 one card to the right, -1 one to the left
+        const x = d * step;
+        const hidden = Math.abs(d) > 1.2;
+        el.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0) rotate(${(d * 1.5).toFixed(2)}deg)`;
+        el.style.opacity = hidden ? "0" : (1 - Math.min(1, Math.abs(d)) * 0.25).toFixed(3);
+        el.style.visibility = hidden ? "hidden" : "visible";
+        el.setAttribute("aria-hidden", Math.abs(d) > 0.5 ? "true" : "false");
+      });
     };
     apply();
     return onProgress(apply);
   }, []);
 
-  const go = (i: number) => scrollControl.toSection(HERO_FRACTION + (1 - HERO_FRACTION) * qForTruck(holdCentre(i)));
-
   return (
-    <div className={`tabs${visible ? " is-visible" : ""}`} aria-label="Services">
-      <h2 className={`tabs__heading${heading ? " is-on" : ""}`}>{SECTION_HEADING}</h2>
-      <div className="tabs__bar" role="tablist">
-        <span className="tabs__marker" aria-hidden="true" ref={marker} />
-        {SERVICES.map((s, i) => (
-          <button
-            key={s.title}
-            ref={(el) => { tabRefs.current[i] = el; }}
-            role="tab"
-            type="button"
-            className={`tabs__tab${active === i ? " is-active" : ""}`}
-            aria-selected={active === i}
-            aria-controls={`service-${i}`}
-            onClick={() => go(i)}
-          >
-            {s.title}
-          </button>
-        ))}
-      </div>
-      <div className="tabs__panels">
-        {SERVICES.map((s, i) => (
-          <section key={s.title} id={`service-${i}`} role="tabpanel" className={`tabs__panel${active === i ? " is-open" : ""}`} aria-hidden={active !== i}>
-            <div className="tabs__text">
-              <h3 className="tabs__title tabs__in" style={{ "--i": 0 } as React.CSSProperties}>{s.title}</h3>
-              <p className="tabs__lead tabs__in" style={{ "--i": 1 } as React.CSSProperties}>{s.lead}</p>
-              {s.points.length > 0 && (
-                <ul className="tabs__points">
-                  {s.points.map((p, j) => <li key={p} className="tabs__in" style={{ "--i": 2 + j * 0.5 } as React.CSSProperties}>{p}</li>)}
-                </ul>
-              )}
-            </div>
-            <figure className="tabs__figure tabs__in" style={{ "--i": 1.5 } as React.CSSProperties}>
-              <img src={s.image} alt={s.alt} loading="lazy" width={1200} height={1200} />
-            </figure>
-          </section>
-        ))}
-      </div>
+    <div className={`deck${visible ? " is-visible" : ""}`} aria-label="Services">
+      {SERVICES.map((s, i) => (
+        <section key={s.title} className="deck__card" ref={(el) => { cards.current[i] = el; }}>
+          <div className="deck__text">
+            <h3 className="deck__title">{s.title}</h3>
+            <p className="deck__lead">{s.lead}</p>
+            {s.points.length > 0 && (
+              <ul className="deck__points">
+                {s.points.map((p) => <li key={p}>{p}</li>)}
+              </ul>
+            )}
+          </div>
+          <figure className="deck__figure">
+            <img src={s.image} alt={s.alt} loading="lazy" width={1200} height={1200} />
+          </figure>
+        </section>
+      ))}
     </div>
   );
 }

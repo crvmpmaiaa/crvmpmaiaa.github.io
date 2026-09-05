@@ -399,145 +399,51 @@ footer.section {
 
 
 /* ---------- services inside the laptop ----------
-   Sizes on a golden ratio scale: panel width 61.8vw capped, tab bar to panel gap, padding steps of phi. */
-.tabs {
+   A deck of cards. Each slides in from the right, holds at the centre, and leaves to the left as the next arrives.
+   Sizes on a golden ratio scale. */
+.deck {
   position: absolute;
   inset: 0;
   z-index: 5;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 500ms ease;
+  transition: opacity 400ms ease;
   color: white;
   --phi: 1.618;
   --pad: clamp(1rem, 1.9vw, 1.9rem);
 }
-.tabs.is-visible {
+.deck.is-visible {
   opacity: 1;
 }
-.tabs__heading {
+.deck__card {
   position: absolute;
   left: 50%;
-  top: 38.2%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 500;
-  font-size: clamp(var(--step-4), 5vw, var(--step-7));
-  line-height: 1;
-  opacity: 0;
-  transition: opacity 600ms ease;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
-}
-.tabs__heading.is-on {
-  opacity: 1;
-}
-.tabs__bar {
-  position: absolute;
-  left: 50%;
-  top: clamp(1rem, 4.5vh, 3rem);
-  transform: translateX(-50%);
-  display: flex;
-  gap: calc(var(--pad) / var(--phi));
-  padding: calc(var(--pad) / var(--phi) / var(--phi));
-  border-radius: 999px;
-  background: rgba(7, 9, 15, 0.82);
-  backdrop-filter: blur(18px) saturate(1.1);
-  -webkit-backdrop-filter: blur(18px) saturate(1.1);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  pointer-events: auto;
-  max-width: calc(100vw - 2rem);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-/* the marker sits under the tab you are on and slides between tabs while the scroll travels */
-.tabs__marker {
-  position: absolute;
-  left: 0;
-  bottom: 0.25rem;
-  height: 2px;
-  width: 0;
-  border-radius: 2px;
-  background: white;
-  transform: translateX(0);
-  transition: transform 140ms linear, width 140ms linear;
-  pointer-events: none;
-}
-.tabs__tab {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.72);
-  font-family: var(--font-body);
-  font-size: var(--step--1);
-  letter-spacing: 0.01em;
-  padding: 0.55em 1.1em;
-  border-radius: 999px;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 200ms ease, color 200ms ease;
-}
-.tabs__tab:hover {
-  color: white;
-}
-.tabs__tab.is-active {
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--ink);
-}
-.tabs__tab:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 2px;
-}
-.tabs__panels {
-  position: absolute;
-  left: 50%;
-  top: clamp(6rem, 17vh, 9rem);
-  transform: translateX(-50%);
+  top: 50%;
   width: min(76vw, 64rem);
   height: min(61.8vh, 34rem);
-}
-.tabs__panel {
-  position: absolute;
-  inset: 0;
+  margin: calc(min(61.8vh, 34rem) / -2) 0 0 calc(min(76vw, 64rem) / -2);
   display: grid;
   grid-template-columns: 1fr 0.618fr;
   gap: calc(var(--pad) * var(--phi));
   padding: calc(var(--pad) * var(--phi));
-  overflow: hidden;
   border-radius: 1.25rem;
   background: rgba(7, 9, 15, 0.9);
   backdrop-filter: blur(22px) saturate(1.1);
   -webkit-backdrop-filter: blur(22px) saturate(1.1);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  opacity: 0;
-  transform: translateY(1.2rem) scale(0.985);
-  transition: opacity 420ms cubic-bezier(0.2, 0.7, 0.2, 1), transform 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  pointer-events: none;
-}
-.tabs__panel.is-open {
-  opacity: 1;
-  transform: none;
+  overflow: hidden;
+  will-change: transform, opacity;
   pointer-events: auto;
-}
-/* children arrive in order once the panel opens */
-.tabs__in {
+  visibility: hidden;
   opacity: 0;
-  transform: translateY(0.5rem);
-  transition: opacity 420ms ease, transform 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  transition-delay: 0ms;
 }
-.tabs__panel.is-open .tabs__in {
-  opacity: 1;
-  transform: none;
-  transition-delay: calc(90ms + var(--i) * 70ms);
-}
-.tabs__text {
+.deck__text {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
-.tabs__title {
+.deck__title {
   margin: 0 0 calc(var(--pad) / var(--phi));
   font-family: var(--font-wordmark);
   font-weight: 400;
@@ -546,21 +452,7 @@ footer.section {
   line-height: 0.92;
   letter-spacing: 0.005em;
 }
-.tabs__figure {
-  margin: 0;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  align-self: stretch;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.tabs__figure img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.tabs__lead {
+.deck__lead {
   margin: 0;
   font-family: var(--font-display);
   font-style: italic;
@@ -570,41 +462,51 @@ footer.section {
   max-width: 30ch;
   text-wrap: balance;
 }
-.tabs__points {
+.deck__points {
   margin: auto 0 0;
-  padding-top: var(--pad);
-  padding-left: 0;
+  padding: var(--pad) 0 0;
   list-style: none;
   display: grid;
-  gap: 0;
   font-family: var(--font-body);
   font-size: var(--step--1);
   color: rgba(255, 255, 255, 0.82);
 }
-.tabs__points li {
+.deck__points li {
   padding: calc(var(--pad) / var(--phi) / 1.25) 0;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: baseline;
   gap: var(--pad);
 }
-.tabs__points li::before {
+.deck__points li::before {
   content: "";
   flex: none;
   width: 0.5rem;
   height: 1px;
-  background: var(--accent-cold, #9fb1c6);
+  background: #9fb1c6;
   transform: translateY(-0.35em);
 }
-.tabs__points li:last-child {
+.deck__points li:last-child {
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
+.deck__figure {
+  margin: 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  align-self: stretch;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.deck__figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 @media (prefers-reduced-motion: reduce) {
-  .tabs, .tabs__heading, .tabs__panel { transition: none; }
+  .deck { transition: none; }
 }
 @media (max-width: 820px) {
-  .tabs__panels { width: calc(100vw - 2rem); top: 5.5rem; height: auto; bottom: 2rem; }
-  .tabs__panel { grid-template-columns: 1fr; }
-  .tabs__figure { display: none; }
-  .tabs__bar { top: 0.75rem; }
+  .deck__card { width: calc(100vw - 2rem); margin-left: calc((100vw - 2rem) / -2); grid-template-columns: 1fr; }
+  .deck__figure { display: none; }
 }
