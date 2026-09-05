@@ -17,7 +17,7 @@
   --font-display: var(--font-display-src), "Cormorant Garamond", "Times New Roman", serif;
   --font-body: var(--font-body-src), Geist, system-ui, sans-serif;
   --font-wordmark: var(--font-wordmark-src), Anton, Impact, "Arial Narrow Bold", sans-serif;
-  --font-copy: var(--font-copy-src), Fraunces, Georgia, serif;
+  --font-copy: var(--font-copy-src), Oswald, "Arial Narrow", sans-serif;
 
   /* type scale, 1.25 ratio from 1rem */
   --step--1: 0.8rem;
@@ -269,13 +269,14 @@ body {
   left: clamp(1.25rem, 6vw, 6rem);
   top: 50%;
   transform: translateY(-50%);
-  width: min(44vw, 30ch);
+  width: min(46vw, 34ch);
   font-family: var(--font-copy);
-  font-style: italic;
-  font-weight: 650;
-  font-variation-settings: "opsz" 96, "SOFT" 30;
-  font-size: clamp(var(--step-2), 2.7vw, var(--step-5));
-  line-height: 1.08;
+  font-style: normal;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: clamp(var(--step-2), 2.4vw, var(--step-4));
+  line-height: 1.12;
   letter-spacing: -0.012em;
   color: var(--ink);
   white-space: pre-line;

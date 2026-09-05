@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Anton, Cormorant_Garamond, Fraunces, Geist } from "next/font/google";
+import { Anton, Cormorant_Garamond, Oswald, Geist } from "next/font/google";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -9,12 +9,10 @@ const display = Cormorant_Garamond({
   style: ["normal", "italic"],
 });
 
-const copyFace = Fraunces({
+const copyFace = Oswald({
   variable: "--font-copy-src",
   subsets: ["latin"],
-  weight: "variable",
-  style: ["normal", "italic"],
-  axes: ["opsz", "SOFT"],
+  weight: ["400", "500", "600"],
 });
 
 const wordmark = Anton({
