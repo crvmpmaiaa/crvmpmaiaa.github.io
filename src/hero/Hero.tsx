@@ -1,4 +1,5 @@
 "use client";
+import { diag, diagStart } from "./diag";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
@@ -37,6 +38,8 @@ function detectMode(): Mode {
 
 export function Hero() {
   const [mode, setMode] = useState<Mode>("pending");
+  useEffect(() => { diagStart(); }, []);
+  useEffect(() => { if (mode !== "pending") diag("mode " + mode); }, [mode]);
   const section = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
 

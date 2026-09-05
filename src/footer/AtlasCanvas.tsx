@@ -1,4 +1,5 @@
 "use client";
+import { diag } from "@/hero/diag";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { ContactShadows, Environment, useGLTF } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -13,6 +14,7 @@ const FRONT = qaYaw !== null ? Number(qaYaw) : -Math.PI / 2;
 
 function Atlas({ visible }: { visible: boolean }) {
   const gltf = useGLTF(ATLAS, DRACO);
+  useEffect(() => { diag("atlas loaded"); }, []);
   const group = useRef<THREE.Group>(null);
   // every time the footer comes into view he starts facing forward, then turns
   useEffect(() => { if (visible && group.current) group.current.rotation.y = FRONT; }, [visible]);

@@ -1,4 +1,5 @@
 "use client";
+import { diag } from "@/hero/diag";
 import { useEffect, useState } from "react";
 import { qa } from "@/hero/qa";
 import { AtlasCanvas } from "./AtlasCanvas";
@@ -11,6 +12,7 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
   // Phones get no Waves shader by default: its fragment loop stalls the iPhone GPU and the tab is killed.
   const [flags, setFlags] = useState({ waves: true, atlas: true });
   useEffect(() => {
+    diag("footer mounted");
     const phone = window.innerWidth < 820;
     setFlags({ waves: !qa("plain") && !qa("nowaves") && (!phone || qa("waves")), atlas: !qa("plain") && !qa("noatlas") });
   }, []);

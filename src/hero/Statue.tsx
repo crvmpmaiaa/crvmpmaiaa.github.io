@@ -1,4 +1,5 @@
 "use client";
+import { diag } from "./diag";
 import { useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
@@ -45,6 +46,7 @@ function prepare(scene: THREE.Group) {
 
 export function Statue({ frozen = false }: { frozen?: boolean }) {
   const lod0 = useGLTF(STATUE.lod0, DRACO);
+  useEffect(() => { diag("statue models loaded"); }, []);
   const lod1 = useGLTF(STATUE.lod1, DRACO);
   const group = useRef<THREE.Group>(null);
   const idle = useRef(0);

@@ -1,7 +1,8 @@
 "use client";
+import { diag } from "./diag";
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { Q, ease, remap } from "./beats";
 import { progress } from "./progress";
@@ -13,6 +14,7 @@ const DRACO = "/draco/";
 /** The hand holding the temple. Rises out of the dust where the pillar stood and holds, turning slowly. */
 export function Temple({ frozen = false }: { frozen?: boolean }) {
   const gltf = useGLTF(TEMPLE, DRACO);
+  useEffect(() => { diag("temple loaded"); }, []);
   const group = useRef<THREE.Group>(null);
   const clock = useRef(0);
   const scene = useMemo(() => {

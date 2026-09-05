@@ -1,4 +1,5 @@
 "use client";
+import { diag } from "./diag";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -233,6 +234,7 @@ async function loadPoints(set: "desktop" | "mobile"): Promise<Buffers> {
   for (let i = 0; i < n; i++) maxY = Math.max(maxY, posB[i * 3 + 1]);
   pointsState.maxYB = maxY;
   pointsState.loaded = true;
+  diag(`points loaded ${n}`);
   // rebuild order: ground up on the pillar, with a little grain so the front is ragged
   for (let i = 0; i < n; i++) delayB[i] = Math.min(1, (posB[i * 3 + 1] / maxY) * 0.9 + ((i * 7919) % 1000) / 1000 * 0.06);
   return { pos, nrm, col, delay, posB, colB, delayB, count: n };
