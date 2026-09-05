@@ -11,14 +11,11 @@ export default function WorkPage() {
         <h1 className="wp__title">Work built<br />to stand.</h1>
         <p className="wp__intro">Sites, apps and systems for people who needed the thing to hold up: read well, load fast, and still look right in five years.</p>
       </header>
-      <figure className="wp__cover">
-        <img src="/images/work/cover.webp" alt="A marble figure against a summer sky" width={1920} height={1080} />
-      </figure>
       <h2 className="wp__sub">Selected projects</h2>
       <ul className="wp__grid">
         {ALL_PROJECTS.map((p) => (
           <li key={p.slug} className="wp__card">
-            <a className="wp__link" href={p.url || "#"} target={p.url ? "_blank" : undefined} rel={p.url ? "noreferrer" : undefined}>
+            <a className="wp__link" href={`/work/${p.slug}`}>
               <figure className="wp__preview">
                 <img src={p.site} alt={p.alt} width={1440} height={900} />
                 <span className="wp__view" aria-hidden="true">View</span>
@@ -28,7 +25,7 @@ export default function WorkPage() {
               </ul>
               <h3 className="wp__name">{p.name}</h3>
               <p className="wp__line">{p.line}</p>
-              <span className="wp__cta">{p.url ? "View project" : "Private build"}</span>
+              <span className="wp__cta">Read about it</span>
             </a>
           </li>
         ))}

@@ -780,3 +780,15 @@ footer.section {
   .wp__grid { grid-template-columns: 1fr; }
   .wp__card:nth-child(4n + 2), .wp__card:nth-child(4n + 3) { transform: none; }
 }
+
+/* project article */
+.wp__head--article { grid-template-columns: 1fr; align-items: start; }
+.wp__head--article .wp__tags { margin-top: clamp(1rem, 2vw, 2rem); }
+.wp__head--article .wp__intro { max-width: 40ch; margin-top: 1rem; }
+.wp__body { max-width: 62ch; margin-top: clamp(2rem, 5vw, 4rem); font-family: var(--font-body); line-height: 1.6; color: rgba(222, 220, 216, 0.85); }
+.wp__body h2 { font-family: var(--font-display); font-weight: 400; font-size: var(--step-3); margin: 0 0 1rem; color: var(--marble); }
+.wp__body p { margin: 0 0 1.25rem; }
+.wp__placeholder { color: rgba(222, 220, 216, 0.5); font-style: italic; font-family: var(--font-display); font-size: var(--step-1); }
+.wp__next { margin-top: clamp(3rem, 6vw, 6rem); display: grid; gap: 0.5rem; font-family: var(--font-body); color: rgba(222, 220, 216, 0.6); }
+.wp__next a { font-family: var(--font-wordmark); text-transform: uppercase; font-size: clamp(var(--step-3), 3vw, var(--step-5)); color: var(--marble); text-decoration: none; line-height: 0.95; }
+.wp__next a:hover { text-decoration: underline; text-underline-offset: 0.1em; }
