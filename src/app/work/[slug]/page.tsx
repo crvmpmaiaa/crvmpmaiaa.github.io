@@ -1,3 +1,4 @@
+import { TopBar } from "@/app/TopBar";
 import { notFound } from "next/navigation";
 import { ALL_PROJECTS } from "@/portal/work";
 
@@ -20,6 +21,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const next = ALL_PROJECTS[(i + 1) % ALL_PROJECTS.length];
   return (
     <main className="wp wp--article">
+      <TopBar />
       <header className="wp__head wp__head--article">
         <a className="wp__home" href="/work">Build Different, work</a>
         <ul className="wp__tags" aria-label="Tags">{p.tags.map((t) => <li key={t}>{t}</li>)}</ul>

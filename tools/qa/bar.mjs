@@ -1,0 +1,12 @@
+import puppeteer from "puppeteer-core";
+const b = await puppeteer.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: true, args: ["--use-angle=metal"] });
+const p = await b.newPage(); await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+await p.goto("http://localhost:3000/work", { waitUntil: "networkidle0" });
+await p.screenshot({ path: "assets/shots/bar-rest.png", clip: { x: 0, y: 0, width: 1440, height: 400 } });
+const r = await (await p.$(".bd")).boundingBox();
+await p.mouse.move(r.x + r.width / 2, r.y + r.height / 2);
+await new Promise(r => setTimeout(r, 250));
+await p.screenshot({ path: "assets/shots/bar-mid.png", clip: { x: 0, y: 0, width: 1440, height: 400 } });
+await new Promise(r => setTimeout(r, 700));
+await p.screenshot({ path: "assets/shots/bar-hover.png", clip: { x: 0, y: 0, width: 1440, height: 400 } });
+await b.close();
