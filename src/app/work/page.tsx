@@ -1,25 +1,41 @@
-import { PROJECTS, MORE_PROJECTS } from "@/portal/work";
+import { ALL_PROJECTS } from "@/portal/work";
 
-export const metadata = { title: "Work, Build Different" };
+export const metadata = { title: "Work, Build Different", description: "Sites, apps and systems built by Build Different." };
 
-/** The portfolio page: everything, with room for a short article on each in time. */
+/** The work page: heading, a line, one cover, then every project as a large preview with tags, name, line and a link. */
 export default function WorkPage() {
-  const all = [...PROJECTS, ...MORE_PROJECTS];
   return (
-    <main className="work-page">
-      <h1>Work</h1>
-      <p>Sites, apps and systems we have built or rebuilt. Each one will get its own page in time.</p>
-      <div className="work-grid">
-        {all.map((p) => (
-          <article key={p.name}>
-            <figure><img src={p.image} alt={p.alt} width={900} height={1950} loading="lazy" /></figure>
-            <p className="kind">{p.kind}</p>
-            <h2>{p.name}</h2>
-            <p className="line">{p.line}</p>
-          </article>
+    <main className="wp">
+      <header className="wp__head">
+        <a className="wp__home" href="/">Build Different</a>
+        <h1 className="wp__title">Work built<br />to stand.</h1>
+        <p className="wp__intro">Sites, apps and systems for people who needed the thing to hold up: read well, load fast, and still look right in five years.</p>
+      </header>
+      <figure className="wp__cover">
+        <img src="/images/work/cover.webp" alt="A marble figure against a summer sky" width={1920} height={1080} />
+      </figure>
+      <h2 className="wp__sub">Selected projects</h2>
+      <ul className="wp__grid">
+        {ALL_PROJECTS.map((p) => (
+          <li key={p.slug} className="wp__card">
+            <a className="wp__link" href={p.url || "#"} target={p.url ? "_blank" : undefined} rel={p.url ? "noreferrer" : undefined}>
+              <figure className="wp__preview">
+                <img src={p.site} alt={p.alt} loading="lazy" width={1440} height={900} />
+                <span className="wp__view" aria-hidden="true">View</span>
+              </figure>
+              <ul className="wp__tags" aria-label="Tags">
+                {p.tags.map((t) => <li key={t}>{t}</li>)}
+              </ul>
+              <h3 className="wp__name">{p.name}</h3>
+              <p className="wp__line">{p.line}</p>
+              <span className="wp__cta">{p.url ? "View project" : "Private build"}</span>
+            </a>
+          </li>
         ))}
-      </div>
-      <a className="back" href="/">Back to the front</a>
+      </ul>
+      <footer className="wp__foot">
+        <a href="/#contact" className="cta">Start a project</a>
+      </footer>
     </main>
   );
 }
