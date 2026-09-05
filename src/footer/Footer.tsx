@@ -1,9 +1,13 @@
 import { AtlasCanvas } from "./AtlasCanvas";
+import { WavesBackground } from "./WavesBackground";
+import { FooterParallax } from "./Parallax";
 
 /** One viewport of marble at the end: Atlas turning, and the form. */
 export function Footer() {
   return (
     <footer className="footer" id="contact">
+      <WavesBackground />
+      <FooterParallax />
       <div className="footer__inner">
         <div className="footer__copy">
           <h2 className="footer__title">Let us take the weight<br />off your shoulders.</h2>
