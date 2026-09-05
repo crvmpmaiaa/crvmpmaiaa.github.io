@@ -31,6 +31,8 @@ const WIDE = {
   look: new THREE.Vector3(-0.6, 0.9, 0),
   fov: 34,
 };
+/** below this viewport aspect the camera widens to hold the landscape framing */
+const REF_ASPECT = 1.2;
 // control point pulls the path out to the side and down so the move reads as an arc, not a straight pull
 const CTRL = new THREE.Vector3(1.6, 1.25, 2.2);
 
@@ -51,6 +53,7 @@ function bezier(out: THREE.Vector3, a: THREE.Vector3, c: THREE.Vector3, b: THREE
 
 export function CameraRig({ frozen = false }: { frozen?: boolean }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
+  const size = useThree((s) => s.size);
   const clock = useRef(0);
   const inside = useRef(false);
   useEffect(() => { bindPointer(); }, []);
@@ -94,6 +97,13 @@ export function CameraRig({ frozen = false }: { frozen?: boolean }) {
     // lens breathing through the turn
     const turn = remap(p, BEATS.turn[0], BEATS.turn[1]);
     fov += Math.sin(turn * Math.PI) * 0.6;
+
+    // portrait: keep the horizontal framing of a landscape screen so the figure and the pillar fit the width.
+    // Everything downstream (the dolly distance, the portal camera) reads the widened fov, so the crossing holds.
+    const aspect = size.width / size.height;
+    if (aspect < REF_ASPECT) {
+      fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(fov) / 2) * (REF_ASPECT / aspect)));
+    }
 
     // screen beat: the rig slides down to the look point (see Rebuild), then the camera dollies straight in,
     // level, until the screen fills the frame
