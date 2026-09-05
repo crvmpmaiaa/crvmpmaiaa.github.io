@@ -265,27 +265,32 @@ body {
   .intro { display: none; }
 }
 
-.copy--block {
-  left: clamp(1.25rem, 6vw, 6rem);
-  top: 50%;
-  transform: translateY(-50%);
-  width: min(46vw, 34ch);
+/* scroll lines: Oswald caps, one sentence per line, placed by beat */
+.copy--line {
   font-family: var(--font-copy);
-  font-style: normal;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   font-size: clamp(var(--step-2), 2.4vw, var(--step-4));
   line-height: 1.12;
-  letter-spacing: -0.012em;
   color: var(--ink);
   white-space: pre-line;
-  text-wrap: balance;
+  width: min(46vw, 34ch);
+  --rise: 0;
+  transform: translateY(calc(var(--rise) * 0.6rem));
 }
-.copy--block.copy--right {
-  left: auto;
-  right: clamp(1.25rem, 6vw, 6rem);
-}
+.copy--left { left: clamp(1.25rem, 6vw, 6rem); top: 50%; transform: translateY(calc(-50% + var(--rise) * 0.6rem)); }
+.copy--left-a { left: clamp(1.25rem, 6vw, 6rem); top: 42%; }
+.copy--left-b { left: clamp(1.25rem, 6vw, 6rem); top: 52%; color: var(--ink-soft); }
+.copy--top-left { left: clamp(1.25rem, 6vw, 6rem); top: 16%; }
+.copy--tight { width: min(34vw, 26ch); font-size: clamp(var(--step-1), 1.8vw, var(--step-3)); }
+.copy--right { right: clamp(1.25rem, 6vw, 6rem); top: 50%; text-align: right; width: min(46vw, 40ch); transform: translateY(calc(-50% + var(--rise) * 0.6rem)); }
+.copy--bottom { left: 50%; bottom: 14%; text-align: center; transform: translateX(-50%); width: min(60vw, 40ch); }
+.copy--stack-0 { left: clamp(1.25rem, 6vw, 6rem); top: 16%; }
+.copy--stack-1 { left: clamp(1.25rem, 6vw, 6rem); top: 28%; color: var(--ink-soft); }
+.copy--stack-2 { left: clamp(1.25rem, 6vw, 6rem); top: 38%; font-size: clamp(var(--step-3), 3.4vw, var(--step-6)); }
+.copy--stack-3 { left: clamp(1.25rem, 6vw, 6rem); top: 48%; font-size: clamp(var(--step-3), 3.4vw, var(--step-6)); }
+.copy--stack-4 { left: clamp(1.25rem, 6vw, 6rem); top: 58%; font-size: clamp(var(--step-3), 3.4vw, var(--step-6)); }
 .copy--cta {
   left: clamp(1.25rem, 6vw, 6rem);
   bottom: clamp(1.5rem, 10vh, 7rem);

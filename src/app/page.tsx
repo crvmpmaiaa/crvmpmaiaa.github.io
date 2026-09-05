@@ -1,5 +1,4 @@
 import { Hero } from "@/hero/Hero";
-import { COPY } from "@/hero/lines";
 
 export default function Page() {
   return (
@@ -13,8 +12,8 @@ export default function Page() {
         </section>
         <section className="section" id="approach" aria-labelledby="approach-h">
           <h2 id="approach-h">Approach</h2>
-          <p>{COPY.block1}</p>
-          <p>{COPY.block2} {COPY.block3}</p>
+          <p>Carved to be remembered. It worked. People have always wanted the same thing: to build something that outlives them and carries their name.</p>
+          <p>Online, most names are written in sand. It does not have to be. Your brand can feel considered, permanent, built to stand.</p>
           <ul>
             <li>One idea per page.</li>
             <li>Speed measured on real phones and laptops before launch.</li>
