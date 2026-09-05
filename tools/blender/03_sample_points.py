@@ -153,6 +153,10 @@ def build(set_name, n):
     roots = [o for o in laptop_parts if o.parent is None]
     for o in roots:
         o.location.z += col_top
+    # the laptop vanishes with its lid squared up, so target B is sampled with the lid open at 90 degrees
+    lid = bpy.data.objects.get("Lid")
+    if lid is not None:
+        lid.rotation_euler = (math.radians(90), 0, 0)
     bpy.context.view_layer.update()
     with Timer(f"sample B {n}"):
         posB, nrmB, colB = sample_surface([column] + [o for o in laptop_parts if o.type == "MESH"], n, rng)

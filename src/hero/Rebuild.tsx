@@ -9,6 +9,7 @@ import { MODEL_VERSION } from "./Statue";
 import { SETTLE } from "./Morph";
 import { makeDissolve, applyDissolve } from "./dissolve";
 import { rigState } from "./rigState";
+import { pointsState } from "./pointsState";
 import { screenAspect, portalCamState } from "./PortalScreen";
 
 const COLUMN = `/models/column.glb?v=${MODEL_VERSION}`;
@@ -131,7 +132,7 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     // the cut must sit exactly where the dust is launching: a point at normalised height h leaves when
     // unb > (1 - (0.85 h)) * spread, so the surviving surface is everything below h = (1 - unb / spread) / 0.85,
     // converted from the point buffer's height to the dissolve's own height scale
-    const spread = 0.6, sweep = 0.9, grainMean = 0.03, maxY = 1.2124, height = COLUMN_TOP + 0.3;
+    const spread = 0.6, sweep = 0.9, grainMean = 0.03, maxY = pointsState.maxYB, height = COLUMN_TOP + 0.3;
     const cutForUnbuild = (((1 - unb / spread - grainMean) / sweep) * maxY + rigState.y) / height;
     // the floor of the cut sits below the rig's own base, wherever the rig has slid to, so nothing survives
     const floor = (rigState.y - 0.4) / height;

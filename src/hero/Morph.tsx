@@ -6,6 +6,7 @@ import { BEATS, Q, ease, remap } from "./beats";
 import { progress } from "./progress";
 import { MODEL_VERSION } from "./Statue";
 import { rigState } from "./rigState";
+import { pointsState } from "./pointsState";
 
 /**
  * The vaporise. One THREE.Points over the statue's sampled surface (tools/blender/03_sample_points.py).
@@ -199,6 +200,8 @@ async function loadPoints(set: "desktop" | "mobile"): Promise<Buffers> {
   const posB = new Float32Array(n * 3), colB = new Float32Array(n * 3), delayB = new Float32Array(n);
   let maxY = 0;
   for (let i = 0; i < n; i++) maxY = Math.max(maxY, f[i * FLOATS + 10]);
+  pointsState.maxYB = maxY;
+  pointsState.loaded = true;
   for (let i = 0; i < n; i++) {
     const o = i * FLOATS;
     pos[i * 3] = f[o]; pos[i * 3 + 1] = f[o + 1]; pos[i * 3 + 2] = f[o + 2];

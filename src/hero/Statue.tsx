@@ -10,7 +10,7 @@ import { signalStatueReady } from "./introState";
 import { progress } from "./progress";
 
 // the version stamp defeats browser caching whenever the bake changes
-export const MODEL_VERSION = "2026-09-04e";
+export const MODEL_VERSION = "2026-09-05a";
 export const STATUE = {
   lod0: `/models/statue-lod0.glb?v=${MODEL_VERSION}`,
   lod1: `/models/statue-lod1.glb?v=${MODEL_VERSION}`,
