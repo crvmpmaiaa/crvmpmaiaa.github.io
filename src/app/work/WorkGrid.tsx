@@ -62,8 +62,11 @@ export function WorkGrid({ projects }: { projects: Project[] }) {
       {projects.map((p) => (
         <li key={p.slug} className="wp__card">
           <a className="wp__link" href={`/work/${p.slug}`}>
-            <figure className="wp__preview">
+            <figure className="wp__preview" style={{ "--img": `url(${p.site})` } as React.CSSProperties}>
               <img src={p.site} alt={p.alt} width={1440} height={900} />
+              {/* the glitch: two offset copies of the image in red and cyan, sliced and jittered for a moment */}
+              <span className="wp__glitch wp__glitch--r" aria-hidden="true" />
+              <span className="wp__glitch wp__glitch--c" aria-hidden="true" />
               <span className="wp__view" aria-hidden="true">View</span>
             </figure>
             <ul className="wp__tags" aria-label="Tags">
