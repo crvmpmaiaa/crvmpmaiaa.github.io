@@ -699,7 +699,19 @@ footer.section {
   grid-template-columns: repeat(2, 1fr);
   gap: clamp(2rem, 4vw, 4rem) clamp(1.5rem, 3vw, 3rem);
 }
-.wp__card:nth-child(4n + 2), .wp__card:nth-child(4n + 3) { transform: translateY(clamp(1.5rem, 4vw, 4rem)); }
+.wp__card:nth-child(4n + 2), .wp__card:nth-child(4n + 3) { --stagger: clamp(1.5rem, 4vw, 4rem); }
+/* focus: cards arrive from below and dim away from the middle of the viewport */
+.wp__card {
+  --focus: 1;
+  --stagger: 0px;
+  opacity: 0;
+  transform: translateY(calc(var(--stagger) + 2.5rem));
+  transition: opacity 700ms cubic-bezier(0.2, 0.7, 0.2, 1), transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.wp__card.is-in {
+  opacity: var(--focus);
+  transform: translateY(var(--stagger));
+}
 .wp__link {
   display: grid;
   gap: calc(var(--pad) / var(--phi));
@@ -714,6 +726,9 @@ footer.section {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: #111;
+  transition: transform 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform-style: preserve-3d;
+  cursor: none;
 }
 .wp__preview img {
   width: 100%;
@@ -723,22 +738,30 @@ footer.section {
   display: block;
   transition: transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-.wp__link:hover .wp__preview img { transform: scale(1.03); }
+.wp__link:hover .wp__preview img { transform: scale(1.06); }
+/* the cursor label: follows the pointer over the preview */
 .wp__view {
   position: absolute;
-  right: 1rem;
-  top: 1rem;
-  padding: 0.5rem 0.9rem;
+  left: 0;
+  top: 0;
+  width: 4.5rem;
+  height: 4.5rem;
+  display: grid;
+  place-items: center;
   border-radius: 999px;
-  background: rgba(7, 9, 15, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--marble);
+  color: var(--quarry);
   font-family: var(--font-body);
   font-size: var(--step--1);
   opacity: 0;
-  transform: translateY(-4px);
-  transition: opacity 240ms ease, transform 240ms ease;
+  scale: 0.6;
+  transition: opacity 200ms ease, scale 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  pointer-events: none;
+  will-change: transform;
 }
-.wp__link:hover .wp__view, .wp__link:focus-visible .wp__view { opacity: 1; transform: none; }
+.wp__link:hover .wp__view { opacity: 1; scale: 1; }
+.wp__link:focus-visible .wp__view { opacity: 1; scale: 1; transform: translate(1.5rem, 1.5rem); }
+@media (hover: none) { .wp__preview { cursor: auto; } .wp__view { display: none; } }
 .wp__tags {
   list-style: none;
   margin: 0.25rem 0 0;
