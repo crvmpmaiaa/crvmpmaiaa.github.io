@@ -1,6 +1,6 @@
 "use client";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment, useGLTF } from "@react-three/drei";
+import { ContactShadows, Environment, useGLTF } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
@@ -18,7 +18,30 @@ function Atlas({ visible }: { visible: boolean }) {
   useEffect(() => { if (visible && group.current) group.current.rotation.y = FRONT; }, [visible]);
   const scene = useMemo(() => {
     const s = gltf.scene;
-    s.traverse((o) => { if ((o as THREE.Mesh).isMesh) { (o as THREE.Mesh).castShadow = true; (o as THREE.Mesh).receiveShadow = true; } });
+    s.traverse((o) => {
+      if (!(o as THREE.Mesh).isMesh) return;
+      const m = o as THREE.Mesh;
+      m.castShadow = true;
+      m.receiveShadow = true;
+      const src = m.material as THREE.MeshStandardMaterial;
+      const isGlobe = /sphere/i.test(m.name) || /sphere/i.test(src.name ?? "");
+      if (isGlobe) {
+        // the world stays bronze: the one warm note
+        src.envMapIntensity = 0.9;
+        return;
+      }
+      // the figure is carved in the site's marble, keeping the model's own surface detail
+      m.material = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color("#e4e1dc"),
+        roughness: 0.42,
+        metalness: 0,
+        clearcoat: 0.15,
+        clearcoatRoughness: 0.6,
+        normalMap: src.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.8, 0.8),
+        envMapIntensity: 0.6,
+      });
+    });
     return s;
   }, [gltf.scene]);
   const reduced = useRef(false);
@@ -28,7 +51,7 @@ function Atlas({ visible }: { visible: boolean }) {
     group.current.rotation.y += Math.min(dt, 0.05) * 0.22;
   });
   return (
-    <group ref={group} position={[0, -1.1, 0]} rotation={[0, FRONT, 0]}>
+    <group ref={group} position={[0, -1.35, 0]} rotation={[0, FRONT, 0]} scale={1.18}>
       <primitive object={scene} />
     </group>
   );
@@ -50,11 +73,15 @@ export function AtlasCanvas() {
       <Canvas dpr={[1, 1.75]} frameloop={visible ? "always" : "never"} gl={{ antialias: true, alpha: true }} shadows camera={{ fov: 30, position: [0, 0.35, 5.2], near: 0.1, far: 30 }}
         onCreated={({ gl }) => { gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.0; gl.setClearColor(0x000000, 0); }}>
         <Suspense fallback={null}>
-          <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.9} />
+          <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.45} />
           <Atlas visible={visible} />
+          {/* a soft shadow on the ground so he stands rather than floats */}
+          <ContactShadows position={[0, -1.36, 0]} opacity={0.45} scale={5} blur={2.4} far={2.5} color="#0b1a2e" />
         </Suspense>
-        <directionalLight position={[-3, 5, 3]} intensity={2.4} color="#fff3e6" castShadow shadow-mapSize={[1024, 1024]} />
-        <hemisphereLight args={["#dfe8f2", "#6f6a63", 0.5]} />
+        {/* the hero's light: warm key from the upper left, cool sky fill, a cold rim from behind */}
+        <directionalLight position={[-3, 5, 3]} intensity={2.6} color="#fff3e6" castShadow shadow-mapSize={[1024, 1024]} />
+        <directionalLight position={[3, 2, -4]} intensity={1.2} color="#9fc4f0" />
+        <hemisphereLight args={["#bcd6f2", "#6f6a63", 0.7]} />
       </Canvas>
     </div>
   );
