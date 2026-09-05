@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import type { Project } from "@/portal/work";
+import { Distort } from "./Distort";
 
 /**
  * The grid, with two things the scroll and the mouse do:
@@ -67,6 +68,7 @@ export function WorkGrid({ projects }: { projects: Project[] }) {
               {/* the glitch: two offset copies of the image in red and cyan, sliced and jittered for a moment */}
               <span className="wp__glitch wp__glitch--r" aria-hidden="true" />
               <span className="wp__glitch wp__glitch--c" aria-hidden="true" />
+              <Distort src={p.site} />
               <span className="wp__view" aria-hidden="true">View</span>
             </figure>
             <ul className="wp__tags" aria-label="Tags">

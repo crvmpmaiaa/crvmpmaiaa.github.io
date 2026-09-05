@@ -979,9 +979,10 @@ footer.section {
 }
 .wp__glitch--r { filter: url(#none) saturate(2); background-color: rgba(255, 0, 60, 0.35); background-blend-mode: multiply; }
 .wp__glitch--c { background-color: rgba(0, 200, 255, 0.35); background-blend-mode: multiply; }
-.wp__link:hover .wp__glitch--r, .wp__card.is-in .wp__glitch--r { animation: glitch-r 700ms steps(1, end) 1; }
-.wp__link:hover .wp__glitch--c, .wp__card.is-in .wp__glitch--c { animation: glitch-c 700ms steps(1, end) 1; }
-.wp__link:hover img { animation: glitch-img 700ms steps(1, end) 1; }
+.wp__card.is-in .wp__glitch--r { animation: glitch-r 700ms steps(1, end) 1; }
+.wp__card.is-in .wp__glitch--c { animation: glitch-c 700ms steps(1, end) 1; }
+.wp__distort { position: absolute; inset: 0; width: 100%; height: 100%; transform: scale(1.06); opacity: 0; transition: opacity 200ms ease; pointer-events: none; }
+.wp__distort.is-live { opacity: 1; }
 @keyframes glitch-r {
   0%   { opacity: 0.9; clip-path: inset(8% 0 78% 0); transform: translate(-8px, 0); }
   12%  { opacity: 0.9; clip-path: inset(42% 0 40% 0); transform: translate(10px, 0); }
@@ -1017,18 +1018,20 @@ footer.section {
 }
 
 
-/* ---------- hero nav: small, bottom left, appears with the scroll hint ---------- */
+/* ---------- hero nav: the words turned on their side, running down the right edge from the top ---------- */
 .hero-nav {
   position: absolute;
-  left: clamp(1.25rem, 6vw, 6rem);
-  bottom: clamp(1.5rem, 10vh, 7rem);
+  right: clamp(1.25rem, 5vw, 5rem);
+  top: clamp(1.5rem, 8vh, 5rem);
   z-index: 6;
   display: flex;
-  gap: clamp(0.9rem, 1.6vw, 1.6rem);
+  flex-direction: row;
+  gap: 1.6em;
+  writing-mode: vertical-rl;
   font-family: var(--font-copy);
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.16em;
   font-size: var(--step--1);
   pointer-events: auto;
   opacity: 0;
@@ -1036,8 +1039,8 @@ footer.section {
   transition: opacity 500ms ease;
 }
 .is-revealed .hero-nav { opacity: 1; visibility: visible; }
-.hero-nav a { color: var(--ink); text-decoration: none; opacity: 0.75; }
-.hero-nav a:hover, .hero-nav a:focus-visible { opacity: 1; text-decoration: underline; text-underline-offset: 0.25em; }
+.hero-nav a { color: var(--ink); text-decoration: none; opacity: 0.7; transition: opacity 200ms ease; }
+.hero-nav a:hover, .hero-nav a:focus-visible { opacity: 1; text-decoration: underline; text-underline-offset: 0.3em; }
 
 /* the contact page: the footer on its own, full height */
 .page--contact { position: relative; }
