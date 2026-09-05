@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
  * under the pointer and folds back when it leaves. It sticks to the top, and once the page has scrolled a
  * little it shrinks to a slim strip so the work gets the screen back.
  */
-export function TopBar() {
+export function TopBar({ light = false }: { light?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -19,7 +19,7 @@ export function TopBar() {
     return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
   }, []);
   return (
-    <div className="bar" ref={ref}>
+    <div className={`bar${light ? " bar--light" : ""}`} ref={ref}>
       <nav className="bar__nav bar__nav--l" aria-label="Site">
         <a href="/work">Work</a>
         <a href="/#services">Services</a>

@@ -1,4 +1,5 @@
 import { Footer } from "@/footer/Footer";
+import { TopBar } from "@/app/TopBar";
 
 export const metadata = { title: "Contact, Build Different", description: "Start a project with Build Different." };
 
@@ -6,7 +7,7 @@ export const metadata = { title: "Contact, Build Different", description: "Start
 export default function ContactPage() {
   return (
     <main className="page page--contact">
-      <a className="wp__home page__home" href="/">Build Different</a>
+      <TopBar light />
       <Footer standalone />
     </main>
   );
