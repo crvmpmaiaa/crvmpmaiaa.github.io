@@ -1049,7 +1049,10 @@ footer.section {
 
 /* ---------- the top bar on the dark pages: BD that unfolds to BUILD DIFFERENT ---------- */
 .bar {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--quarry);
   margin: calc(-1 * clamp(2rem, 5vw, 4rem)) calc(-1 * clamp(1.25rem, 6vw, 6rem)) 0;
   padding: clamp(0.75rem, 1.5vw, 1.25rem) clamp(1.25rem, 6vw, 6rem);
   display: flex;
