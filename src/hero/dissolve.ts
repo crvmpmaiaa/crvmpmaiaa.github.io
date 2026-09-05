@@ -4,10 +4,11 @@ import * as THREE from "three";
  * A height cut on a MeshStandardMaterial with a grainy edge. Forward: surface above the cut survives (the
  * statue crumbling from the feet). Inverted: surface below the cut survives (the pillar surfacing from the ground).
  */
-export type Dissolve = { uCut: { value: number }; uInvert: { value: number }; uEdge: { value: number }; uHeight: { value: number } };
+export type Dissolve = { uCut: { value: number }; uInvert: { value: number }; uEdge: { value: number }; uHeight: { value: number }; uGrain: { value: number } };
 
-export function makeDissolve(height: number, invert = false): Dissolve {
-  return { uCut: { value: invert ? -1 : -1 }, uInvert: { value: invert ? 1 : 0 }, uEdge: { value: 0.06 }, uHeight: { value: height } };
+/** grain is the ragged edge's amplitude in world units: large for the statue, small for the pillar and laptop */
+export function makeDissolve(height: number, invert = false, grain = 0.4): Dissolve {
+  return { uCut: { value: -1 }, uInvert: { value: invert ? 1 : 0 }, uEdge: { value: 0.06 }, uHeight: { value: height }, uGrain: { value: grain } };
 }
 
 const PARS = /* glsl */ `
@@ -15,6 +16,7 @@ const PARS = /* glsl */ `
   uniform float uInvert;
   uniform float uEdge;
   uniform float uHeight;
+  uniform float uGrain;
   varying vec3 vWorldPos;
   float dHash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453123); }
   float dNoise(vec3 p) {
@@ -37,7 +39,7 @@ export function applyDissolve(mat: THREE.MeshStandardMaterial, d: Dissolve, key:
         `#include <dithering_fragment>
         float h = vWorldPos.y / uHeight;
         float grain = dNoise(vWorldPos * 28.0) * 0.6 + dNoise(vWorldPos * 6.0) * 0.4;
-        float edge = h + (grain - 0.5) * 0.22;
+        float edge = h + (grain - 0.5) * (uGrain / uHeight);
         float d = uInvert > 0.5 ? (uCut - edge) : (edge - uCut);
         if (d < 0.0) discard;
         float rim = 1.0 - smoothstep(0.0, uEdge, d);

@@ -22,7 +22,7 @@ export const screenState = { centre: new THREE.Vector3(), normal: new THREE.Vect
 /** Where the camera looks during the turn and the screen beat; the camera rig writes this each frame. */
 export const stageTarget = { look: new THREE.Vector3(0, 0.66, 0), camPos: new THREE.Vector3(0, 0.95, 3.5), fov: 34 };
 
-const rebuildDissolve = makeDissolve(COLUMN_TOP + 0.3, true);
+const rebuildDissolve = makeDissolve(COLUMN_TOP + 0.3, true, 0.06);
 
 /** Column and laptop surface beneath the settling dust, then turn, open and light up. */
 export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | null; screenTexture?: THREE.Texture | null }) {

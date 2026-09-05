@@ -24,7 +24,7 @@ export const STATUE = {
 
 const DRACO = "/draco/";
 
-export const statueDissolve = makeDissolve(1.8, false);
+export const statueDissolve = makeDissolve(1.8, false, 0.4);
 
 function prepare(scene: THREE.Group) {
   scene.traverse((o) => {
