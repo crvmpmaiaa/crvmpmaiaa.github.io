@@ -1112,3 +1112,5 @@ footer.section {
 .bar--light .bd { color: var(--ink); }
 .bar--light .bar__nav a { color: rgba(20, 32, 46, 0.55); }
 .bar--light .bar__nav a:hover, .bar--light .bar__nav a:focus-visible { color: var(--ink); }
+.wp__back { grid-column: 1 / -1; font-family: var(--font-copy); text-transform: uppercase; letter-spacing: 0.14em; font-size: var(--step--1); color: rgba(222, 220, 216, 0.6); text-decoration: none; }
+.wp__back:hover { color: var(--marble); text-decoration: underline; text-underline-offset: 0.3em; }
