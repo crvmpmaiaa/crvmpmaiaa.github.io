@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { LINES, WORDMARK, CTA, SCROLL_HINT } from "./lines";
-import { COPY_WINDOWS, window as win } from "./beats";
+import { COPY_WINDOWS, window as win, ease, remap } from "./beats";
 import { onProgress, progress } from "./progress";
 
 type Layer = "behind" | "front" | "all";
@@ -9,6 +9,7 @@ type Layer = "behind" | "front" | "all";
 /** Copy blocks in DOM over the canvas. Opacity is a function of p, applied to style, no React state. */
 export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: Layer }) {
   const refs = useRef<Record<string, HTMLElement | null>>({});
+  const letterRefs = useRef<Record<string, (HTMLElement | null)[]>>({});
 
   useEffect(() => {
     if (isStatic) return;
@@ -19,7 +20,24 @@ export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: L
         if (!el) continue;
         let o = 0;
         const line = LINES.find((l) => l.key === key);
-        if (line) o = win(p, line.in[0], line.in[1], line.out[0], line.out[1]);
+        if (line) {
+          // the line as a whole only fades on the way out; on the way in the letters type themselves
+          const exit = 1 - ease.smooth(remap(p, line.out[0], line.out[1]));
+          const typed = remap(p, line.in[0], line.in[1]);
+          o = typed > 0 ? exit : 0;
+          const letters = letterRefs.current[key] ?? [];
+          const n = letters.length;
+          // each letter arrives over a short run of the type head, sliding in from the right and sharpening
+          const head = typed * (n + 3);
+          for (let i = 0; i < n; i++) {
+            const k = Math.min(1, Math.max(0, (head - i) / 3));
+            const el2 = letters[i];
+            if (!el2) continue;
+            el2.style.opacity = k.toFixed(3);
+            el2.style.transform = k >= 1 ? "" : `translate(${((1 - k) * 0.6).toFixed(3)}em, ${((1 - k) * -0.25).toFixed(3)}em) rotate(${((1 - k) * 6).toFixed(2)}deg)`;
+            el2.style.filter = k >= 1 ? "" : `blur(${((1 - k) * 4).toFixed(2)}px)`;
+          }
+        }
         else if (key === "headline1" || key === "headline1-front") o = COPY_WINDOWS.headline1(p);
         else if (key === "cta") o = COPY_WINDOWS.cta(p, q);
         else if (key === "scrollHint") o = COPY_WINDOWS.scrollHint(p);
@@ -60,11 +78,27 @@ export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: L
     <div className={isStatic ? "hero__copy-stack" : "hero__layer hero__layer--front"}>
       {layer === "all" && wordmark}
       {layer === "front" && different}
-      {LINES.map((l) => (
-        <p key={l.key} className={`copy copy--line ${l.place.split(" ").map((c) => `copy--${c}`).join(" ")}`} ref={set(l.key)}>
-          {l.text}
-        </p>
-      ))}
+      {LINES.map((l) => {
+        letterRefs.current[l.key] = letterRefs.current[l.key] ?? [];
+        let idx = 0;
+        return (
+          <p key={l.key} className={`copy copy--line ${l.place.split(" ").map((c) => `copy--${c}`).join(" ")}`} ref={set(l.key)} aria-label={l.text.replace(/\n/g, " ")}>
+            {l.text.split("\n").map((row, r) => (
+              <span className="row" key={r} aria-hidden="true">
+                {row.split(" ").map((wordText, w) => (
+                  <span className="w" key={w}>
+                    {Array.from(wordText).map((ch) => {
+                      const i = idx++;
+                      return <span className="l" key={i} ref={(el) => { letterRefs.current[l.key][i] = el; }}>{ch}</span>;
+                    })}
+                    {w < row.split(" ").length - 1 ? " " : ""}
+                  </span>
+                ))}
+              </span>
+            ))}
+          </p>
+        );
+      })}
       <p className="copy copy--cta" ref={set("cta")}>
         <a className="cta" href="#contact">{CTA}</a>
       </p>

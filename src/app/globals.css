@@ -274,17 +274,19 @@ body {
   font-size: clamp(var(--step-2), 2.4vw, var(--step-4));
   line-height: 1.12;
   color: var(--ink);
-  white-space: pre-line;
+  white-space: normal;
   width: min(46vw, 34ch);
   --rise: 0;
-  transform: translateY(calc(var(--rise) * 0.6rem));
 }
-.copy--left { left: clamp(1.25rem, 6vw, 6rem); top: 50%; transform: translateY(calc(-50% + var(--rise) * 0.6rem)); }
+.copy--line .row { display: block; }
+.copy--line .w { display: inline-block; white-space: pre; }
+.copy--line .l { display: inline-block; will-change: transform, opacity, filter; }
+.copy--left { left: clamp(1.25rem, 6vw, 6rem); top: 50%; transform: translateY(-50%); }
 .copy--left-a { left: clamp(1.25rem, 6vw, 6rem); top: 42%; }
 .copy--left-b { left: clamp(1.25rem, 6vw, 6rem); top: 52%; color: var(--ink-soft); }
 .copy--top-left { left: clamp(1.25rem, 6vw, 6rem); top: 16%; }
 .copy--tight { width: min(34vw, 26ch); font-size: clamp(var(--step-1), 1.8vw, var(--step-3)); }
-.copy--right { right: clamp(1.25rem, 6vw, 6rem); top: 50%; text-align: right; width: min(46vw, 40ch); transform: translateY(calc(-50% + var(--rise) * 0.6rem)); }
+.copy--right { right: clamp(1.25rem, 6vw, 6rem); top: 50%; text-align: right; width: min(46vw, 40ch); transform: translateY(-50%); }
 .copy--bottom { left: 50%; bottom: 5%; text-align: center; transform: translateX(-50%); width: min(70vw, 52ch); }
 .copy--stack-0 { left: clamp(1.25rem, 6vw, 6rem); top: 16%; }
 .copy--stack-1 { left: clamp(1.25rem, 6vw, 6rem); top: 28%; color: var(--ink-soft); }
