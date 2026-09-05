@@ -858,7 +858,7 @@ footer.section {
   font-size: clamp(var(--step-4), 4.6vw, var(--step-7));
   line-height: 1.02;
   letter-spacing: -0.015em;
-  max-width: 16ch;
+  max-width: 24ch;
 }
 .footer__form {
   display: grid;
