@@ -2,7 +2,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { BEATS, ease, remap } from "./beats";
+import { BEATS, Q, ease, remap } from "./beats";
 import { progress } from "./progress";
 import { MODEL_VERSION } from "./Statue";
 
@@ -24,6 +24,7 @@ const vert = /* glsl */ `
   attribute float seed;
   uniform float uProgress;   // 0..1 across the vaporise
   uniform float uRebuild;    // 0..1 across the rebuild
+  uniform float uUnbuild;    // 0..1 as the pillar and laptop come apart again, top down
   uniform float uSettle;     // 0..1 as the meshes surface and the settled dust dies from the base up
   uniform float uSpread;     // how much of the range the delay sweep takes
   uniform float uTime;
@@ -61,6 +62,36 @@ const vert = /* glsl */ `
   float easeOutBack(float t) { float c1 = 1.70158; float c3 = c1 + 1.0; return 1.0 + c3 * pow(t - 1.0, 3.0) + c1 * pow(t - 1.0, 2.0); }
 
   void main() {
+    if (uUnbuild > 0.0) {
+      // the pillar and laptop come apart from the top, dust drifting up and left into the sky
+      float t = clamp((uUnbuild - (1.0 - delayB) * uSpread) / (1.0 - uSpread), 0.0, 1.0);
+      float te = easeOut(t);
+      vT = t;
+      vec3 jitter = normalize(hash3(vec3(seed * 5.3, seed * 8.9, seed * 2.7)));
+      vec3 wind = normalize(vec3(-0.8, 0.9, 0.2));
+      vec3 p = posB;
+      p += curl(posB * 1.6 + vec3(uTime * 0.08, 0.0, 0.0) + t * 1.5) * (0.4 * sin(t * 3.14159) + 0.3 * t);
+      p += (wind + jitter * 0.35) * te * te * 3.0 * (0.8 + 0.4 * seed);
+      vFade = smoothstep(0.0, 0.02, t) * (1.0 - smoothstep(0.35, 1.0, t));
+      vec3 stone = clamp(colB * 1.25 + 0.06, 0.0, 1.0);
+      vec3 col = mix(stone, vec3(0.88, 0.92, 0.97), smoothstep(0.3, 1.0, t));
+      float kind = fract(seed * 91.7);
+      float flicker = step(0.5, fract(sin(seed * 517.3 + floor(uTime * 14.0 + seed * 40.0)) * 43758.5));
+      float glitchShare = 0.10 + 0.35 * smoothstep(0.1, 0.8, t);
+      if (kind < glitchShare) {
+        float c = fract(seed * 13.1 + floor(uTime * 6.0 + seed * 20.0) * 0.37);
+        vec3 prim = c < 0.33 ? vec3(1.0, 0.05, 0.1) : (c < 0.66 ? vec3(0.05, 1.0, 0.15) : vec3(0.1, 0.25, 1.0));
+        col = mix(col, prim, flicker);
+      } else if (kind > 0.96) {
+        col = vec3(0.02);
+      }
+      vColor = col;
+      vec4 mv = modelViewMatrix * vec4(p, 1.0);
+      float size = (1.0 + 0.5 * smoothstep(0.0, 0.3, t)) * (1.0 - 0.5 * smoothstep(0.5, 1.0, t));
+      gl_PointSize = max(1.0, floor(size * uPixelRatio * (7.5 / -mv.z) + 0.5));
+      gl_Position = projectionMatrix * mv;
+      return;
+    }
     if (uRebuild > 0.0) {
       // phase B: the same motes come in from the left and settle onto the pillar and laptop, ground up
       float t = clamp((uRebuild - delayB * uSpread) / (1.0 - uSpread), 0.0, 1.0);
@@ -229,6 +260,7 @@ export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "
     () => ({
       uProgress: { value: 0 },
       uRebuild: { value: 0 },
+      uUnbuild: { value: 0 },
       uSettle: { value: 0 },
       uSpread: { value: VAPORISE.spread },
       uTime: { value: 0 },
@@ -246,13 +278,15 @@ export function Morph({ set = "desktop", frozen = false }: { set?: "desktop" | "
     const u = ease.smooth(remap(p, VAPORISE.start, VAPORISE.end));
     const r = ease.smooth(remap(p, REBUILD.start, REBUILD.end));
     const settle = ease.smooth(remap(p, SETTLE.start, SETTLE.end));
+    const unb = ease.smooth(remap(progress.q, Q.vanish[0], Q.vanish[1]));
     m.uniforms.uProgress.value = u;
     m.uniforms.uRebuild.value = r;
     m.uniforms.uSettle.value = settle;
+    m.uniforms.uUnbuild.value = unb;
     (window as unknown as { __bdMorphU?: number }).__bdMorphU = u;
     m.uniforms.uPixelRatio.value = dpr;
     if (!frozen) m.uniforms.uTime.value += Math.min(dt, 0.05);
-    points.current.visible = u > 0.001 && settle < 0.999;
+    points.current.visible = (u > 0.001 && settle < 0.999) || (unb > 0.001 && unb < 0.999);
   });
 
   if (!geometry) return null;

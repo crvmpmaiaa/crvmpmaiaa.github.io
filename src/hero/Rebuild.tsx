@@ -3,7 +3,7 @@ import { useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { BEATS, ease, remap } from "./beats";
+import { BEATS, Q, ease, remap } from "./beats";
 import { progress } from "./progress";
 import { MODEL_VERSION } from "./Statue";
 import { SETTLE } from "./Morph";
@@ -125,10 +125,13 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
     const p = progress.p;
     // surface from the ground up in step with the settling dust
     const settle = ease.smooth(remap(p, SETTLE.start, SETTLE.end));
-    // once fully surfaced the cut goes away entirely, so the laptop can grow past it later
-    rebuildDissolve.uCut.value = settle <= 0 ? -1 : settle >= 0.999 ? 1e3 : settle * 1.15;
-    if (shadows.current !== settle > 0) {
-      shadows.current = settle > 0;
+    // once fully surfaced the cut goes away entirely; when the pillar vanishes it runs back down from the top
+    const unb = ease.smooth(remap(progress.q, Q.vanish[0], Q.vanish[1]));
+    rebuildDissolve.uCut.value = unb > 0 ? 1.15 * (1 - unb) : settle <= 0 ? -1 : settle >= 0.999 ? 1e3 : settle * 1.15;
+    g.visible = unb < 0.999;
+    const wantShadows = settle > 0 && unb < 0.5;
+    if (shadows.current !== wantShadows) {
+      shadows.current = wantShadows;
       g.traverse((o) => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = shadows.current; });
     }
 

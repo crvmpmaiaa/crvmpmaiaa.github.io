@@ -14,20 +14,23 @@ export const BEATS = {
 
 /** hero 700vh, then the portal section 600vh, all in one pin */
 export const HERO_VH = 700;
-export const PORTAL_VH = 600;
+export const PORTAL_VH = 840;
 export const SCROLL_LENGTH_VH = HERO_VH + PORTAL_VH;
 export const HERO_FRACTION = HERO_VH / SCROLL_LENGTH_VH;
 
-/** portal section beats on q in [0, 1] */
+/** portal section beats on q in [0, 1]. The first 600vh worth is the portal, then the pillar vanishes and the hand rises. */
+const K = 600 / 840;
 export const Q = {
-  through: [0.0, 0.08],
-  cross: 0.04,
-  arrive: [0.08, 0.14],
-  truck: [0.14, 0.8],
-  turnBack: [0.8, 0.86],
-  backThrough: [0.86, 0.92],
-  crossBack: 0.9,
-  pullOut: [0.92, 1.0],
+  through: [0.0, 0.08 * K],
+  cross: 0.04 * K,
+  arrive: [0.08 * K, 0.14 * K],
+  truck: [0.14 * K, 0.8 * K],
+  turnBack: [0.8 * K, 0.86 * K],
+  backThrough: [0.86 * K, 0.92 * K],
+  crossBack: 0.9 * K,
+  pullOut: [0.92 * K, 1.0 * K],
+  vanish: [0.74, 0.86],
+  hand: [0.84, 0.97],
 } as const;
 
 /** 0 before a, 1 after b, linear between. */
@@ -60,6 +63,6 @@ export const COPY_WINDOWS = {
   block2: (p: number) => window(p, 0.49, 0.55, 0.6, 0.64),
   block3: (p: number) => window(p, 0.66, 0.72, 0.85, 0.88),
   // the button belongs to the exit: it appears on the pull out, after the return crossing
-  cta: (_p: number, q = 0) => ease.smooth(remap(q, 0.93, 0.97)),
+  cta: (_p: number, q = 0) => ease.smooth(remap(q, Q.pullOut[1] - 0.03, Q.pullOut[1])),
   scrollHint: (p: number) => 1 - ease.smooth(remap(p, 0.02, 0.06)),
 };
