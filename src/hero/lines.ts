@@ -23,5 +23,5 @@ export const LINES: Line[] = [
   // the pillar: either side, then the close
   { key: "imagine", text: "Whatever you can imagine,\nwe can build.", place: "left", in: [0.8, 0.83], out: [0.89, 0.91] },
   { key: "worthy", text: "Something worthy\nof your name.", place: "right", in: [0.83, 0.86], out: [0.89, 0.91] },
-  { key: "faster", text: "Faster and for less than has ever been possible.", place: "bottom", in: [0.86, 0.885], out: [0.89, 0.91] },
+  { key: "faster", text: "Faster and cheaper than has ever been possible.", place: "bottom", in: [0.86, 0.885], out: [0.89, 0.91] },
 ];

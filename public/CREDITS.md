@@ -24,3 +24,5 @@ Every third party asset used on this site, with its licence. Kept current by the
 ## Textures
 
 - **Marble 01** from Poly Haven (https://polyhaven.com/a/marble_01), CC0. Used on the service cards.
+
+- **Atlas** is used on the footer, turning beside the contact form.
