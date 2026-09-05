@@ -33,7 +33,7 @@ export function ServiceTabs() {
       const lead = remap(q, Q.arrive[0] + 0.02, Q.truck[0]);          // first card arriving
       const tail = remap(q, Q.turnBack[0], Q.turnBack[1]);             // last card leaving
       const pos = q < Q.truck[0] ? -1 + lead : q > Q.turnBack[0] ? CARDS.length - 1 + tail : deckPosition(q);
-      const step = window.innerWidth * 0.92;
+      const step = window.innerWidth * 1.04;  // cards are wider now, so the stride grows with them
       cards.current.forEach((el, i) => {
         if (!el) return;
         const d = i - pos;                       // 0 centred, +1 one card to the right, -1 one to the left
