@@ -14,7 +14,7 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
   useEffect(() => {
     diag("footer mounted");
     const phone = window.innerWidth < 820;
-    setFlags({ waves: !qa("plain") && !qa("nowaves") && (!phone || qa("waves")), atlas: !qa("plain") && !qa("noatlas") && (!phone || qa("rig")), still: phone && !qa("rig") });
+    setFlags({ waves: !qa("plain") && !qa("nowaves") && (!phone || qa("waves")), atlas: !qa("plain") && !qa("noatlas") && (!phone || qa("rig")), still: false });
   }, []);
   return (
     <footer className={`footer${standalone ? " footer--page" : ""}`} id="contact">

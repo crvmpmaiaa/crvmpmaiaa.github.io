@@ -7,12 +7,13 @@ const SHOTS = [
   { name: "statue", p: 0.0, hide: [".copy", ".hero-nav", ".scroll-hint"] },
   { name: "dust", p: 0.235, hide: [".copy", ".hero-nav", ".scroll-hint"] },
   { name: "pillar", p: 0.395, hide: [".copy", ".hero-nav", ".scroll-hint"] },
+  { name: "pillar-closed", p: 0.345, hide: [".copy", ".hero-nav", ".scroll-hint"] },
   { name: "temple", p: 0.80, hide: [".copy", ".hero-nav", ".scroll-hint", ".work"] },
 ];
 const b = await puppeteer.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: "new", args: ["--use-angle=metal", "--autoplay-policy=no-user-gesture-required"] });
 const p = await b.newPage();
 await p.setViewport({ width: W, height: H, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
-await p.goto("http://localhost:3000/", { waitUntil: "networkidle0", timeout: 60000 });
+await p.goto("http://localhost:3000/?rig", { waitUntil: "networkidle0", timeout: 60000 });
 await new Promise((r) => setTimeout(r, 4000));
 fs.mkdirSync("assets/stills", { recursive: true });
 const ONLY = process.env.ONLY;

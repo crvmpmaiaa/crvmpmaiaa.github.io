@@ -1,6 +1,6 @@
 "use client";
 import { diag, diagStart } from "./diag";
-import { MobileHome } from "@/mobile/MobileHome";
+import { StillScene } from "@/mobile/StillScene";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
@@ -55,7 +55,7 @@ export function Hero() {
   }, []);
 
   useEffect(() => {
-    if (mode !== "scroll" || !section.current) return;
+    if ((mode !== "scroll" && mode !== "phone") || !section.current) return;
     gsap.registerPlugin(ScrollTrigger);
     const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
     (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
@@ -94,7 +94,6 @@ export function Hero() {
     };
   }, [mode]);
 
-  if (mode === "phone") return <MobileHome />;
   const isStatic = mode === "static" || mode === "reduced";
   const frozen = mode === "reduced";
 
@@ -112,7 +111,7 @@ export function Hero() {
           <>
             <SkyVideo frozen={frozen} />
             <Copy isStatic={false} layer="behind" />
-            <Scene frozen={frozen} />
+            {mode === "phone" ? <StillScene /> : <Scene frozen={frozen} />}
             <Intro stage={stage} />
           </>
         )}

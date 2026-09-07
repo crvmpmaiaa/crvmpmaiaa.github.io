@@ -1,0 +1,10 @@
+import puppeteer from "puppeteer-core";
+const b = await puppeteer.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: "new", args: ["--use-angle=metal", "--autoplay-policy=no-user-gesture-required"] });
+const p = await b.newPage(); await p.setViewport({ width: 430, height: 932, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+await p.goto("http://localhost:3000/?rig", { waitUntil: "networkidle0", timeout: 60000 }); await new Promise(r => setTimeout(r, 4000));
+await p.evaluate(() => { const hero = document.querySelector(".hero"); const end = hero.offsetTop + hero.offsetHeight - innerHeight; scrollTo(0, hero.offsetTop + (end - hero.offsetTop) * 0.47); });
+await new Promise(r => setTimeout(r, 2000));
+await p.addStyleTag({ content: ".copy, .hero-nav, .deck, .scroll-hint { display: none !important }" });
+await new Promise(r => setTimeout(r, 300));
+await p.screenshot({ path: "assets/stills/geode.png" });
+await b.close();
