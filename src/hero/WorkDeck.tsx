@@ -49,6 +49,7 @@ export function WorkDeck() {
 
   return (
     <div className={`work${visible ? " is-visible" : ""}`} aria-label="Selected work">
+      <h2 className="work__heading" aria-hidden="true">Selected work</h2>
       {PROJECTS.map((p, i) => (
         <article key={p.name} className="work__card" ref={(el) => { cards.current[i] = el; }}>
           <div className="work__text">

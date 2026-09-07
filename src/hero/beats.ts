@@ -13,27 +13,32 @@ export const BEATS = {
 } as const;
 
 /** hero 700vh, then the portal section 600vh, all in one pin */
+/** phones get a longer portal run so the card deck is not over in a flick */
+const PHONE_EXTRA = typeof globalThis !== "undefined" && typeof (globalThis as { innerWidth?: number }).innerWidth === "number" && (globalThis as { innerWidth?: number }).innerWidth! < 820 ? 520 : 0;
 export const HERO_VH = 900;
-export const PORTAL_VH = 1140;
+export const PORTAL_VH = 1140 + PHONE_EXTRA;
 export const SCROLL_LENGTH_VH = HERO_VH + PORTAL_VH;
 export const HERO_FRACTION = HERO_VH / SCROLL_LENGTH_VH;
 
-/** portal section beats on q in [0, 1]. The first 600vh worth is the portal, then the pillar vanishes and the hand rises. */
-const K = 600 / 1140;
-const K2 = 840 / 1140;
+/**
+ * Portal section beats on q in [0, 1], written in vh of scroll so the phone's longer deck run (PHONE_EXTRA)
+ * slides everything after the truck along by the same amount. On desktop this is exactly the old 600 + 840 split.
+ */
+const X = PHONE_EXTRA;
+const v = (vh: number) => vh / PORTAL_VH;
 export const Q = {
-  through: [0.0, 0.08 * K],
-  cross: 0.04 * K,
-  arrive: [0.08 * K, 0.14 * K],
-  truck: [0.14 * K, 0.8 * K],
-  turnBack: [0.8 * K, 0.86 * K],
-  backThrough: [0.86 * K, 0.92 * K],
-  crossBack: 0.9 * K,
-  pullOut: [0.92 * K, 1.0 * K],
-  vanish: [0.74 * K2, 0.86 * K2],
-  hand: [0.84 * K2, 0.97 * K2],
+  through: [v(0), v(48)],
+  cross: v(24),
+  arrive: [v(48), v(84)],
+  truck: [v(84), v(480 + X)],
+  turnBack: [v(480 + X), v(516 + X)],
+  backThrough: [v(516 + X), v(552 + X)],
+  crossBack: v(540 + X),
+  pullOut: [v(552 + X), v(600 + X)],
+  vanish: [v(621.6 + X), v(722.4 + X)],
+  hand: [v(705.6 + X), v(814.8 + X)],
   /** the work deck plays over the hand */
-  work: [0.74, 0.98],
+  work: [v(843.6 + X), v(1117.2 + X)],
 } as const;
 
 /** 0 before a, 1 after b, linear between. */

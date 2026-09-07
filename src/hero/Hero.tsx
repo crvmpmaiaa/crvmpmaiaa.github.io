@@ -103,7 +103,7 @@ export function Hero() {
       ref={section}
       className={`hero${isStatic ? " is-static" : ""}`}
       aria-label="Introduction"
-      style={isStatic ? undefined : { height: `${SCROLL_LENGTH_VH}svh` }}
+      style={isStatic || mode === "pending" ? undefined : { height: `${SCROLL_LENGTH_VH}svh` }}  /* set after mount: the length differs on phones */
     >
       <div className="hero__stage" ref={stage}>
         {mode === "static" || mode === "pending" ? (

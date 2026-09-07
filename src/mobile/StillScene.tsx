@@ -17,12 +17,13 @@ import { createGeode, type Geode } from "./geode";
 const SRC = {
   statue: "/images/mobile/statue-full.webp",  // the whole figure on its plinth, trimmed (1220 x 2395)
   pillar: "/images/mobile/pillar-bare.webp",   // the column with nothing on top (656 x 1700)
-  laptop: "/images/mobile/laptop.webp",        // the open laptop cut from the same framing (658 x 268)
+  lid: (i: number) => `/images/mobile/lid-${i}.webp`,  // the lid opening, eight frames from the 3D scene (920 x 416 each)
 };
-/** the laptop against the pillar, in the pillar's pixel scale: same width, its base 39px below the cap's top edge */
-const LAPTOP = { w: 658 / 656, drop: 39 / 656 };
-/** the screen inside the laptop cutout, as fractions of it */
-const SCREEN = { x: 141 / 658, y: 16 / 268, w: 381 / 658, h: 221 / 268 };
+const LID_FRAMES = 8;
+/** the lid frames against the pillar, in the pillar's pixel scale: the crop's bottom edge sits 70px below the cap's top edge */
+const LAPTOP = { w: 920 / 656, drop: 70 / 656 };
+/** the screen inside the final (open) frame, as fractions of it */
+const SCREEN = { x: 271 / 920, y: 116 / 416, w: 377 / 920, h: 236 / 416 };
 const CELL = 8;  // css px per mote at the size the object is drawn when it breaks up
 const GEODE_SPEED = 0.3, GEODE_EXPOSURE = 0.55;  // the dials the desktop uses
 
@@ -65,7 +66,7 @@ export function StillScene() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     let dead = false, raf = 0, W = 0, H = 0, dpr = 1;
-    let statue: Sprite | null = null, pillar: Sprite | null = null, laptop: HTMLImageElement | null = null;
+    let statue: Sprite | null = null, pillar: Sprite | null = null, lid: HTMLImageElement[] = [];
     let geode: Geode | null = null, geodeFailed = false;
     const clock = { t: 0 };
 
@@ -129,13 +130,15 @@ export function StillScene() {
       ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
     };
 
-    /** the laptop on the cap, its screen showing the same ground the inside will show */
-    const drawLaptop = (x: number, y: number, w: number, alpha: number) => {
-      if (!laptop) return;
-      const h = w * laptop.naturalHeight / laptop.naturalWidth;
+    /** the laptop on the cap: surfacing, then the lid frames in turn, the open one showing the live ground */
+    const drawLaptop = (x: number, y: number, w: number, alpha: number, open: number) => {
+      if (lid.length < LID_FRAMES) return;
+      const h = w * lid[0].naturalHeight / lid[0].naturalWidth;
+      const f = open * (LID_FRAMES - 1), a = Math.floor(f), b = Math.min(LID_FRAMES - 1, a + 1), t = f - a;
       ctx.globalAlpha = alpha;
-      ctx.drawImage(laptop, x, y, w, h);
-      drawBackdrop(x + SCREEN.x * w, y + SCREEN.y * h, SCREEN.w * w, SCREEN.h * h);
+      ctx.drawImage(lid[a], x, y, w, h);
+      if (t > 0 && b !== a) { ctx.globalAlpha = alpha * t; ctx.drawImage(lid[b], x, y, w, h); }
+      if (open >= 0.999) { ctx.globalAlpha = alpha; drawBackdrop(x + SCREEN.x * w, y + SCREEN.y * h, SCREEN.w * w, SCREEN.h * h); }
       ctx.globalAlpha = 1;
     };
 
@@ -161,24 +164,27 @@ export function StillScene() {
 
       // pillar: assembles on the right as the dust settles; the phone rises onto it; its screen fills the frame
       const rb = remap(p, BEATS.rebuild[0], BEATS.rebuild[1]);
-      const rise = ease.out(remap(p, BEATS.turn[0], BEATS.turn[1]));
+      const surface = ease.smooth(remap(p, 0.795, 0.815));   // the laptop surfaces once the column is solid, as on desktop
+      const open = ease.inOut(remap(p, 0.815, 0.87));         // then the lid lifts
       const zoom = ease.inOut(remap(p, BEATS.screen[0], BEATS.screen[1]));
       const back = ease.inOut(remap(q, Q.pullOut[0], Q.pullOut[1]));  // 1 = fully out again
       const gone = remap(q, Q.vanish[0], Q.vanish[1]);                  // pillar blows away on the way out
-      const inside = p >= BEATS.screen[1] - 0.001 && back < 1;
+      const inside = p >= BEATS.screen[1] - 0.001 && back <= 0.001;
       if (rb > 0 && gone < 1) {
         const pw = W * PILLAR.width, ph = pw * pillar.img.naturalHeight / pillar.img.naturalWidth;
         const px = W * PILLAR.cx - pw / 2, py = H * PILLAR.bottom - ph;
-        const lw = pw * LAPTOP.w, lh = lw * laptop!.naturalHeight / laptop!.naturalWidth;
+        const lw = pw * LAPTOP.w, lh = lid.length ? lw * lid[0].naturalHeight / lid[0].naturalWidth : 0;
         const lx = W * PILLAR.cx - lw / 2, ly = py + pw * LAPTOP.drop - lh;   // resting on the cap
         const scx = lx + (SCREEN.x + SCREEN.w / 2) * lw, scy = ly + (SCREEN.y + SCREEN.h / 2) * lh;  // screen centre
         const sFull = Math.max(W / (SCREEN.w * lw), H / (SCREEN.h * lh)) * 1.02;
-        const zz = inside ? 1 : zoom * (1 - back);
+        // in: the zoom over the screen beat; out: the same path in reverse over the pull out
+        const zz = p < BEATS.screen[1] - 0.001 ? zoom : 1 - back;
         const s = 1 + (sFull - 1) * zz;
         const tx = (W / 2 - scx) * zz, ty = (H / 2 - scy) * zz;
         ctx.setTransform(dpr * s, 0, 0, dpr * s, dpr * (scx * (1 - s) + tx), dpr * (scy * (1 - s) + ty));
         drawSprite(pillar, px, py, pw, ph, gone, Math.max(0, rb), 3);
-        if (rise > 0 && gone <= 0) drawLaptop(lx, ly - (1 - rise) * lh * 0.35, lw, rise);
+        // on the way out the laptop fades as the first motes leave the cap, rather than vanishing in a frame
+        if (surface > 0 && gone < 0.3) drawLaptop(lx, ly, lw, surface * (1 - Math.min(1, gone / 0.3)), open);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
       // inside: the same backdrop fills the viewport under the deck
@@ -202,9 +208,9 @@ export function StillScene() {
     const ro = new ResizeObserver(() => { if (size()) draw(); });
     ro.observe(canvas);
     const off = onProgress(kick);
-    Promise.all([load(SRC.statue), load(SRC.pillar), load(SRC.laptop)]).then(([a, b, c]) => {
+    Promise.all([load(SRC.statue), load(SRC.pillar), ...Array.from({ length: LID_FRAMES }, (_, i) => load(SRC.lid(i)))]).then(([a, b, ...frames]) => {
       if (dead) return;
-      statue = grid(a, 1); pillar = grid(b, 1); laptop = c;
+      statue = grid(a, 1); pillar = grid(b, 1); lid = frames;
       size(); draw();
       signalStatueReady();
       requestAnimationFrame(tick);

@@ -15,6 +15,8 @@ import { screenAspect, portalCamState } from "./PortalScreen";
 const COLUMN = `/models/column${PHONE ? "-m" : ""}.glb?v=${MODEL_VERSION}`;
 const LAPTOP = `/models/laptop${PHONE ? "-m" : ""}.glb?v=${MODEL_VERSION}`;
 const DRACO = "/draco/";
+/** QA: ?lid=0..1 pins the lid at that fraction of 100 degrees and stops the turn (tools/qa/lid-frames.mjs) */
+const LID_QA = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("lid") ? Number(new URLSearchParams(window.location.search).get("lid")) : null;
 export const COLUMN_TOP = 1.2;
 export const LID_OPEN_DEG = 110;
 
@@ -153,13 +155,13 @@ export function Rebuild({ video, screenTexture }: { video: HTMLVideoElement | nu
 
     // one full turn landing square, eased, a pure function of p
     const turn = ease.inOut(remap(p, BEATS.turn[0], BEATS.turn[1]));
-    g.rotation.y = turn * Math.PI * 2;
+    g.rotation.y = LID_QA === null ? turn * Math.PI * 2 : 0;  // ?lid=x: face front, for capturing the opening as stills
 
     // the lid lifts from 0.80 to 0.89 to its open angle, then squares to vertical as the rig comes down
     const open = ease.inOut(remap(p, 0.815, 0.87));  // the laptop is fully there before it opens
     const down = ease.inOut(remap(p, BEATS.screen[0], BEATS.screen[1]));
     const lidDeg = THREE.MathUtils.lerp(LID_OPEN_DEG * open, 90, down);
-    if (lid.current) lid.current.rotation.x = THREE.MathUtils.degToRad(lidDeg);
+    if (lid.current) lid.current.rotation.x = THREE.MathUtils.degToRad(LID_QA === null ? lidDeg : LID_QA * 100);
 
     // screen beat, part one: the whole rig slides down until the screen is at the centre of the frame
     const l = scenes.l;
