@@ -83,7 +83,7 @@ export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: L
         letterRefs.current[l.key] = letterRefs.current[l.key] ?? [];
         let idx = 0;
         return (
-          <p key={l.key} className={`copy copy--line ${l.place.split(" ").map((c) => `copy--${c}`).join(" ")}`} ref={set(l.key)} aria-label={l.text.replace(/\n/g, " ")}>
+          <p key={l.key} className={`copy copy--line ${l.place.split(" ").map((c) => `copy--${c}`).join(" ")} copy-key--${l.key}`} ref={set(l.key)} aria-label={l.text.replace(/\n/g, " ")}>
             {l.text.split("\n").map((row, r) => (
               <span className="row" key={r} aria-hidden="true">
                 {row.split(" ").map((wordText, w) => (

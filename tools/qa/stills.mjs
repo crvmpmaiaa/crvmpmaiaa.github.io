@@ -4,6 +4,8 @@ import puppeteer from "puppeteer-core";
 import fs from "node:fs";
 const W = 430, H = 932;
 const SHOTS = [
+  { name: "statue-full", p: 0.14, hide: [".copy", ".hero-nav", ".scroll-hint"] },
+  { name: "pillar-bare", p: 0.342, hide: [".copy", ".hero-nav", ".scroll-hint"] },
   { name: "statue", p: 0.0, hide: [".copy", ".hero-nav", ".scroll-hint"] },
   { name: "dust", p: 0.235, hide: [".copy", ".hero-nav", ".scroll-hint"] },
   { name: "pillar", p: 0.395, hide: [".copy", ".hero-nav", ".scroll-hint"] },
@@ -12,8 +14,8 @@ const SHOTS = [
 ];
 const b = await puppeteer.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: "new", args: ["--use-angle=metal", "--autoplay-policy=no-user-gesture-required"] });
 const p = await b.newPage();
-await p.setViewport({ width: W, height: H, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
-await p.goto("http://localhost:3000/?rig", { waitUntil: "networkidle0", timeout: 60000 });
+await p.setViewport({ width: W, height: H, deviceScaleFactor: Number(process.env.DSF || 3), isMobile: true, hasTouch: true });
+await p.goto("http://localhost:3000/?rig" + (process.env.EXTRA || ""), { waitUntil: "networkidle0", timeout: 60000 });
 await new Promise((r) => setTimeout(r, 4000));
 fs.mkdirSync("assets/stills", { recursive: true });
 const ONLY = process.env.ONLY;
