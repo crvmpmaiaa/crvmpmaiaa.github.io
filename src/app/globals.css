@@ -1130,10 +1130,9 @@ footer.section {
   .hero-nav { right: 0.75rem; top: 1rem; gap: 1.2em; font-size: 0.62rem; letter-spacing: 0.14em; }
   /* the statue has the left, so the first three lines take the right */
   .copy--left { left: auto; right: 1rem; top: 12%; transform: none; text-align: right; width: min(66vw, 26ch); }
-  .copy--left-a { left: auto; right: 1rem; top: 30%; text-align: right; width: min(60vw, 22ch); }
-  .copy--left-b { left: auto; right: 1rem; top: 55%; text-align: right; width: min(54vw, 22ch); color: var(--ink); }
-  /* each row of it on its own frosted strip, so the letters read over the statue's dark cloth */
-  .copy--left-b .row { display: table; margin-left: auto; padding: 0.06em 0.3em; background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); border-radius: 0.2em; }
+  /* "people have always wanted" top left, "outlives" high on the right, above the statue's dark cloth */
+  .copy--left-a { left: 1rem; right: auto; top: 9%; text-align: left; width: min(64vw, 24ch); }
+  .copy--left-b { left: auto; right: 1rem; top: 24%; text-align: right; width: min(44vw, 18ch); color: var(--ink); }
   .copy--tight { width: min(76vw, 24ch); top: 9%; font-size: clamp(1.6rem, 7.4vw, 2.5rem); line-height: 1.16; letter-spacing: 0.05em; }
   .copy--right { top: auto; bottom: 24%; transform: none; width: min(72vw, 30ch); }
   /* the pillar stands right of centre: the stack keeps to the left */
