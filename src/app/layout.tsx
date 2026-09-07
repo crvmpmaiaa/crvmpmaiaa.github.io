@@ -41,6 +41,11 @@ export const viewport = { themeColor: "#14202e" };
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${wordmark.variable} ${copyFace.variable} h-full antialiased`}>
+      <head>
+        {/* phones: the two big stills in before the intro flies */}
+        <link rel="preload" as="image" href="/images/mobile/statue-full.webp" media="(max-width: 820px)" />
+        <link rel="preload" as="image" href="/images/mobile/pillar-bare.webp" media="(max-width: 820px)" />
+      </head>
       <body className="min-h-full">{children}</body>
     </html>
   );

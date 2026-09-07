@@ -70,10 +70,20 @@ export function StillScene() {
     let geode: Geode | null = null, geodeFailed = false;
     const clock = { t: 0 };
 
+    let readyPending = false;
+    // if the stills land after the wordmark has already revealed, the statue fades up rather than popping in
+    let entryStart = 0;
+    const entryAlpha = () => {
+      if (!entryStart) return 1;
+      const t = Math.min(1, (performance.now() - entryStart) / 900);
+      if (t < 1) kick();
+      return t * t * (3 - 2 * t);
+    };
     const size = () => {
       // the wrapper is sized to the largest viewport, so the toolbar collapsing never resizes the canvas mid scroll
       const d = Math.min(2, window.devicePixelRatio || 1);
       const w = canvas.clientWidth, h = canvas.clientHeight;
+      if (w === 0 || h === 0) return false;
       if (w === W && h === H && d === dpr) return false;
       dpr = d; W = w; H = h;
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
@@ -156,11 +166,13 @@ export function StillScene() {
       const hold = ease.inOut(remap(p, BEATS.hold[0], BEATS.hold[1]));
       const vap = remap(p, BEATS.vaporise[0], BEATS.vaporise[1]);
       if (vap < 1) {
+        ctx.globalAlpha = entryAlpha();
         const sh = H * (0.8 - 0.18 * reveal - 0.02 * hold);
         const sw = sh * statue.img.naturalWidth / statue.img.naturalHeight;
         const sx = W * (0.04 - 0.02 * reveal) + (W * 0.12) * hold;
         const sy = H - sh - H * (0.05 + 0.06 * reveal);
         drawSprite(statue, sx, sy, sw, sh, vap, 1, 0);
+        ctx.globalAlpha = 1;
       }
 
       // pillar: assembles on the right as the dust settles; the phone rises onto it; its screen fills the frame
@@ -191,7 +203,8 @@ export function StillScene() {
         // the live ground in the screen, drawn in screen space at the size it will have inside, clipped to
         // wherever the zoom has put the screen: the pattern never changes scale on the way in or out
         (window as unknown as { __bdStill?: unknown }).__bdStill = { p: +p.toFixed(3), q: +q.toFixed(3), open: +open.toFixed(3), inside, s: +s.toFixed(2), zz: +zz.toFixed(3), lapAlpha: +lapAlpha.toFixed(2), geode: !!geode, gw: geode?.canvas.width };
-        if (open >= 0.999 && lapAlpha > 0 && !inside) {
+        // from the last lid frame on, so the live ground is there before the baked screen could show
+        if (open >= 0.85 && lapAlpha > 0 && !inside) {
           const ox = scx * (1 - s) + tx, oy = scy * (1 - s) + ty;
           const rx = (lx + SCREEN.x * lw) * s + ox, ry = (ly + SCREEN.y * lh) * s + oy, rw = SCREEN.w * lw * s, rh = SCREEN.h * lh * s;
           ctx.globalAlpha = lapAlpha;
@@ -217,14 +230,19 @@ export function StillScene() {
       requestAnimationFrame(tick);
     };
 
-    const ro = new ResizeObserver(() => { if (size()) draw(); });
+    const ro = new ResizeObserver(() => {
+      if (!size()) return;
+      draw();
+      // the intro flies only once the statue is actually on screen
+      if (readyPending && W > 0) { readyPending = false; signalStatueReady(); }
+    });
     ro.observe(canvas);
     const off = onProgress(kick);
     Promise.all([load(SRC.statue), load(SRC.pillar), ...Array.from({ length: LID_FRAMES }, (_, i) => load(SRC.lid(i)))]).then(([a, b, ...frames]) => {
       if (dead) return;
       statue = grid(a, 1); pillar = grid(b, 1); lid = frames;
-      size(); draw();
-      signalStatueReady();
+      if (document.querySelector(".is-revealed")) entryStart = performance.now();  // the intro went without us
+      if (size() && W > 0) { draw(); signalStatueReady(); } else readyPending = true;
       requestAnimationFrame(tick);
     }).catch(() => { signalStatueReady(); });
     return () => { dead = true; ro.disconnect(); off(); if (raf) cancelAnimationFrame(raf); geode?.dispose(); };
