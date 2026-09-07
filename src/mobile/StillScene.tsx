@@ -242,7 +242,8 @@ export function StillScene() {
       if (dead) return;
       statue = grid(a, 1); pillar = grid(b, 1); lid = frames;
       if (document.querySelector(".is-revealed")) entryStart = performance.now();  // the intro went without us
-      if (size() && W > 0) { draw(); signalStatueReady(); } else readyPending = true;
+      size();
+      if (W > 0) { draw(); signalStatueReady(); } else readyPending = true;
       requestAnimationFrame(tick);
     }).catch(() => { signalStatueReady(); });
     return () => { dead = true; ro.disconnect(); off(); if (raf) cancelAnimationFrame(raf); geode?.dispose(); };
