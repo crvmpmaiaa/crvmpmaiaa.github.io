@@ -14,15 +14,18 @@ import { signalStatueReady } from "@/hero/introState";
  */
 
 const SRC = {
-  statue: "/images/mobile/statue-full.webp",  // the whole figure on its plinth, trimmed
-  pillar: "/images/mobile/pillar-bare.webp",   // the column with nothing on top
+  statue: "/images/mobile/statue-full.webp",  // the whole figure on its plinth, trimmed (1220 x 2395)
+  pillar: "/images/mobile/pillar-bare.webp",   // the column with nothing on top (656 x 1700)
+  laptop: "/images/mobile/laptop.webp",        // the open laptop cut from the same framing (658 x 268)
 };
+/** the laptop against the pillar, in the pillar's pixel scale: same width, its base 39px below the cap's top edge */
+const LAPTOP = { w: 658 / 656, drop: 39 / 656 };
+/** the screen inside the laptop cutout, as fractions of it */
+const SCREEN = { x: 141 / 658, y: 16 / 268, w: 381 / 658, h: 221 / 268 };
 const CELL = 6;  // css px per mote at the size the object is drawn when it breaks up
 
 /** where the pillar stands: right of centre so the copy has the left */
 const PILLAR = { cx: 0.7, bottom: 0.76, width: 0.3 };
-/** the phone standing on the cap, in pillar widths */
-const PHONE = { w: 0.5, h: 1.02, r: 0.075, bezel: 0.035 };
 
 type Cell = { u: number; v: number; t: number; s1: number; s2: number; s3: number };
 type Sprite = { img: HTMLImageElement; cells: Cell[]; cols: number; rows: number };
@@ -43,10 +46,6 @@ function grid(img: HTMLImageElement, drawnWidth: number): Sprite {
   }
   return { img, cells, cols, rows };
 }
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
-}
 
 export function StillScene() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -57,15 +56,19 @@ export function StillScene() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     let dead = false, raf = 0, W = 0, H = 0, dpr = 1;
-    let statue: Sprite | null = null, pillar: Sprite | null = null;
+    let statue: Sprite | null = null, pillar: Sprite | null = null, laptop: HTMLImageElement | null = null;
     const clock = { t: 0 };
 
     const size = () => {
-      dpr = Math.min(2, window.devicePixelRatio || 1);
-      W = canvas.clientWidth; H = canvas.clientHeight;
+      // the wrapper is sized to the largest viewport, so the toolbar collapsing never resizes the canvas mid scroll
+      const d = Math.min(3, window.devicePixelRatio || 1);
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      if (w === W && h === H && d === dpr) return false;
+      dpr = d; W = w; H = h;
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       if (statue) statue = grid(statue.img, (H * 0.62) * statue.img.naturalWidth / statue.img.naturalHeight);
       if (pillar) pillar = grid(pillar.img, W * PILLAR.width);
+      return true;
     };
 
     /** draw a sprite whole, or as motes blowing right (`out` 0..1) or assembling from the left (`assemble` 0..1) */
@@ -109,17 +112,13 @@ export function StillScene() {
       ctx.fillStyle = rg; ctx.fillRect(x, y, w, h);
     };
 
-    /** the phone, standing on the cap, in a coordinate space where (0,0) is the bottom centre of its body */
-    const drawPhone = (cx: number, baseY: number, pw: number, alpha: number, screenDrift: number) => {
-      const ph = pw * PHONE.h / PHONE.w, r = pw * PHONE.r / PHONE.w, b = pw * PHONE.bezel / PHONE.w;
-      const x = cx - pw / 2, y = baseY - ph;
+    /** the laptop on the cap, its screen showing the same ground the inside will show */
+    const drawLaptop = (x: number, y: number, w: number, alpha: number, drift: number) => {
+      if (!laptop) return;
+      const h = w * laptop.naturalHeight / laptop.naturalWidth;
       ctx.globalAlpha = alpha;
-      ctx.fillStyle = "rgba(20, 32, 46, 0.35)"; roundRect(ctx, x + pw * 0.05, baseY - ph * 0.02, pw * 0.9, ph * 0.04, r * 0.5); ctx.fill();  // contact shadow
-      ctx.fillStyle = "#101418"; roundRect(ctx, x, y, pw, ph, r); ctx.fill();
-      ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.lineWidth = Math.max(0.5, pw * 0.01); ctx.stroke();
-      ctx.save(); roundRect(ctx, x + b, y + b, pw - 2 * b, ph - 2 * b, r * 0.7); ctx.clip();
-      drawBackdrop(x + b, y + b, pw - 2 * b, ph - 2 * b, screenDrift);
-      ctx.restore();
+      ctx.drawImage(laptop, x, y, w, h);
+      drawBackdrop(x + SCREEN.x * w, y + SCREEN.y * h, SCREEN.w * w, SCREEN.h * h, drift);
       ctx.globalAlpha = 1;
     };
 
@@ -152,17 +151,16 @@ export function StillScene() {
       if (rb > 0 && gone < 1) {
         const pw = W * PILLAR.width, ph = pw * pillar.img.naturalHeight / pillar.img.naturalWidth;
         const px = W * PILLAR.cx - pw / 2, py = H * PILLAR.bottom - ph;
-        const capY = py + ph * 0.045;                     // the top face of the cap sits a little below the image top
-        const phoneW = pw * PHONE.w, phoneH = phoneW * PHONE.h / PHONE.w;
-        const b = phoneW * PHONE.bezel / PHONE.w;
-        const scx = W * PILLAR.cx, scy = capY - phoneH / 2;  // screen centre
-        const sFull = (W / (phoneW - 2 * b)) * 1.02;
+        const lw = pw * LAPTOP.w, lh = lw * laptop!.naturalHeight / laptop!.naturalWidth;
+        const lx = W * PILLAR.cx - lw / 2, ly = py + pw * LAPTOP.drop - lh;   // resting on the cap
+        const scx = lx + (SCREEN.x + SCREEN.w / 2) * lw, scy = ly + (SCREEN.y + SCREEN.h / 2) * lh;  // screen centre
+        const sFull = Math.max(W / (SCREEN.w * lw), H / (SCREEN.h * lh)) * 1.02;
         const zz = inside ? 1 : zoom * (1 - back);
         const s = 1 + (sFull - 1) * zz;
         const tx = (W / 2 - scx) * zz, ty = (H / 2 - scy) * zz;
         ctx.setTransform(dpr * s, 0, 0, dpr * s, dpr * (scx * (1 - s) + tx), dpr * (scy * (1 - s) + ty));
         drawSprite(pillar, px, py, pw, ph, gone, Math.max(0, rb), 3);
-        if (rise > 0 && gone <= 0) drawPhone(W * PILLAR.cx, capY + (1 - rise) * phoneH * 0.25, phoneW, rise, Math.min(1, q / Q.pullOut[0]));
+        if (rise > 0 && gone <= 0) drawLaptop(lx, ly - (1 - rise) * lh * 0.35, lw, rise, Math.min(1, q / Q.pullOut[0]));
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
       // inside: the same backdrop fills the viewport under the deck
@@ -176,12 +174,12 @@ export function StillScene() {
       if (!dead) setTimeout(tick, 1000 / 24);
     };
 
-    const ro = new ResizeObserver(() => { size(); kick(); });
+    const ro = new ResizeObserver(() => { if (size()) draw(); });
     ro.observe(canvas);
     const off = onProgress(kick);
-    Promise.all([load(SRC.statue), load(SRC.pillar)]).then(([a, b]) => {
+    Promise.all([load(SRC.statue), load(SRC.pillar), load(SRC.laptop)]).then(([a, b, c]) => {
       if (dead) return;
-      statue = grid(a, 1); pillar = grid(b, 1);
+      statue = grid(a, 1); pillar = grid(b, 1); laptop = c;
       size(); draw();
       signalStatueReady();
       tick();
@@ -190,7 +188,7 @@ export function StillScene() {
   }, []);
 
   return (
-    <div className="hero__canvas hero__canvas--statue">
+    <div className="hero__canvas hero__canvas--statue still-wrap">
       <canvas ref={ref} className="still-scene" aria-hidden="true" />
     </div>
   );

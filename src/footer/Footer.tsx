@@ -42,12 +42,15 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
         {flags.atlas && <AtlasCanvas />}
         {flags.still && <div className="footer__atlas footer__atlas--still"><img src="/images/mobile/atlas.webp" alt="Atlas carrying the world, in marble and bronze" width={1134} height={1278} /></div>}
       </div>
+      <nav className="footer__nav" aria-label="Site">
+        <a href="/work">Work</a>
+        <a href="/#services">Services</a>
+        <a href="/about">About us</a>
+        <a href="/contact">Contact</a>
+      </nav>
       <div className="footer__foot">
         <span className="footer__brand">Build Different</span>
-        <nav className="footer__links" aria-label="Footer">
-          <a href="/work">Work</a>
-          <a href="mailto:jack@builddifferent.dev">jack@builddifferent.dev</a>
-        </nav>
+        <a className="footer__mail" href="mailto:jack@builddifferent.dev">jack@builddifferent.dev</a>
       </div>
     </footer>
   );

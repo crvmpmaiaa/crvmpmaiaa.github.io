@@ -545,7 +545,6 @@ footer.section {
 }
 @media (max-width: 820px) {
   .deck__card { width: calc(100vw - 2rem); margin-left: calc((100vw - 2rem) / -2); grid-template-columns: 1fr; }
-  .deck__figure { display: none; }
 }
 
 
@@ -656,7 +655,6 @@ footer.section {
 }
 @media (max-width: 820px) {
   .work__card { left: 50%; width: calc(100vw - 2rem); margin-left: calc((100vw - 2rem) / -2); grid-template-columns: 1fr; }
-  .work__phone { display: none; }
 }
 
 /* ---------- work page: dark editorial grid ---------- */
@@ -855,7 +853,7 @@ footer.section {
   background: var(--quarry);
   color: var(--marble);
   display: grid;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: 1fr auto auto;
   padding: clamp(2rem, 5vw, 5rem) clamp(1.25rem, 6vw, 6rem) clamp(1.5rem, 3vw, 2.5rem);
   --phi: 1.618;
   --pad: clamp(1rem, 2vw, 2rem);
@@ -964,9 +962,11 @@ footer.section {
   font-size: var(--step-1);
   color: var(--marble);
 }
-.footer__links { display: flex; gap: var(--pad); flex-wrap: wrap; font-family: var(--font-copy); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
-.footer__links a { color: inherit; text-decoration: none; }
-.footer__links a:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+.footer__nav { position: relative; z-index: 1; display: flex; gap: clamp(1.2rem, 3vw, 2.5rem); flex-wrap: wrap; padding: 1.25rem 0; border-top: 1px solid rgba(222, 220, 216, 0.16); font-family: var(--font-copy); font-weight: 500; text-transform: uppercase; letter-spacing: 0.14em; font-size: var(--step--1); }
+.footer__nav a { color: rgba(222, 220, 216, 0.7); text-decoration: none; }
+.footer__nav a:hover, .footer__nav a:focus-visible { color: var(--marble); text-decoration: underline; text-underline-offset: 0.3em; }
+.footer__mail { color: inherit; text-decoration: none; font-family: var(--font-copy); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
+.footer__mail:hover { text-decoration: underline; text-underline-offset: 0.2em; }
 @media (max-width: 820px) {
   .footer__inner { grid-template-columns: 1fr; }
   .footer__form { grid-template-columns: 1fr; }
@@ -1120,23 +1120,35 @@ footer.section {
 
 /* ---------- phones: portrait framing ---------- */
 @media (max-width: 820px) {
+  .copy--line { font-size: clamp(1.6rem, 7.4vw, 2.5rem); line-height: 1.08; }
   .copy--wordmark .word--top { top: 6svh; }
   .copy--wordmark .word--bottom { bottom: 8svh; }
   .scroll-hint { right: 1rem; bottom: 1.5rem; }
   .hero-nav { right: 0.75rem; top: 1rem; gap: 1.2em; font-size: 0.62rem; letter-spacing: 0.14em; }
   /* the statue has the left, so the first three lines take the right */
-  .copy--left { left: auto; right: 1.25rem; top: 14%; transform: none; text-align: right; width: min(58vw, 26ch); }
-  .copy--left-a { left: auto; right: 1.25rem; top: 32%; text-align: right; width: min(54vw, 22ch); }
-  .copy--left-b { left: auto; right: 1.25rem; top: 47%; text-align: right; width: min(54vw, 22ch); }
-  .copy--tight { width: min(60vw, 24ch); top: 10%; }
-  .copy--right { top: auto; bottom: 26%; transform: none; width: min(62vw, 30ch); }
+  .copy--left { left: auto; right: 1rem; top: 12%; transform: none; text-align: right; width: min(66vw, 26ch); }
+  .copy--left-a { left: auto; right: 1rem; top: 30%; text-align: right; width: min(60vw, 22ch); }
+  .copy--left-b { left: auto; right: 1rem; top: 46%; text-align: right; width: min(60vw, 22ch); }
+  .copy--tight { width: min(76vw, 24ch); top: 9%; font-size: clamp(1.6rem, 7.4vw, 2.5rem); line-height: 1.16; letter-spacing: 0.05em; }
+  .copy--right { top: auto; bottom: 24%; transform: none; width: min(72vw, 30ch); }
   /* the pillar stands right of centre: the stack keeps to the left */
-  .copy--stack-0, .copy--stack-1, .copy--stack-2, .copy--stack-3, .copy--stack-4 { width: min(52vw, 22ch); }
-  .copy--stack-2, .copy--stack-3, .copy--stack-4 { font-size: clamp(1.7rem, 7.6vw, 2.6rem); }
+  .copy--stack-0, .copy--stack-1, .copy--stack-2, .copy--stack-3, .copy--stack-4 { width: min(58vw, 22ch); }
+  .copy--stack-2, .copy--stack-3, .copy--stack-4 { font-size: clamp(2rem, 9.4vw, 3.2rem); }
   /* around the phone on its pillar (right of centre): imagine top left, worthy lower left, faster along the bottom */
-  .copy-key--imagine { left: 1.25rem; right: auto; top: 12%; text-align: left; width: min(56vw, 24ch); }
-  .copy-key--worthy { left: 1.25rem; right: auto; top: auto; bottom: 30%; text-align: left; width: min(50vw, 22ch); }
-  .copy--bottom { width: 86vw; bottom: 6%; }
+  .copy-key--imagine { left: 1rem; right: auto; top: 10%; text-align: left; width: min(60vw, 24ch); }
+  .copy-key--worthy { left: 1rem; right: auto; top: auto; bottom: 28%; text-align: left; width: min(56vw, 22ch); }
+  .copy--bottom { width: 92vw; bottom: 6%; }
+  /* photos back on the cards: the service image sits under the lead, the project phone shot on the right */
+  .deck__card { grid-template-rows: 1fr; }
+  .deck__figure { display: block; position: absolute; left: 1.25rem; right: 1.25rem; bottom: 1.25rem; height: 24%; margin: 0; border-radius: 0.6rem; overflow: hidden; }
+  .deck__figure img { width: 100%; height: 100%; object-fit: cover; }
+  .deck__text { padding-bottom: 27%; }
+  .deck__lead { font-size: var(--step-0); }
+  .deck__points { font-size: var(--step--1); margin-top: 1rem; }
+  .deck__points li { padding: 0.45rem 0; }
+  .work__card { grid-template-columns: 1fr 34%; gap: 0.75rem; }
+  .work__phone { display: block; margin: 0; align-self: center; }
+  .work__phone img { width: 100%; height: auto; border-radius: 0.6rem; }
   .copy--cta { left: 50%; transform: translateX(-50%); bottom: 1.25rem; white-space: nowrap; }
   .work__card { top: 45%; height: min(56vh, 30rem); margin-top: calc(min(56vh, 30rem) / -2); }
 }
@@ -1145,4 +1157,5 @@ html.is-locked { touch-action: none; overscroll-behavior: none; }
 /* the footer without the shader: the same palette as a still gradient */
 .footer__waves--still { background: linear-gradient(180deg, #dbe9f6 0%, #7fb0e6 34%, #2a63c4 62%, #0a0a0b 100%); }
 
+.still-wrap { bottom: auto; height: 100lvh; }  /* the largest viewport: never resizes as the toolbar collapses */
 .still-scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
