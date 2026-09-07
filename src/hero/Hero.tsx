@@ -69,7 +69,7 @@ export function Hero() {
       trigger: section.current,
       start: "top top",
       end: "bottom bottom",
-      scrub: true,
+      scrub: mode === "phone" ? 0.35 : true,  // touch scroll arrives in steps; a short catch up smooths the scene
       onUpdate: (self) => setProgress(self.progress),
     });
     setProgress(st.progress);

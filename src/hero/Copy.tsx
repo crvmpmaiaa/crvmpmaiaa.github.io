@@ -8,9 +8,13 @@ import { goToServices } from "./services";
 type Layer = "behind" | "front" | "all";
 
 /** Copy blocks in DOM over the canvas. Opacity is a function of p, applied to style, no React state. */
+/** letters of type head held at each line break */
+const PAUSE = 7;
+
 export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: Layer }) {
   const refs = useRef<Record<string, HTMLElement | null>>({});
   const letterRefs = useRef<Record<string, (HTMLElement | null)[]>>({});
+  const rowOf = useRef<Record<string, number[]>>({});
 
   useEffect(() => {
     if (isStatic) return;
@@ -28,10 +32,18 @@ export function Copy({ isStatic, layer = "all" }: { isStatic: boolean; layer?: L
           o = typed > 0 ? exit : 0;
           const letters = letterRefs.current[key] ?? [];
           const n = letters.length;
+          // a line break holds the type head for a beat before the next row starts
+          let rows = rowOf.current[key];
+          if (!rows || rows.length !== n) {
+            let r = -1, last: Element | null = null;
+            rows = letters.map((el2) => { const row = el2?.closest(".row") ?? null; if (row !== last) { r++; last = row; } return r; });
+            rowOf.current[key] = rows;
+          }
+          const lastRow = rows[n - 1] ?? 0;
           // each letter arrives over a short run of the type head, sliding in from the right and sharpening
-          const head = typed * (n + 3);
+          const head = typed * (n + 3 + lastRow * PAUSE);
           for (let i = 0; i < n; i++) {
-            const k = Math.min(1, Math.max(0, (head - i) / 3));
+            const k = Math.min(1, Math.max(0, (head - i - rows[i] * PAUSE) / 3));
             const el2 = letters[i];
             if (!el2) continue;
             el2.style.opacity = k.toFixed(3);
