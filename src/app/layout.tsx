@@ -29,7 +29,14 @@ const body = Geist({
 export const metadata: Metadata = {
   title: "Build Different",
   description: "Websites and software with the weight of something built to stand.",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon.ico", sizes: "32x32" }, { url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
 };
+
+export const viewport = { themeColor: "#14202e" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
