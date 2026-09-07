@@ -1,0 +1,13 @@
+import puppeteer from "puppeteer-core";
+const b = await puppeteer.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: "new", args: ["--use-angle=metal", "--autoplay-policy=no-user-gesture-required"] });
+const p = await b.newPage(); await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+await p.goto("http://localhost:3000/", { waitUntil: "networkidle0" }); await new Promise(r => setTimeout(r, 3500));
+await p.evaluate(() => { const max = document.documentElement.scrollHeight - innerHeight; scrollTo(0, max * 0.325); });
+await new Promise(r => setTimeout(r, 1500));
+await p.screenshot({ path: "assets/shots/m/q1.png" });
+await p.evaluate(() => { const max = document.documentElement.scrollHeight - innerHeight; scrollTo(0, max * 0.34); });
+await new Promise(r => setTimeout(r, 120));
+await p.screenshot({ path: "assets/shots/m/q2.png" });
+await new Promise(r => setTimeout(r, 2000));
+await p.screenshot({ path: "assets/shots/m/q3.png" });
+await b.close();

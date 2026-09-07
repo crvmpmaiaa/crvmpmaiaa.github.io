@@ -115,11 +115,13 @@ export function StillScene() {
     };
 
     /** the ground inside the laptop: the geode, covering the rect; a dark gradient if WebGL is not there */
-    const drawBackdrop = (x: number, y: number, w: number, h: number) => {
+    /** coverW/coverH: the size the frame is drawn at, centred on the rect and clipped to it. Inside the laptop
+     *  that is the viewport divided by the zoom scale, so the pattern is the same size on screen at every step. */
+    const drawBackdrop = (x: number, y: number, w: number, h: number, coverW = w, coverH = h) => {
       if (geode) {
-        const gw = geode.canvas.width, gh = geode.canvas.height, ga = gw / gh, ra = w / h;
-        let dw = w, dh = h;
-        if (ga > ra) { dh = h; dw = h * ga; } else { dw = w; dh = w / ga; }
+        const gw = geode.canvas.width, gh = geode.canvas.height, ga = gw / gh, ra = coverW / coverH;
+        let dw = coverW, dh = coverH;
+        if (ga > ra) { dh = coverH; dw = coverH * ga; } else { dw = coverW; dh = coverW / ga; }
         ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
         ctx.drawImage(geode.canvas, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
         ctx.restore();
@@ -138,7 +140,6 @@ export function StillScene() {
       ctx.globalAlpha = alpha;
       ctx.drawImage(lid[a], x, y, w, h);
       if (t > 0 && b !== a) { ctx.globalAlpha = alpha * t; ctx.drawImage(lid[b], x, y, w, h); }
-      if (open >= 0.999) { ctx.globalAlpha = alpha; drawBackdrop(x + SCREEN.x * w, y + SCREEN.y * h, SCREEN.w * w, SCREEN.h * h); }
       ctx.globalAlpha = 1;
     };
 
@@ -184,8 +185,19 @@ export function StillScene() {
         ctx.setTransform(dpr * s, 0, 0, dpr * s, dpr * (scx * (1 - s) + tx), dpr * (scy * (1 - s) + ty));
         drawSprite(pillar, px, py, pw, ph, gone, Math.max(0, rb), 3);
         // on the way out the laptop fades as the first motes leave the cap, rather than vanishing in a frame
-        if (surface > 0 && gone < 0.3) drawLaptop(lx, ly, lw, surface * (1 - Math.min(1, gone / 0.3)), open);
+        const lapAlpha = surface * (1 - Math.min(1, gone / 0.3));
+        if (surface > 0 && gone < 0.3) drawLaptop(lx, ly, lw, lapAlpha, open);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        // the live ground in the screen, drawn in screen space at the size it will have inside, clipped to
+        // wherever the zoom has put the screen: the pattern never changes scale on the way in or out
+        (window as unknown as { __bdStill?: unknown }).__bdStill = { p: +p.toFixed(3), q: +q.toFixed(3), open: +open.toFixed(3), inside, s: +s.toFixed(2), zz: +zz.toFixed(3), lapAlpha: +lapAlpha.toFixed(2), geode: !!geode, gw: geode?.canvas.width };
+        if (open >= 0.999 && lapAlpha > 0 && !inside) {
+          const ox = scx * (1 - s) + tx, oy = scy * (1 - s) + ty;
+          const rx = (lx + SCREEN.x * lw) * s + ox, ry = (ly + SCREEN.y * lh) * s + oy, rw = SCREEN.w * lw * s, rh = SCREEN.h * lh * s;
+          ctx.globalAlpha = lapAlpha;
+          drawBackdrop(rx, ry, rw, rh, W, H);
+          ctx.globalAlpha = 1;
+        }
       }
       // inside: the same backdrop fills the viewport under the deck
       if (inside) drawBackdrop(0, 0, W, H);
