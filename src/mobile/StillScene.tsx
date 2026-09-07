@@ -78,7 +78,7 @@ export function StillScene() {
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       if (statue) statue = grid(statue.img, (H * 0.8) * statue.img.naturalWidth / statue.img.naturalHeight, dpr);
       if (pillar) pillar = grid(pillar.img, W * PILLAR.width, dpr);
-      geode?.resize(Math.round(W / 3), Math.round(H / 3));
+      geode?.resize(Math.round(W / 2), Math.round(H / 2));
       return true;
     };
 
@@ -145,6 +145,7 @@ export function StillScene() {
       const p = progress.p, q = progress.q;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
+      ctx.imageSmoothingQuality = "high";
 
       // statue: the whole figure on the left, large at the open, easing back and down as the copy arrives
       const reveal = ease.inOut(remap(p, BEATS.reveal[0], BEATS.reveal[1]));
@@ -191,7 +192,7 @@ export function StillScene() {
       const dt = last ? Math.min(0.05, (now - last) / 1000) : 0; last = now;
       const dusty = (p > BEATS.vaporise[0] && p < BEATS.rebuild[1]) || (q > Q.vanish[0] && q < Q.vanish[1]);
       const screenOn = p > BEATS.turn[0] && q < Q.pullOut[1] && !(q > Q.vanish[0]);
-      if (screenOn && !geode && !geodeFailed) { geode = createGeode(GEODE_EXPOSURE); if (geode) geode.resize(Math.round(W / 3), Math.round(H / 3)); else geodeFailed = true; }
+      if (screenOn && !geode && !geodeFailed) { geode = createGeode(GEODE_EXPOSURE); if (geode) geode.resize(Math.round(W / 2), Math.round(H / 2)); else geodeFailed = true; }
       if (!screenOn && geode) { geode.dispose(); geode = null; }
       if (geode) { clock.t += dt; geode.render(clock.t * GEODE_SPEED); if (raf) cancelAnimationFrame(raf); draw(); }
       else if (dusty) { clock.t += dt; kick(); }

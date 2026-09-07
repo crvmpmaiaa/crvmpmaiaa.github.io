@@ -1131,7 +1131,7 @@ footer.section {
   /* the statue has the left, so the first three lines take the right */
   .copy--left { left: auto; right: 1rem; top: 12%; transform: none; text-align: right; width: min(66vw, 26ch); }
   .copy--left-a { left: auto; right: 1rem; top: 30%; text-align: right; width: min(60vw, 22ch); }
-  .copy--left-b { left: auto; right: 1rem; top: 55%; text-align: right; width: min(54vw, 22ch); }
+  .copy--left-b { left: auto; right: 1rem; top: 55%; text-align: right; width: min(54vw, 22ch); color: var(--ink); }
   .copy--tight { width: min(76vw, 24ch); top: 9%; font-size: clamp(1.6rem, 7.4vw, 2.5rem); line-height: 1.16; letter-spacing: 0.05em; }
   .copy--right { top: auto; bottom: 24%; transform: none; width: min(72vw, 30ch); }
   /* the pillar stands right of centre: the stack keeps to the left */
@@ -1143,12 +1143,15 @@ footer.section {
   .copy--bottom { width: 92vw; bottom: 6%; }
   /* photos back on the cards: the service image sits under the lead, the project phone shot on the right */
   .deck__card { grid-template-rows: 1fr; }
-  .deck__figure { display: block; position: absolute; left: 1.25rem; right: 1.25rem; bottom: 1.25rem; height: 30%; margin: 0; border: 0; background: transparent; }
-  .deck__figure img { width: 100%; height: 100%; object-fit: contain; }  /* the whole picture, never a crop */
-  .deck__text { padding-bottom: 32%; }
-  .deck__lead { font-size: var(--step-0); }
-  .deck__points { font-size: var(--step--1); margin-top: 1rem; }
-  .deck__points li { padding: 0.4rem 0; }
+  /* the card is a column: text first, the picture takes whatever height is left, whole and uncropped */
+  .deck__card { display: flex; flex-direction: column; }
+  .deck__text { flex: 0 0 auto; padding-bottom: 0; }
+  .deck__figure { display: block; position: static; flex: 1 1 auto; min-height: 0; margin: 1rem 0 0; border: 0; background: transparent; }
+  .deck__figure img { width: 100%; height: 100%; object-fit: contain; }
+  .deck__title { font-size: clamp(2rem, 9vw, 3rem); }
+  .deck__lead { font-size: var(--step-1); margin-top: 0.5rem; }
+  .deck__points { font-size: var(--step-0); margin-top: 1rem; }
+  .deck__points li { padding: 0.5rem 0; }
   .copy--stack-1 { color: var(--ink); }
   .work__card { grid-template-columns: 1fr 34%; gap: 0.75rem; }
   .work__phone { display: block; margin: 0; align-self: center; }
@@ -1163,3 +1166,10 @@ html.is-locked { touch-action: none; overscroll-behavior: none; }
 
 .still-wrap { bottom: auto; height: 100lvh; }  /* the largest viewport: never resizes as the toolbar collapses */
 .still-scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* the phone notice */
+.notice { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 50; display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 0.9rem 0.8rem 1rem; border-radius: 0.9rem; background: rgba(20, 32, 46, 0.92); color: var(--marble); font-family: var(--font-body); font-size: var(--step--1); line-height: 1.35; box-shadow: 0 12px 30px rgba(20, 32, 46, 0.3); animation: notice-in 400ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.notice.is-gone { animation: notice-out 300ms ease both; pointer-events: none; }
+.notice button { flex: 0 0 auto; width: 2rem; height: 2rem; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.12); color: inherit; font-size: 1.1rem; line-height: 1; }
+@keyframes notice-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes notice-out { to { opacity: 0; transform: translateY(12px); } }

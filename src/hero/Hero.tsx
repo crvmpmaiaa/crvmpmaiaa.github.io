@@ -1,6 +1,7 @@
 "use client";
 import { diag, diagStart } from "./diag";
 import { StillScene } from "@/mobile/StillScene";
+import { PhoneNotice } from "@/mobile/PhoneNotice";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
@@ -112,6 +113,7 @@ export function Hero() {
             <SkyVideo frozen={frozen} />
             <Copy isStatic={false} layer="behind" />
             {mode === "phone" ? <StillScene /> : <Scene frozen={frozen} />}
+            {mode === "phone" && <PhoneNotice />}
             <Intro stage={stage} />
           </>
         )}
