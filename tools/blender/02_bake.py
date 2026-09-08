@@ -50,9 +50,9 @@ def marble_material(name, scale=2.2, vein_scale=1.0, seed=0.0):
     links.new(wave.outputs["Fac"], mix.inputs[1])
     ramp = nodes.new("ShaderNodeValToRGB")
     ramp.color_ramp.elements[0].position = 0.24
-    ramp.color_ramp.elements[0].color = (0.62, 0.63, 0.65, 1)  # vein grey, light
+    ramp.color_ramp.elements[0].color = (0.80, 0.80, 0.82, 1)  # vein grey, faint
     ramp.color_ramp.elements[1].position = 0.34
-    ramp.color_ramp.elements[1].color = (0.91, 0.90, 0.88, 1)  # statuary body
+    ramp.color_ramp.elements[1].color = (0.95, 0.94, 0.92, 1)  # statuary body
     links.new(mix.outputs["Value"], ramp.inputs["Fac"])
     # fine grain
     grain = nodes.new("ShaderNodeTexNoise")
@@ -61,7 +61,7 @@ def marble_material(name, scale=2.2, vein_scale=1.0, seed=0.0):
     links.new(mapping.outputs["Vector"], grain.inputs["Vector"])
     grain_mix = nodes.new("ShaderNodeMix")
     grain_mix.data_type = "RGBA"
-    grain_mix.inputs["Factor"].default_value = 0.06
+    grain_mix.inputs["Factor"].default_value = 0.03
     links.new(ramp.outputs["Color"], grain_mix.inputs["A"])
     links.new(grain.outputs["Color"], grain_mix.inputs["B"])
     links.new(grain_mix.outputs["Result"], bsdf.inputs["Base Color"])
@@ -179,7 +179,7 @@ def new_image(name, size, color=False):
     return img
 
 
-def bake(low, high, img, kind, size, samples, extrusion=0.008, ray_distance=0.03, pass_filter=None, margin=32):
+def bake(low, high, img, kind, size, samples, extrusion=0.008, ray_distance=0.03, pass_filter=None, margin=64):
     """Selected to active bake from high onto low. img is one image, or a list with one image per material slot."""
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
@@ -269,6 +269,9 @@ def statue():
     open_blend("statue")
     ensure_world()
     high = bpy.data.objects["Statue"]
+    # the raw sculpt keeps every fine detail: normals are baked from this, and the fused copy below only shapes the low poly
+    raw = high.copy(); raw.data = high.data.copy(); raw.name = raw.data.name = "StatueRaw"
+    bpy.context.scene.collection.objects.link(raw); raw.hide_render = True; raw.hide_set(True)
     if cfg.get("remesh_voxel"):
         # the sculpt is many overlapping shells; fuse into one watertight surface before decimating or the
         # collapse tears holes where shells intersect (hair, beard, feet)
@@ -312,7 +315,18 @@ def statue():
         bpy.ops.object.shade_smooth()
         names = ["body", "head"][:slots]
         mk = lambda kind, color=False: [new_image(f"{lod.name}_{names[k]}_{kind}", s, color=color) for k in range(slots)]
-        nrm = bake(lod, high, mk("normal"), "NORMAL", s, 16)
+        # A normal map only pays off when the low poly is far coarser than the source. Here the LOD carries most
+        # of the sculpt already, and the sculpt is overlapping shells, so rays hit a neighbouring shell's back
+        # face and record a garbage normal that reads as a black speck. Flat normals, detail from the geometry.
+        if cfg.get("bake_normal", True):
+            raw.hide_set(False); raw.hide_render = False
+            nrm = bake(lod, raw, mk("normal"), "NORMAL", s, 16)
+            raw.hide_render = True; raw.hide_set(True)
+        else:
+            nrm = mk("normal")
+            for img in nrm:
+                img.pixels = [0.5, 0.5, 1.0, 1.0] * (img.size[0] * img.size[1])
+            log("normal skipped (bake_normal false): flat")
         # colour and roughness come from the procedural marble on the low poly itself: it is defined in object
         # space so it matches the high poly exactly, and a self bake cannot miss thin geometry
         keep = [m for m in lod.data.materials]
@@ -322,10 +336,44 @@ def statue():
         rgh = bake(lod, None, mk("rough"), "ROUGHNESS", s, 16)
         for k, m in enumerate(keep):
             lod.data.materials[k] = m
-        # AO from the low poly itself as well
-        bpy.context.scene.world.light_settings.distance = 0.25
-        ao = bake(lod, None, mk("ao"), "AO", s, samples * 4)
+        # AO from the low poly itself as well, unless the source is a sculpt of overlapping shells: there
+        # every ray hits interior geometry and the map bakes almost black, which reads as grime on white stone
+        if cfg.get("bake_ao", True):
+            bpy.context.scene.world.light_settings.distance = 0.25
+            ao = bake(lod, None, mk("ao"), "AO", s, samples * 4)
+        else:
+            ao = mk("ao")
+            for img in ao:
+                img.pixels = [1.0] * (img.size[0] * img.size[1] * 4)
+            log("AO skipped (bake_ao false): flat white")
         import numpy as np
+
+        def fill_holes(img, threshold=0.05, passes=80):
+            """Texels the bake never touched stay black and read as dirt on white marble. Grow the baked pixels
+            outward into them until every hole is filled, then the margin no longer matters."""
+            w, h = img.size
+            a = np.array(img.pixels[:], np.float32).reshape(h, w, 4)
+            rgb = a[..., :3]
+            filled = 0
+            for _ in range(passes):
+                hole = rgb.sum(axis=2) < threshold
+                if not hole.any():
+                    break
+                good = (~hole).astype(np.float32)[..., None]
+                acc = np.zeros_like(rgb); cnt = np.zeros_like(good)
+                for ax, sh in ((0, 1), (0, -1), (1, 1), (1, -1)):
+                    acc += np.roll(rgb * good, sh, ax); cnt += np.roll(good, sh, ax)
+                take = hole & (cnt[..., 0] > 0)
+                rgb[take] = (acc[take] / np.maximum(cnt[take], 1e-6))
+                filled += int(take.sum())
+            # islands the bake never touched at all: paint them the map's own average, never black
+            hole = rgb.sum(axis=2) < threshold
+            if hole.any() and (~hole).any():
+                rgb[hole] = rgb[~hole].mean(axis=0)
+                filled += int(hole.sum())
+            a[..., :3] = rgb; a[..., 3] = 1.0
+            img.pixels = a.ravel().tolist()
+            return filled
 
         def blur(img, passes=2):
             # small separable blur to take the sampling noise out of the occlusion in tight crevices
@@ -337,7 +385,16 @@ def statue():
             img.pixels = a.ravel().tolist()
 
         for k in range(slots):
-            blur(ao[k])
+            # a self bake that hits the inside of an overlapping shell comes back dark, not black, so the test is
+            # "far darker than this map can legitimately be", not "black"
+            maps = [("albedo", alb, 2.30), ("rough", rgh, 1.05)]  # the marble itself never sums below 2.42 / 1.14 + ([("normal", nrm, 0.15)] if cfg.get("bake_normal", True) else [])
+            for kind, imgs, thr in maps:
+                n = fill_holes(imgs[k], thr)
+                if n: log(f"{kind} {names[k]}: filled {n} unbaked texels")
+            if cfg.get("bake_ao", True):
+                blur(ao[k])
+            if not cfg.get("bake_normal", True):
+                continue
             # missed normal texels are black, back face hits point away: both become flat
             px = np.array(nrm[k].pixels[:], np.float32).reshape(-1, 4)
             bad = (px[:, :3].sum(axis=1) < 0.15) | (px[:, 2] < 0.62)
@@ -351,7 +408,7 @@ def statue():
             import numpy as np
             a_px = np.array(alb[k].pixels[:], np.float32).reshape(-1, 4)
             o_px = np.array(ao[k].pixels[:], np.float32).reshape(-1, 4)
-            occ = 1.0 - 0.6 * (1.0 - o_px[:, :1])
+            occ = 1.0 - 0.3 * (1.0 - o_px[:, :1])  # a light touch: heavy occlusion reads as dirt on white stone
             a_px[:, :3] *= occ
             alb[k].pixels = a_px.ravel().tolist()
             paths = {kind: save_image(i[k], f"{lod.name.lower()}_{names[k]}_{kind}") for kind, i in (("normal", nrm), ("albedo", alb), ("rough", rgh), ("ao", ao))}

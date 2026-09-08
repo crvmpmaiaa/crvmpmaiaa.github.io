@@ -17,6 +17,7 @@ from common import *
 def main():
     cfg = CONFIG["statue"]
     d = cfg["drape"]
+    # the untouched sculpt, always: cutting or remeshing it is what cost the quality
     nude = os.path.join(CLEAN, "statue-nude.blend")
     if os.path.exists(nude):
         bpy.ops.wm.open_mainfile(filepath=nude)
@@ -97,7 +98,7 @@ def main():
     cs.tension_stiffness = 12
     cs.compression_stiffness = 12
     cs.shear_stiffness = 6
-    cs.bending_stiffness = 0.15
+    cs.bending_stiffness = 0.1
     cs.tension_damping = 5
     cs.air_damping = 1.5
     cs.vertex_group_mass = "Pin"

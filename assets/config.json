@@ -6,9 +6,9 @@
     "height": 1.8,
     "yaw_degrees": 0,
     "head_fraction": 0.17,
-    "lod0_triangles": 180000,
-    "lod1_triangles": 40000,
-    "texture_size": 2048,
+    "lod0_triangles": 600000,
+    "lod1_triangles": 90000,
+    "texture_size": 4096,
     "pitch_degrees": 0,
     "placeholder": false,
     "credit": "This work is based on \"The Punishment- A study of Farnese Hercules\" (https://sketchfab.com/3d-models/the-punishment-a-study-of-farnese-hercules-0b36d63fd4e44ab6b59088438d4da441) by Deepak C C (https://sketchfab.com/DeepakCC) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/). Marble material, drape and decimation added by Build Different.",
@@ -17,17 +17,19 @@
     "drop_islands": false,
     "drape": {
       "top": 0.585,
-      "bottom": 0.4,
+      "bottom": 0.33,
       "offset": 0.006,
-      "thickness": 0.007,
+      "thickness": 0.008,
       "body_x_max": 0.12,
-      "frames": 70,
-      "segs": 160,
-      "rings": 36,
-      "slack": 1.12
+      "frames": 90,
+      "segs": 220,
+      "rings": 52,
+      "slack": 1.18
     },
-    "remesh_voxel": 0.002,
-    "head_texture": true
+    "remesh_voxel": null,
+    "head_texture": true,
+    "bake_ao": false,
+    "bake_normal": false
   },
   "column": {
     "name": "column",

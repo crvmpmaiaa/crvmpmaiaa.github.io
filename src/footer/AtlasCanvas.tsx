@@ -5,7 +5,7 @@ import { ContactShadows, Environment, useGLTF } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
-const ATLAS = `/models/atlas${typeof window !== "undefined" && window.innerWidth < 820 ? "-m" : ""}.glb?v=2026-09-05b`;
+const ATLAS = `/models/atlas${typeof window !== "undefined" && window.innerWidth < 820 ? "-m" : ""}.glb?v=2026-09-08a`;
 const DRACO = "/draco/";
 
 /** the yaw at which Atlas faces the viewer; ?atlasYaw= on the URL overrides it and holds him still, for QA */
