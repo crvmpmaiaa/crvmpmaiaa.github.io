@@ -187,7 +187,7 @@ body {
   font-size: clamp(3.6rem, 13.6vw, 19rem);
   line-height: 0.82;
   letter-spacing: -0.015em;
-  color: var(--ink);
+  color: #000;
 }
 .copy--wordmark .word {
   position: absolute;
@@ -285,7 +285,7 @@ body {
   word-spacing: 0.08em;
   font-size: clamp(var(--step-2), 2.3vw, var(--step-4));
   line-height: 1.1;
-  color: var(--ink);
+  color: #000;
   white-space: normal;
   width: min(46vw, 34ch);
   --rise: 0;
@@ -295,13 +295,13 @@ body {
 .copy--line .l { display: inline-block; will-change: transform, opacity, filter; }
 .copy--left { left: clamp(1.25rem, 6vw, 6rem); top: 50%; transform: translateY(-50%); }
 .copy--left-a { left: clamp(1.25rem, 6vw, 6rem); top: 34%; width: min(30vw, 22ch); }
-.copy--left-b { left: clamp(1.25rem, 6vw, 6rem); top: 56%; width: min(30vw, 22ch); color: var(--ink-soft); }
+.copy--left-b { left: clamp(1.25rem, 6vw, 6rem); top: 56%; width: min(30vw, 22ch); }
 .copy--top-left { left: clamp(1.25rem, 6vw, 6rem); top: 14%; }
 .copy--tight { width: min(38vw, 24ch); font-size: clamp(var(--step-2), 2.6vw, var(--step-5)); line-height: 1.3; letter-spacing: 0.07em; }
 .copy--right { right: clamp(1.25rem, 6vw, 6rem); top: 50%; text-align: right; width: min(46vw, 40ch); transform: translateY(-50%); }
 .copy--bottom { left: 50%; bottom: 5%; text-align: center; transform: translateX(-50%); width: min(70vw, 52ch); }
 .copy--stack-0 { left: clamp(1.25rem, 6vw, 6rem); top: 16%; }
-.copy--stack-1 { left: clamp(1.25rem, 6vw, 6rem); top: 28%; color: var(--ink-soft); }
+.copy--stack-1 { left: clamp(1.25rem, 6vw, 6rem); top: 28%; }
 .copy--stack-2 { left: clamp(1.25rem, 6vw, 6rem); top: 38%; font-size: clamp(var(--step-3), 3.4vw, var(--step-6)); }
 .copy--stack-3 { left: clamp(1.25rem, 6vw, 6rem); top: 48%; font-size: clamp(var(--step-3), 3.4vw, var(--step-6)); }
 .copy--stack-4 { left: clamp(1.25rem, 6vw, 6rem); top: 58%; font-size: clamp(var(--step-3), 3.4vw, var(--step-6)); }
@@ -1131,6 +1131,7 @@ footer.section {
   /* the statue has the left, so the first three lines take the right */
   .copy--left { left: auto; right: 1rem; top: 12%; transform: none; text-align: right; width: min(66vw, 26ch); }
   /* "people have always wanted" top left, "outlives" high on the right, above the statue's dark cloth */
+  .copy-key--worked { top: auto; bottom: auto; top: 24%; transform: none; width: min(50vw, 20ch); }
   .copy--left-a { left: 1rem; right: auto; top: 9%; text-align: left; width: min(64vw, 24ch); }
   .copy--left-b { left: auto; right: 1rem; top: 24%; text-align: right; width: min(44vw, 18ch); color: var(--ink); }
   .copy--tight { width: min(76vw, 24ch); top: 9%; font-size: clamp(1.6rem, 7.4vw, 2.5rem); line-height: 1.16; letter-spacing: 0.05em; }

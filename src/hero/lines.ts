@@ -7,7 +7,8 @@ export const SCROLL_HINT = "Scroll";
 
 export const LINES: Line[] = [
   // over the statue, once the wordmark has gone
-  { key: "carved", text: "Carved to be remembered.\nIt worked.", place: "left", in: [0.13, 0.18], out: [0.24, 0.27] },
+  { key: "carved", text: "Carved to be remembered.", place: "left", in: [0.13, 0.18], out: [0.24, 0.27] },
+  { key: "worked", text: "It worked.", place: "right", in: [0.185, 0.21], out: [0.24, 0.27] },
   // the hold: the first half, then the second fades in underneath; both go as he moves to the middle
   { key: "people", text: "People have always wanted the same thing:", place: "left-a", in: [0.28, 0.32], out: [0.39, 0.42] },
   { key: "outlives", text: "to build something that outlives them and carries their name.", place: "left-b", in: [0.32, 0.36], out: [0.39, 0.42] },
