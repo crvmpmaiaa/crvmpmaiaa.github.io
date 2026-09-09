@@ -28,7 +28,7 @@
     },
     "remesh_voxel": null,
     "head_texture": true,
-    "bake_ao": false,
+    "bake_ao": true,
     "bake_normal": false
   },
   "column": {

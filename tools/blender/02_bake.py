@@ -272,6 +272,18 @@ def statue():
     # the raw sculpt keeps every fine detail: normals are baked from this, and the fused copy below only shapes the low poly
     raw = high.copy(); raw.data = high.data.copy(); raw.name = raw.data.name = "StatueRaw"
     bpy.context.scene.collection.objects.link(raw); raw.hide_render = True; raw.hide_set(True)
+    # a watertight copy purely for occlusion: on the raw sculpt every AO ray hits an interior shell and the map
+    # bakes black, so the shading detail has to come off a fused version of the same silhouette
+    solid = None
+    if cfg.get("bake_ao", True):
+        solid = high.copy(); solid.data = high.data.copy(); solid.name = solid.data.name = "StatueSolid"
+        bpy.context.scene.collection.objects.link(solid)
+        select_only(solid)
+        rm = solid.modifiers.new("Remesh", "REMESH"); rm.mode = "VOXEL"; rm.voxel_size = 0.0035; rm.adaptivity = 0.0; rm.use_smooth_shade = True
+        with Timer("AO proxy remesh"):
+            bpy.ops.object.modifier_apply(modifier="Remesh")
+        log("AO proxy tris", tri_count(solid))
+        solid.hide_render = True; solid.hide_set(True)
     if cfg.get("remesh_voxel"):
         # the sculpt is many overlapping shells; fuse into one watertight surface before decimating or the
         # collapse tears holes where shells intersect (hair, beard, feet)
@@ -340,7 +352,20 @@ def statue():
         # every ray hits interior geometry and the map bakes almost black, which reads as grime on white stone
         if cfg.get("bake_ao", True):
             bpy.context.scene.world.light_settings.distance = 0.25
-            ao = bake(lod, None, mk("ao"), "AO", s, samples * 4)
+            # Only the fused proxy may occlude. The full res sculpt sits exactly on top of the LOD, so if it is
+            # left visible to rays every sample hits it at zero distance and the whole map bakes black; the LOD
+            # itself has to stop occluding too, for the same reason.
+            solid.hide_set(False); solid.hide_render = False
+            hidden = []
+            for ob in bpy.data.objects:
+                if ob.type == "MESH" and ob not in (solid, lod):
+                    hidden.append((ob, ob.hide_render)); ob.hide_render = True
+            rays = (lod.visible_diffuse, lod.visible_glossy, lod.visible_transmission, lod.visible_shadow)
+            lod.visible_diffuse = lod.visible_glossy = lod.visible_transmission = lod.visible_shadow = False
+            ao = bake(lod, solid, mk("ao"), "AO", s, samples * 4)
+            lod.visible_diffuse, lod.visible_glossy, lod.visible_transmission, lod.visible_shadow = rays
+            for ob, h in hidden: ob.hide_render = h
+            solid.hide_render = True; solid.hide_set(True)
         else:
             ao = mk("ao")
             for img in ao:
@@ -348,15 +373,22 @@ def statue():
             log("AO skipped (bake_ao false): flat white")
         import numpy as np
 
-        def fill_holes(img, threshold=0.05, passes=80):
-            """Texels the bake never touched stay black and read as dirt on white marble. Grow the baked pixels
-            outward into them until every hole is filled, then the margin no longer matters."""
+        def hole_mask(img, threshold):
+            """Texels the bake never covered. One mask, taken from the colour map, is used for every map: they
+            share UVs, so a texel missing in one is missing in all, and the occlusion map has no reliable
+            brightness of its own to test against (a real crevice is legitimately black)."""
+            w, h = img.size
+            a = np.array(img.pixels[:], np.float32).reshape(h, w, 4)
+            return a[..., :3].sum(axis=2) < threshold
+
+        def fill_masked(img, hole, passes=80):
+            """Grow the covered pixels outward into the masked ones; anything still masked takes the map average."""
             w, h = img.size
             a = np.array(img.pixels[:], np.float32).reshape(h, w, 4)
             rgb = a[..., :3]
+            hole = hole.copy()
             filled = 0
             for _ in range(passes):
-                hole = rgb.sum(axis=2) < threshold
                 if not hole.any():
                     break
                 good = (~hole).astype(np.float32)[..., None]
@@ -364,10 +396,9 @@ def statue():
                 for ax, sh in ((0, 1), (0, -1), (1, 1), (1, -1)):
                     acc += np.roll(rgb * good, sh, ax); cnt += np.roll(good, sh, ax)
                 take = hole & (cnt[..., 0] > 0)
-                rgb[take] = (acc[take] / np.maximum(cnt[take], 1e-6))
+                rgb[take] = acc[take] / np.maximum(cnt[take], 1e-6)
+                hole &= ~take
                 filled += int(take.sum())
-            # islands the bake never touched at all: paint them the map's own average, never black
-            hole = rgb.sum(axis=2) < threshold
             if hole.any() and (~hole).any():
                 rgb[hole] = rgb[~hole].mean(axis=0)
                 filled += int(hole.sum())
@@ -385,12 +416,11 @@ def statue():
             img.pixels = a.ravel().tolist()
 
         for k in range(slots):
-            # a self bake that hits the inside of an overlapping shell comes back dark, not black, so the test is
-            # "far darker than this map can legitimately be", not "black"
-            maps = [("albedo", alb, 2.30), ("rough", rgh, 1.05)]  # the marble itself never sums below 2.42 / 1.14 + ([("normal", nrm, 0.15)] if cfg.get("bake_normal", True) else [])
-            for kind, imgs, thr in maps:
-                n = fill_holes(imgs[k], thr)
-                if n: log(f"{kind} {names[k]}: filled {n} unbaked texels")
+            mask = hole_mask(alb[k], 2.30)   # the marble itself never sums below 2.42
+            n = fill_masked(alb[k], mask); fill_masked(rgh[k], mask)
+            if cfg.get("bake_ao", True): fill_masked(ao[k], mask)
+            if cfg.get("bake_normal", True): fill_masked(nrm[k], mask)
+            if n: log(f"{names[k]}: filled {n} unbaked texels across all maps")
             if cfg.get("bake_ao", True):
                 blur(ao[k])
             if not cfg.get("bake_normal", True):
@@ -408,7 +438,7 @@ def statue():
             import numpy as np
             a_px = np.array(alb[k].pixels[:], np.float32).reshape(-1, 4)
             o_px = np.array(ao[k].pixels[:], np.float32).reshape(-1, 4)
-            occ = 1.0 - 0.3 * (1.0 - o_px[:, :1])  # a light touch: heavy occlusion reads as dirt on white stone
+            occ = 1.0 - 0.55 * (1.0 - o_px[:, :1])  # enough to read as carved shadow, short of grime
             a_px[:, :3] *= occ
             alb[k].pixels = a_px.ravel().tolist()
             paths = {kind: save_image(i[k], f"{lod.name.lower()}_{names[k]}_{kind}") for kind, i in (("normal", nrm), ("albedo", alb), ("rough", rgh), ("ao", ao))}
