@@ -11,14 +11,15 @@ import { signalStatueReady } from "./introState";
 import { progress } from "./progress";
 
 // the version stamp defeats browser caching whenever the bake changes
-export const MODEL_VERSION = "2026-09-09a";
+export const MODEL_VERSION = "2026-09-09b";
 /** phones get the 1024 texture bake: the 2048 set is about 130 MB of GPU memory per LOD and Safari kills the tab */
 export const PHONE = typeof window !== "undefined" && window.innerWidth < 820;
 export const STATUE = {
   lod0: `/models/statue-lod0${PHONE ? "-m" : ""}.glb?v=${MODEL_VERSION}`,
   lod1: `/models/statue-lod1${PHONE ? "-m" : ""}.glb?v=${MODEL_VERSION}`,
   /** LOD1 takes over during the dolly back */
-  lodSwapAt: 0.2,
+  /** LOD1 is a hard quality drop now the normal map is gone, and LOD0 runs at 60fps, so never swap while visible */
+  lodSwapAt: 0.99,
   height: 1.8,
   /** approximate head centre in the statue's own space (Y up, front is +Z) */
   head: new THREE.Vector3(-0.02, 1.62, 0.06),

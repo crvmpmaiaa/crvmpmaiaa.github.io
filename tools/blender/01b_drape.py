@@ -134,29 +134,11 @@ def main():
     bpy.ops.object.shade_smooth()
     log("drape tris", tri_count(drape))
 
-    # fold over cuff: the top rows of the simulated cloth duplicated, pushed out along their normals and thickened,
-    # so the waist reads as a doubled, tucked edge that follows every fold of the wrap
-    cuff_h = 0.045
-    cb = bmesh.new(); cb.from_mesh(drape.data)
-    cb.verts.ensure_lookup_table()
-    keep_faces = [f for f in cb.faces if all(v.co.z > z_top - cuff_h for v in f.verts)]
-    drop = [f for f in cb.faces if f not in set(keep_faces)]
-    bmesh.ops.delete(cb, geom=drop, context="FACES")
-    for v in cb.verts:
-        v.co += v.normal * (d["thickness"] * 1.4)
-    wme = bpy.data.meshes.new("Cuff"); cb.to_mesh(wme); cb.free()
-    waist = bpy.data.objects.new("Cuff", wme)
-    scene.collection.objects.link(waist)
-    select_only(waist)
-    bpy.ops.object.mode_set(mode="EDIT"); bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.mesh.delete_loose(); bpy.ops.object.mode_set(mode="OBJECT")
-    sol2 = waist.modifiers.new("Thick", "SOLIDIFY"); sol2.thickness = d["thickness"] * 0.9; sol2.offset = -1; sol2.use_rim = True
-    bpy.ops.object.modifier_apply(modifier="Thick")
-    bpy.ops.object.shade_smooth()
-    log("cuff tris", tri_count(waist))
+    # (a folded cuff used to be built here: it left a ring of torn fragments at the waist, so the drape
+    # now just ends in its own solidified edge)
     bpy.data.objects.remove(proxy, do_unlink=True)
 
-    joined = join([statue, drape, waist], "Statue")
+    joined = join([statue, drape], "Statue")
     select_only(joined)
     scene.frame_set(1)
     save_blend("statue")
