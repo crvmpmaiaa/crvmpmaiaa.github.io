@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import bmesh
 import bpy
 import mathutils
+import numpy as np
 from common import *
 
 
@@ -326,6 +327,75 @@ def statue():
 
     use_head = bool(cfg.get("head_texture"))
     stats = {"lod0_triangles": tri_count(lod0), "lod1_triangles": tri_count(lod1), "textures": {}}
+
+    if cfg.get("solid_colour"):
+        import numpy as np  # numpy is imported again further down, which makes it local to this function
+        # One solid marble colour, and the shading carried on the mesh itself as a colour per vertex rather than
+        # in an image. A texture on a 600k mesh gives each triangle a handful of pixels, so almost every face sits
+        # on the edge of a texture island where the bake only half covers it, and those half covered pixels are
+        # what read as marks. Vertices have no islands and no edges, so the whole class of fault cannot occur.
+        base = cfg.get("marble_rgb", [0.93, 0.925, 0.91])
+        for lod, samples in ((lod0, 256), (lod1, 128)):
+            lod.data.materials.clear()
+            mat = bpy.data.materials.new(lod.name + "Solid"); mat.use_nodes = True
+            nt = mat.node_tree; bsdf = nt.nodes["Principled BSDF"]
+            bsdf.inputs["Base Color"].default_value = (base[0], base[1], base[2], 1.0)
+            bsdf.inputs["Roughness"].default_value = cfg.get("marble_roughness", 0.45)
+            lod.data.materials.append(mat)
+            me = lod.data
+            for ca in list(me.color_attributes):
+                me.color_attributes.remove(ca)
+            ca = me.color_attributes.new(name="Col", type="FLOAT_COLOR", domain="POINT")
+            me.color_attributes.active_color = ca
+            me.attributes.active_color = ca
+            scene = bpy.context.scene
+            scene.render.engine = "CYCLES"; scene.cycles.device = "GPU"; scene.cycles.samples = samples
+            scene.cycles.use_denoising = False
+            scene.world.light_settings.distance = 0.25
+            scene.render.bake.target = "VERTEX_COLORS"
+            scene.render.bake.use_selected_to_active = True
+            scene.render.bake.cage_extrusion = 0.008
+            scene.render.bake.max_ray_distance = 0.03
+            scene.render.bake.use_clear = True
+            solid.hide_set(False); solid.hide_render = False
+            hidden = []
+            for ob in bpy.data.objects:
+                if ob.type == "MESH" and ob not in (solid, lod):
+                    hidden.append((ob, ob.hide_render)); ob.hide_render = True
+            rays = (lod.visible_diffuse, lod.visible_glossy, lod.visible_transmission, lod.visible_shadow)
+            lod.visible_diffuse = lod.visible_glossy = lod.visible_transmission = lod.visible_shadow = False
+            bpy.ops.object.select_all(action="DESELECT")
+            solid.select_set(True); lod.select_set(True)
+            bpy.context.view_layer.objects.active = lod
+            with Timer(f"{lod.name} vertex AO {samples}"):
+                bpy.ops.object.bake(type="AO")
+            lod.visible_diffuse, lod.visible_glossy, lod.visible_transmission, lod.visible_shadow = rays
+            for ob, h in hidden: ob.hide_render = h
+            solid.hide_render = True; solid.hide_set(True)
+            scene.render.bake.target = "IMAGE_TEXTURES"
+            n = len(me.vertices)
+            vals = np.zeros(n * 4, np.float32)
+            ca.data.foreach_get("color", vals)
+            v = vals.reshape(-1, 4)
+            lo = cfg.get("ao_floor", 0.55)
+            v[:, :3] = lo + (1.0 - lo) * np.clip(v[:, :3], 0.0, 1.0)   # keep the shading, never go dark
+            ca.data.foreach_set("color", v.ravel())
+            log(f"{lod.name}: vertex shading on {n} vertices, range {v[:, 0].min():.2f} to {v[:, 0].max():.2f}")
+            # the exporter only writes COLOR_0 when the material reads it
+            vc = nt.nodes.new("ShaderNodeVertexColor"); vc.layer_name = "Col"
+            mix = nt.nodes.new("ShaderNodeMix"); mix.data_type = "RGBA"; mix.blend_type = "MULTIPLY"
+            mix.inputs["Factor"].default_value = 1.0
+            rgb = nt.nodes.new("ShaderNodeRGB"); rgb.outputs[0].default_value = (base[0], base[1], base[2], 1.0)
+            nt.links.new(rgb.outputs[0], mix.inputs["A"])
+            nt.links.new(vc.outputs["Color"], mix.inputs["B"])
+            nt.links.new(mix.outputs["Result"], bsdf.inputs["Base Color"])
+        stats["lod0_glb"] = file_size(export_glb([lod0], "statue-lod0"))
+        stats["lod1_glb"] = file_size(export_glb([lod1], "statue-lod1"))
+        for o in (raw, solid, high):
+            if o: o.hide_render = False; o.hide_set(False)
+        save_blend("statue-baked")
+        write_stats("statue", stats)
+        return
     for lod, s, samples, split in ((lod0, size, 64, use_head), (lod1, size // 2, 32, False)):
         lod.data.materials.clear()
         lod.data.materials.append(bpy.data.materials.new(lod.name + "Bake"))

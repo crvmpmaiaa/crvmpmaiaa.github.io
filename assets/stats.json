@@ -95,68 +95,9 @@
   "statue": {
     "lod0_triangles": 600000,
     "lod1_triangles": 90000,
-    "textures": {
-      "StatueLOD0": {
-        "body": {
-          "normal": {
-            "size": 4096,
-            "bytes": 230216
-          },
-          "albedo": {
-            "size": 4096,
-            "bytes": 9387279
-          },
-          "rough": {
-            "size": 4096,
-            "bytes": 2965030
-          },
-          "ao": {
-            "size": 4096,
-            "bytes": 6774657
-          }
-        },
-        "head": {
-          "normal": {
-            "size": 4096,
-            "bytes": 230216
-          },
-          "albedo": {
-            "size": 4096,
-            "bytes": 7848059
-          },
-          "rough": {
-            "size": 4096,
-            "bytes": 2879671
-          },
-          "ao": {
-            "size": 4096,
-            "bytes": 6308092
-          }
-        }
-      },
-      "StatueLOD1": {
-        "body": {
-          "normal": {
-            "size": 2048,
-            "bytes": 59579
-          },
-          "albedo": {
-            "size": 2048,
-            "bytes": 3661434
-          },
-          "rough": {
-            "size": 2048,
-            "bytes": 1328603
-          },
-          "ao": {
-            "size": 2048,
-            "bytes": 2502104
-          }
-        }
-      }
-    },
-    "lod0_glb": 44026812,
-    "lod1_glb": 8839428
+    "textures": {},
+    "lod0_glb": 18039668,
+    "lod1_glb": 2171968
   },
   "points": {
     "desktop": {

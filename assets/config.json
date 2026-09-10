@@ -29,7 +29,14 @@
     "remesh_voxel": null,
     "head_texture": true,
     "bake_ao": true,
-    "bake_normal": false
+    "bake_normal": false,
+    "solid_colour": true,
+    "marble_rgb": [
+      0.93,
+      0.925,
+      0.91
+    ],
+    "ao_floor": 0.55
   },
   "column": {
     "name": "column",
