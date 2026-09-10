@@ -311,6 +311,19 @@ def statue():
     with Timer("decimate LOD1"):
         decimate_to(lod1, cfg["lod1_triangles"])
 
+    # Decimation leaves a scatter of zero area faces. They survive unwrapping with useless texture coordinates,
+    # so they sample whatever texel they happen to land on and render as slivers in the wrong shade. Dissolve
+    # them before the UVs are made and the problem cannot arise.
+    for m in (lod0, lod1):
+        select_only(m)
+        before = tri_count(m)
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        bpy.ops.mesh.dissolve_degenerate(threshold=2e-5)
+        bpy.ops.mesh.remove_doubles(threshold=1e-5)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        log(f"{m.name}: dissolved degenerates, {before} -> {tri_count(m)} tris")
+
     use_head = bool(cfg.get("head_texture"))
     stats = {"lod0_triangles": tri_count(lod0), "lod1_triangles": tri_count(lod1), "textures": {}}
     for lod, s, samples, split in ((lod0, size, 64, use_head), (lod1, size // 2, 32, False)):
@@ -373,6 +386,21 @@ def statue():
             log("AO skipped (bake_ao false): flat white")
         import numpy as np
 
+        def coverage_mask(img, threshold):
+            """Texels the bake did not fully cover. Blender records coverage in alpha, so a texel on the edge of
+            a UV island reads back part covered: its colour is a blend of the real value and the cleared
+            background, which is exactly the faint dark shard problem. Alpha separates those precisely, where a
+            brightness test cannot. Falls back to brightness if the target carries no alpha information."""
+            w, h = img.size
+            a = np.array(img.pixels[:], np.float32).reshape(h, w, 4)
+            alpha = a[..., 3]
+            if float(alpha.min()) < 0.999:
+                m = alpha < 0.999
+                log(f"coverage from alpha: {100.0 * m.mean():.1f}% of texels not fully covered")
+                return m
+            log("no alpha coverage on this target, falling back to a brightness test")
+            return a[..., :3].sum(axis=2) < threshold
+
         def hole_mask(img, threshold):
             """Texels the bake never covered. One mask, taken from the colour map, is used for every map: they
             share UVs, so a texel missing in one is missing in all, and the occlusion map has no reliable
@@ -416,13 +444,32 @@ def statue():
             img.pixels = a.ravel().tolist()
 
         for k in range(slots):
-            mask = hole_mask(alb[k], 2.30)   # the marble itself never sums below 2.42
+            mask = coverage_mask(alb[k], 2.30)
             n = fill_masked(alb[k], mask); fill_masked(rgh[k], mask)
             if cfg.get("bake_ao", True): fill_masked(ao[k], mask)
             if cfg.get("bake_normal", True): fill_masked(nrm[k], mask)
             if n: log(f"{names[k]}: filled {n} unbaked texels across all maps")
+            # Clamp each map into the range its own material can actually produce. Texels on the edge of a UV
+            # island come back part covered, so they land between the real colour and the black background:
+            # only slightly dark, but enough to read as a shard on white stone, and too close to the real
+            # values for any threshold to separate. The marble never goes below its vein colour, and the
+            # roughness never leaves its own narrow band, so anything outside is a bake artifact.
+            apx = np.array(alb[k].pixels[:], np.float32).reshape(-1, 4)
+            apx[:, :3] = np.clip(apx[:, :3], 0.76, 1.0)
+            alb[k].pixels = apx.ravel().tolist()
+            rpx = np.array(rgh[k].pixels[:], np.float32).reshape(-1, 4)
+            rpx[:, :3] = np.clip(rpx[:, :3], 0.34, 0.62)
+            rgh[k].pixels = rpx.ravel().tolist()
             if cfg.get("bake_ao", True):
-                blur(ao[k])
+                # Occlusion is only ever wanted as broad shading, so blur it hard. Part covered texels on island
+                # edges are single pixel artifacts and disappear into their neighbours; the large scale shadow
+                # that gives the carving its depth survives untouched.
+                blur(ao[k], passes=14)
+                # a fully black occlusion texel is a self intersection in the cloth, not a real crevice, and it
+                # multiplies through to a black shard on white stone. Floor it.
+                apx = np.array(ao[k].pixels[:], np.float32).reshape(-1, 4)
+                apx[:, :3] = np.maximum(apx[:, :3], 0.32)
+                ao[k].pixels = apx.ravel().tolist()
             if not cfg.get("bake_normal", True):
                 continue
             # missed normal texels are black, back face hits point away: both become flat
@@ -438,12 +485,18 @@ def statue():
             import numpy as np
             a_px = np.array(alb[k].pixels[:], np.float32).reshape(-1, 4)
             o_px = np.array(ao[k].pixels[:], np.float32).reshape(-1, 4)
-            occ = 1.0 - 0.55 * (1.0 - o_px[:, :1])  # enough to read as carved shadow, short of grime
+            occ = 1.0 - 0.48 * (1.0 - o_px[:, :1])  # enough to read as carved shadow, short of grime
             a_px[:, :3] *= occ
+            # Floor the result. A handful of sliver faces left by decimation carry useless texture coordinates
+            # and sample whatever texel they land on; with occlusion multiplied in they can land very dark and
+            # read as shards. Once nothing in the map is darker than this, a stray sample is at worst a soft
+            # grey patch, and the carved shading still has its full range above it.
+            a_px[:, :3] = np.clip(a_px[:, :3], 0.55, 1.0)
             alb[k].pixels = a_px.ravel().tolist()
             paths = {kind: save_image(i[k], f"{lod.name.lower()}_{names[k]}_{kind}") for kind, i in (("normal", nrm), ("albedo", alb), ("rough", rgh), ("ao", ao))}
             lod_stats[names[k]] = {kind: {"size": s, "bytes": file_size(p)} for kind, p in paths.items()}
-            mats.append(image_material(f"{lod.name}{names[k].title()}Mat", alb[k], nrm[k], rgh[k], ao[k]))
+            # occlusion is already multiplied into the colour above: passing it again here applied it twice
+            mats.append(image_material(f"{lod.name}{names[k].title()}Mat", alb[k], nrm[k], rgh[k], None))
         stats["textures"][lod.name] = lod_stats
         # replace in place: clearing the slots resets every face's material index to 0
         for k, m in enumerate(mats):

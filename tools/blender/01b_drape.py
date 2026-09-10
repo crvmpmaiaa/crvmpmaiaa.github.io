@@ -60,15 +60,6 @@ def main():
         return (hit[0] - o).length if hit[0] is not None else 0.2
 
     segs, rings = d["segs"], d["rings"]
-    # the raw probe hits the arm tucked behind his back at some angles and returns a big radius, which pushes
-    # the band out into a lump. Clamp to just over the median and smooth round the ring so it follows the waist.
-    raw_r = [waist_radius(2 * math.pi * i / segs) for i in range(segs)]
-    med = sorted(raw_r)[len(raw_r) // 2]
-    capped = [min(max(r, med * 0.88), med * 1.10) for r in raw_r]  # band only: no bulges, no pinching
-    K = 9
-    RADII = [sum(capped[(i + k) % segs] for k in range(-K, K + 1)) / (2 * K + 1) for i in range(segs)]
-    log(f"waist radius median {med:.3f} min {min(RADII):.3f} max {max(RADII):.3f}")
-
     length = (z_top - z_bot)
     bm = bmesh.new()
     grid = []
@@ -78,7 +69,7 @@ def main():
         ring = []
         for i in range(segs):
             a = 2 * math.pi * i / segs
-            r = waist_radius(a) + d["offset"] * 1.5  # the cloth follows the true body, lobes and all
+            r = waist_radius(a) + d["offset"] * 1.5
             r *= 1.0 + (d["slack"] - 1.0) * t  # wider toward the hem so it can fall and fold
             v = bm.verts.new((cx + r * math.cos(a), cy + r * math.sin(a), z_top - t * length))
             ring.append(v)
@@ -143,36 +134,38 @@ def main():
     bpy.ops.object.shade_smooth()
     log("drape tris", tri_count(drape))
 
-    # waistband: a clean rolled band swept round the waist. The old version duplicated the simulated cloth's
-    # top rows and pushed them along their normals, which left a ring of torn fragments; this is its own
-    # watertight tube following the same body radius, so it reads as a rolled edge with nothing sticking out.
-    band_r, band_h = d.get("band_r", 0.013), d.get("band_h", 0.024)
-    cross = 14
-    bb = bmesh.new()
-    brings = []
-    for i in range(segs):
-        ang = 2 * math.pi * i / segs
-        r0 = RADII[i] + d["offset"] + d["thickness"] * 1.2 + 0.006  # clear of the cloth, or it hides inside it
-        ring = []
-        for j in range(cross):
-            t = 2 * math.pi * j / cross
-            rr = r0 + band_r * (1.0 + math.cos(t))
-            zz = z_top - band_h * 0.15 + band_h * math.sin(t)
-            ring.append(bb.verts.new((cx + rr * math.cos(ang), cy + rr * math.sin(ang), zz)))
-        brings.append(ring)
-    for i in range(segs):
-        n = (i + 1) % segs
-        for j in range(cross):
-            m = (j + 1) % cross
-            bb.faces.new((brings[i][j], brings[n][j], brings[n][m], brings[i][m]))
-    bme = bpy.data.meshes.new("Band"); bb.to_mesh(bme); bb.free()
-    band = bpy.data.objects.new("Band", bme); scene.collection.objects.link(band)
-    select_only(band); bpy.ops.object.shade_smooth()
-    log("band tris", tri_count(band))
-
+    # Waistband, built from the cloth's own top rows rather than cut out of it by height. Selecting faces above
+    # a z line leaves a ragged boundary wherever the simulated cloth wobbles across it, and thickening that gave
+    # the tabs sticking out of the waist. Row indices survive the sim untouched, so this strip is always closed.
+    cuff_rows = d.get("cuff_rows", 5)
+    off = d["thickness"] * 1.6
+    cb = bmesh.new(); cb.from_mesh(drape.data); cb.verts.ensure_lookup_table()
+    nb = bmesh.new()
+    rows = []
+    for j2 in range(cuff_rows + 1):
+        row = []
+        for i2 in range(segs):
+            co = cb.verts[j2 * segs + i2].co.copy()
+            radial = mathutils.Vector((co.x - cx, co.y - cy, 0.0))
+            if radial.length > 1e-6:
+                co = co + radial.normalized() * off
+            row.append(nb.verts.new(co))
+        rows.append(row)
+    cb.free()
+    for j2 in range(cuff_rows):
+        for i2 in range(segs):
+            nb.faces.new((rows[j2][i2], rows[j2][(i2 + 1) % segs], rows[j2 + 1][(i2 + 1) % segs], rows[j2 + 1][i2]))
+    wme = bpy.data.meshes.new("Cuff"); nb.to_mesh(wme); nb.free()
+    waist = bpy.data.objects.new("Cuff", wme)
+    scene.collection.objects.link(waist)
+    select_only(waist)
+    sol2 = waist.modifiers.new("Thick", "SOLIDIFY"); sol2.thickness = d["thickness"] * 0.9; sol2.offset = -1; sol2.use_rim = True
+    bpy.ops.object.modifier_apply(modifier="Thick")
+    bpy.ops.object.shade_smooth()
+    log("cuff tris", tri_count(waist))
     bpy.data.objects.remove(proxy, do_unlink=True)
 
-    joined = join([statue, drape, band], "Statue")
+    joined = join([statue, drape, waist], "Statue")
     select_only(joined)
     scene.frame_set(1)
     save_blend("statue")
