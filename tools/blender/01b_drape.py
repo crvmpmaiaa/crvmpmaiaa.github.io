@@ -146,9 +146,13 @@ def main():
         row = []
         for i2 in range(segs):
             co = cb.verts[j2 * segs + i2].co.copy()
+            # Ramp the push outward so the band starts and finishes flush with the cloth and bulges in the
+            # middle. A constant push made it a shelf standing proud of the cloth, and the slot behind its top
+            # edge read as a black line all the way round.
+            t2 = math.sin(math.pi * j2 / cuff_rows)
             radial = mathutils.Vector((co.x - cx, co.y - cy, 0.0))
             if radial.length > 1e-6:
-                co = co + radial.normalized() * off
+                co = co + radial.normalized() * off * (0.06 + 0.94 * t2)
             row.append(nb.verts.new(co))
         rows.append(row)
     cb.free()
@@ -161,6 +165,10 @@ def main():
     select_only(waist)
     sol2 = waist.modifiers.new("Thick", "SOLIDIFY"); sol2.thickness = d["thickness"] * 0.9; sol2.offset = -1; sol2.use_rim = True
     bpy.ops.object.modifier_apply(modifier="Thick")
+    # a rim face left pointing inward renders black under a light: make every normal face outward
+    bpy.ops.object.mode_set(mode="EDIT"); bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
     bpy.ops.object.shade_smooth()
     log("cuff tris", tri_count(waist))
     bpy.data.objects.remove(proxy, do_unlink=True)

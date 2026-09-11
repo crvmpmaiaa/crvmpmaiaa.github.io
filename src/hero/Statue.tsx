@@ -11,7 +11,7 @@ import { signalStatueReady } from "./introState";
 import { progress } from "./progress";
 
 // the version stamp defeats browser caching whenever the bake changes
-export const MODEL_VERSION = "2026-09-10b";
+export const MODEL_VERSION = "2026-09-11a";
 /** phones get the 1024 texture bake: the 2048 set is about 130 MB of GPU memory per LOD and Safari kills the tab */
 export const PHONE = typeof window !== "undefined" && window.innerWidth < 820;
 export const STATUE = {
