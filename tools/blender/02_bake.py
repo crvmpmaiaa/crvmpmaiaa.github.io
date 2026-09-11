@@ -271,6 +271,44 @@ def statue():
     ensure_world()
     high = bpy.data.objects["Statue"]
     # the raw sculpt keeps every fine detail: normals are baked from this, and the fused copy below only shapes the low poly
+    if cfg.get("smooth_spikes"):
+        import numpy as np
+        # The lion skin is fine fur in the sculpt, and collapsing it to a web mesh leaves ragged shards. Move
+        # each vertex toward the average of its neighbours, but weighted so that only genuinely spiky vertices
+        # move: a vertex sitting on a smooth surface is already near that average and stays put, so carved
+        # detail like the beard and the muscle is untouched.
+        me = high.data
+        nv, ne = len(me.vertices), len(me.edges)
+        co = np.empty(nv * 3, np.float32); me.vertices.foreach_get("co", co); co = co.reshape(-1, 3)
+        ed = np.empty(ne * 2, np.int32); me.edges.foreach_get("vertices", ed); ed = ed.reshape(-1, 2)
+        a_i, b_i = ed[:, 0], ed[:, 1]
+        deg = np.zeros(nv, np.float32)
+        np.add.at(deg, a_i, 1.0); np.add.at(deg, b_i, 1.0)
+        deg = np.maximum(deg, 1.0)
+        edge_len = float(np.linalg.norm(co[a_i] - co[b_i], axis=1).mean())
+        moved = 0.0
+        for _ in range(cfg.get("smooth_iterations", 6)):
+            acc = np.zeros_like(co)
+            np.add.at(acc, a_i, co[b_i]); np.add.at(acc, b_i, co[a_i])
+            delta = acc / deg[:, None] - co
+            mag = np.linalg.norm(delta, axis=1) / max(edge_len, 1e-9)
+            w = np.clip((mag - cfg.get("smooth_threshold", 0.42)) / 0.5, 0.0, 1.0) ** 2
+            # The lion skin is a regular corrugation, not spikes, so each vertex already sits near the average
+            # of its neighbours and the test above barely moves it. Smooth that whole region on its own terms
+            # instead, fading in across its boundary so there is no seam against the body.
+            rx = cfg.get("smooth_region_x")
+            if rx is not None:
+                w = np.maximum(w, np.clip((co[:, 0] - rx) / 0.06, 0.0, 1.0))
+            # the beard and hair are meant to be rough, so hold the head still
+            hz = cfg.get("smooth_protect_above")
+            if hz is not None:
+                w = w * np.clip((hz - co[:, 2]) / 0.06, 0.0, 1.0)
+            step = delta * (0.85 * w)[:, None]
+            co += step
+            moved = float(np.abs(step).max())
+        me.vertices.foreach_set("co", co.ravel()); me.update()
+        log(f"spike smoothing: {nv} verts, mean edge {edge_len:.5f}, last max move {moved:.5f}")
+
     raw = high.copy(); raw.data = high.data.copy(); raw.name = raw.data.name = "StatueRaw"
     bpy.context.scene.collection.objects.link(raw); raw.hide_render = True; raw.hide_set(True)
     # a watertight copy purely for occlusion: on the raw sculpt every AO ray hits an interior shell and the map

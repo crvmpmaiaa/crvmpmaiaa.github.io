@@ -98,7 +98,7 @@ def main():
     cs.tension_stiffness = 12
     cs.compression_stiffness = 12
     cs.shear_stiffness = 6
-    cs.bending_stiffness = 0.1
+    cs.bending_stiffness = 0.28  # enough to fold broadly rather than pleat, not so much it hangs like a tube
     cs.tension_damping = 5
     cs.air_damping = 1.5
     cs.vertex_group_mass = "Pin"
@@ -127,6 +127,7 @@ def main():
 
     # thickness and a little softening
     select_only(drape)
+    sm = drape.modifiers.new("Relax", "SMOOTH"); sm.factor = 0.6; sm.iterations = 8  # round off the pleating
     sub = drape.modifiers.new("Sub", "SUBSURF"); sub.levels = sub.render_levels = 1
     sol = drape.modifiers.new("Thick", "SOLIDIFY"); sol.thickness = d["thickness"]; sol.offset = 1; sol.use_rim = True
     for m in list(drape.modifiers):
