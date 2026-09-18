@@ -1,6 +1,8 @@
 import { Hero } from "@/hero/Hero";
 import { Footer } from "@/footer/Footer";
 
+export const metadata = { alternates: { canonical: "/" } };
+
 export default function Page() {
   return (
     <>

@@ -1,4 +1,5 @@
 import { TopBar } from "@/app/TopBar";
+import { shareCard } from "@/app/site";
 import { notFound } from "next/navigation";
 import { ALL_PROJECTS } from "@/portal/work";
 import { STORIES } from "../stories";
@@ -11,7 +12,14 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const p = ALL_PROJECTS.find((x) => x.slug === slug);
-  return { title: p ? `${p.name}, Build Different` : "Work, Build Different", description: p?.line };
+  if (!p) return { title: "Work, Build Different" };
+  const title = `${p.name}, Build Different`;
+  return {
+    title,
+    description: p.line,
+    alternates: { canonical: `/work/${p.slug}/` },
+    openGraph: shareCard(title, `/work/${p.slug}/`, p.line, { url: p.site, width: 1440, height: 900, alt: p.alt }),
+  };
 }
 
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {

@@ -1,8 +1,15 @@
 import { TopBar } from "@/app/TopBar";
+import { shareCard } from "@/app/site";
 import { ALL_PROJECTS } from "@/portal/work";
 import { WorkGrid } from "./WorkGrid";
 
-export const metadata = { title: "Work, Build Different", description: "Sites, apps and systems built by Build Different." };
+const description = "Sites, apps and systems built by Build Different: portfolios, product sites, iOS apps and sites for trades and local businesses.";
+export const metadata = {
+  title: "Work, Build Different",
+  description,
+  alternates: { canonical: "/work/" },
+  openGraph: shareCard("Work, Build Different", "/work/", description),
+};
 
 /** The work page: heading and a line, then every project as a large preview with tags, name, line and a link to its story. */
 export default function WorkPage() {

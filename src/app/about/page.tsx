@@ -1,5 +1,12 @@
 import { TopBar } from "@/app/TopBar";
-export const metadata = { title: "About, Build Different" };
+import { shareCard } from "@/app/site";
+const description = "Who Build Different are, how we work, and why the site you are on looks like this.";
+export const metadata = {
+  title: "About, Build Different",
+  description,
+  alternates: { canonical: "/about/" },
+  openGraph: shareCard("About, Build Different", "/about/", description),
+};
 
 /** About us. Jack writes this; the shape is here. */
 export default function AboutPage() {

@@ -107,7 +107,11 @@ export function Hero() {
     >
       <div className="hero__stage" ref={stage}>
         {mode === "static" || mode === "pending" ? (
-          <img className="hero__still" src="/hero-still.webp" alt="A marble figure of Hercules, leaning on his club" width={1280} height={1280} />
+          <>
+            {/* before the scene mounts the wordmark is not in the page yet, so crawlers and readers get the heading here */}
+            {mode === "pending" && <h1 className="sr-only">Build Different</h1>}
+            <img className="hero__still" src="/hero-still.webp" alt="A marble figure of Hercules, leaning on his club" width={1280} height={1280} />
+          </>
         ) : (
           <>
             <SkyVideo frozen={frozen} />
