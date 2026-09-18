@@ -1,7 +1,7 @@
 import { TopBar } from "@/app/TopBar";
 import { shareCard, SITE_EMAIL } from "@/app/site";
 
-const description = "How Build Different handles the details you send through this site: what we collect, why, where it is kept and how to have it removed.";
+const description = "How Build Different handles the details you send us by email: what we keep, why, where it is kept and how to have it removed.";
 export const metadata = {
   title: "Privacy, Build Different",
   description,
@@ -16,16 +16,16 @@ export default function PrivacyPage() {
       <TopBar />
       <header className="wp__head wp__head--article">
         <h1 className="wp__title">Privacy</h1>
-        <p className="wp__intro">What we collect through this site, why, where it is kept and how to have it removed. Last updated 18 September 2026.</p>
+        <p className="wp__intro">What we keep when you get in touch, why, where it is kept and how to have it removed. Last updated 18 September 2026.</p>
       </header>
       <article className="wp__body">
         <section>
           <h2>Who we are</h2>
-          <p>Build Different is a web design and development studio based in Liverpool, UK, run by Jack Crump. Jack Crump, trading as Build Different, is the data controller for anything you send through this site. You can reach us at <a href={`mailto:${SITE_EMAIL}`}>{SITE_EMAIL}</a>.</p>
+          <p>Build Different is a web design and development studio based in Liverpool, UK, run by Jack Crump. Jack Crump, trading as Build Different, is the data controller for anything you send us. You can reach us at <a href={`mailto:${SITE_EMAIL}`}>{SITE_EMAIL}</a>.</p>
         </section>
         <section>
           <h2>What we collect</h2>
-          <p>Only what you type into the enquiry form: your name, your email address and your message. We do not ask for anything else, and you should not put sensitive information in the message.</p>
+          <p>This site has no forms and collects nothing about you. If you email us, we keep what you send: your name, your email address and your message. Please do not include sensitive information.</p>
           <p>This site has no analytics, no advertising trackers and sets no cookies. It keeps two small notes in your own browser: one that remembers you have dismissed a notice, and one that records how far the 3D scene loaded so we can fix crashes. Neither leaves your device.</p>
         </section>
         <section>
@@ -34,7 +34,7 @@ export default function PrivacyPage() {
         </section>
         <section>
           <h2>Where it goes</h2>
-          <p>The form is handled by Netlify, which hosts this site, and the enquiry is then sent to our inbox, which is run by Google Workspace. Both companies may store data in the United States, under the UK International Data Transfer Addendum and the UK extension to the EU and US Data Privacy Framework. Netlify also keeps standard server logs, including IP addresses, for security.</p>
+          <p>Your email arrives in our inbox, which is run by Google Workspace. Google may store data in the United States, under the UK International Data Transfer Addendum and the UK extension to the EU and US Data Privacy Framework. Netlify, which hosts this site, keeps standard server logs, including IP addresses, for security.</p>
         </section>
         <section>
           <h2>How long we keep it</h2>

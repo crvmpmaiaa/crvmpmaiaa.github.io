@@ -1,12 +1,14 @@
 "use client";
 import { diag } from "@/hero/diag";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { qa } from "@/hero/qa";
 import { AtlasCanvas } from "./AtlasCanvas";
 import { WavesBackground } from "./WavesBackground";
 import { FooterParallax } from "./Parallax";
 
-/** One viewport at the end: Atlas turning, and the form. Also the whole of the contact page. */
+const MAIL = "jack@builddifferent.dev";
+
+/** One viewport at the end: Atlas turning, and how to reach us. Also the whole of the contact page. */
 export function Footer({ standalone = false }: { standalone?: boolean }) {
   // ?plain leaves all the WebGL out of the footer; ?nowaves and ?noatlas each drop one piece.
   // Phones get no Waves shader by default: its fragment loop stalls the iPhone GPU and the tab is killed.
@@ -16,25 +18,10 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
     const phone = window.innerWidth < 820;
     setFlags({ waves: !qa("plain") && !qa("nowaves") && (!phone || qa("waves")), atlas: !qa("plain") && !qa("noatlas") && (!phone || qa("rig")), still: false });
   }, []);
-  // The form is registered with Netlify by public/__forms.html; this posts to it and Netlify emails the enquiry on.
-  const [sent, setSent] = useState<"idle" | "sending" | "done" | "failed">("idle");
-  const submit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const data = new FormData(form);
-    setSent("sending");
-    try {
-      const res = await fetch("/__forms.html", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams(Array.from(data, ([k, v]) => [k, String(v)])).toString(),
-      });
-      if (!res.ok) throw new Error(String(res.status));
-      form.reset();
-      setSent("done");
-    } catch {
-      setSent("failed");
-    }
+  // No form: the address, a button that opens the visitor's mail app, and one that copies it for everyone else.
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(MAIL); setCopied(true); setTimeout(() => setCopied(false), 2400); } catch { /* clipboard may be blocked; the address is on the page */ }
   };
   // on the contact page this is the page heading
   const Title = standalone ? "h1" : "h2";
@@ -45,31 +32,15 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
       <div className="footer__inner">
         <div className="footer__copy">
           <Title className="footer__title">Let us take the weight<br />off your shoulders.</Title>
-          <form className="footer__form" name="quote" action="/__forms.html" method="post" onSubmit={submit}>
-            <input type="hidden" name="form-name" value="quote" />
-            <label className="field field--trap" aria-hidden="true">
-              <span>Company</span>
-              <input name="company" type="text" tabIndex={-1} autoComplete="off" />
-            </label>
-            <label className="field">
-              <span>Your name</span>
-              <input name="name" type="text" autoComplete="name" required />
-            </label>
-            <label className="field">
-              <span>Email</span>
-              <input name="email" type="email" autoComplete="email" required />
-            </label>
-            <label className="field field--wide">
-              <span>What are you building?</span>
-              <textarea name="message" rows={4} required />
-            </label>
-            <p className="footer__consent">We use what you send only to reply to you. <a href="/privacy">Privacy</a></p>
-            <button className="cta" type="submit" disabled={sent === "sending"}>{sent === "sending" ? "Sending" : "Start a project"}</button>
-            <p className="footer__status" role="status" aria-live="polite">
-              {sent === "done" && "Thank you. Your message is with us and we will be in touch shortly."}
-              {sent === "failed" && <>That did not send. Please email <a href="mailto:jack@builddifferent.dev">jack@builddifferent.dev</a> instead.</>}
-            </p>
-          </form>
+          <div className="footer__reach">
+            <p className="footer__lede">Tell us what you are building. One email is enough to start: what it is, who it is for, and when you need it.</p>
+            <a className="footer__address" href={`mailto:${MAIL}`}>{MAIL}</a>
+            <div className="footer__actions">
+              <a className="cta" href={`mailto:${MAIL}?subject=${encodeURIComponent("New project")}`}>Start a project</a>
+              <button className="cta cta--quiet" type="button" onClick={copy}>{copied ? "Copied" : "Copy address"}</button>
+            </div>
+            <p className="sr-only" role="status" aria-live="polite">{copied ? "Email address copied" : ""}</p>
+          </div>
         </div>
         {flags.atlas && <AtlasCanvas />}
         {flags.still && <div className="footer__atlas footer__atlas--still"><img src="/images/mobile/atlas.webp" alt="Atlas carrying the world, in marble and bronze" width={1134} height={1278} /></div>}
@@ -83,7 +54,7 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
       </nav>
       <div className="footer__foot">
         <span className="footer__brand">Build Different</span>
-        <a className="footer__mail" href="mailto:jack@builddifferent.dev">jack@builddifferent.dev</a>
+        <a className="footer__mail" href={`mailto:${MAIL}`}>{MAIL}</a>
       </div>
     </footer>
   );

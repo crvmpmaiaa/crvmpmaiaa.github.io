@@ -8,7 +8,7 @@ export function FooterParallax() {
     if (!footer) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) return;
-    const layers: [string, number][] = [[".footer__title", 40], [".footer__form", 80], [".footer__atlas", 140], [".footer__foot", 20]];
+    const layers: [string, number][] = [[".footer__title", 40], [".footer__reach", 80], [".footer__atlas", 140], [".footer__foot", 20]];
     let raf = 0;
     const update = () => {
       raf = 0;
