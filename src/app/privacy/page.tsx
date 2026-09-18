@@ -25,7 +25,7 @@ export default function PrivacyPage() {
         </section>
         <section>
           <h2>What we collect</h2>
-          <p>This site has no forms and collects nothing about you. If you email us, we keep what you send: your name, your email address and your message. Please do not include sensitive information.</p>
+          <p>This site has no forms and collects nothing about you. If you email us or book a call, we keep what you give us: your name, your email address, your message and the time you booked. Please do not include sensitive information.</p>
           <p>This site has no analytics, no advertising trackers and sets no cookies. It keeps two small notes in your own browser: one that remembers you have dismissed a notice, and one that records how far the 3D scene loaded so we can fix crashes. Neither leaves your device.</p>
         </section>
         <section>
@@ -34,7 +34,7 @@ export default function PrivacyPage() {
         </section>
         <section>
           <h2>Where it goes</h2>
-          <p>Your email arrives in our inbox, which is run by Google Workspace. Google may store data in the United States, under the UK International Data Transfer Addendum and the UK extension to the EU and US Data Privacy Framework. Netlify, which hosts this site, keeps standard server logs, including IP addresses, for security.</p>
+          <p>Emails arrive in our inbox and call bookings are made through Google Calendar, both run by Google Workspace. Google may store data in the United States, under the UK International Data Transfer Addendum and the UK extension to the EU and US Data Privacy Framework. Netlify, which hosts this site, keeps standard server logs, including IP addresses, for security.</p>
         </section>
         <section>
           <h2>How long we keep it</h2>

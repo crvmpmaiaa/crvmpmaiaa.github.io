@@ -904,15 +904,29 @@ footer.section {
   color: var(--ink);
   max-width: 34ch;
 }
+.footer__direct { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.9rem; }
 .footer__address {
-  font-family: var(--font-wordmark);
+  font-family: var(--font-copy);
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.01em;
-  font-size: clamp(var(--step-2), 3vw, var(--step-4));
-  line-height: 1;
-  color: var(--ink);
+  letter-spacing: 0.08em;
+  font-size: var(--step-0);
+  color: var(--marble);
   text-decoration: none;
   overflow-wrap: anywhere;
+}
+.footer__copy-btn {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid rgba(222, 220, 216, 0.6);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--marble);
+  font-family: var(--font-copy);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: var(--step--1);
+  cursor: pointer;
 }
 .footer__address:hover, .footer__address:focus-visible { text-decoration: underline; text-underline-offset: 0.18em; }
 .footer__actions { display: flex; flex-wrap: wrap; gap: calc(var(--pad) / var(--phi)); }

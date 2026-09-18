@@ -7,6 +7,7 @@ import { WavesBackground } from "./WavesBackground";
 import { FooterParallax } from "./Parallax";
 
 const MAIL = "jack@builddifferent.dev";
+const BOOKING = "https://calendar.app.google/nEeqRH1jn8LBGVUQ9";
 
 /** One viewport at the end: Atlas turning, and how to reach us. Also the whole of the contact page. */
 export function Footer({ standalone = false }: { standalone?: boolean }) {
@@ -18,7 +19,7 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
     const phone = window.innerWidth < 820;
     setFlags({ waves: !qa("plain") && !qa("nowaves") && (!phone || qa("waves")), atlas: !qa("plain") && !qa("noatlas") && (!phone || qa("rig")), still: false });
   }, []);
-  // No form: the address, a button that opens the visitor's mail app, and one that copies it for everyone else.
+  // No form: a call booking, the mail app, and the address with a copy button for everyone without one.
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try { await navigator.clipboard.writeText(MAIL); setCopied(true); setTimeout(() => setCopied(false), 2400); } catch { /* clipboard may be blocked; the address is on the page */ }
@@ -33,12 +34,15 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
         <div className="footer__copy">
           <Title className="footer__title">Let us take the weight<br />off your shoulders.</Title>
           <div className="footer__reach">
-            <p className="footer__lede">Tell us what you are building. One email is enough to start: what it is, who it is for, and when you need it.</p>
-            <a className="footer__address" href={`mailto:${MAIL}`}>{MAIL}</a>
+            <p className="footer__lede">Tell us what you are building. Book a call and we will talk it through, or send a message if you would rather write.</p>
             <div className="footer__actions">
-              <a className="cta" href={`mailto:${MAIL}?subject=${encodeURIComponent("New project")}`}>Start a project</a>
-              <button className="cta cta--quiet" type="button" onClick={copy}>{copied ? "Copied" : "Copy address"}</button>
+              <a className="cta" href={BOOKING} target="_blank" rel="noopener">Book a call</a>
+              <a className="cta cta--quiet" href={`mailto:${MAIL}?subject=${encodeURIComponent("New project")}`}>Email us</a>
             </div>
+            <p className="footer__direct">
+              <a className="footer__address" href={`mailto:${MAIL}`}>{MAIL}</a>
+              <button className="footer__copy-btn" type="button" onClick={copy}>{copied ? "Copied" : "Copy"}</button>
+            </p>
             <p className="sr-only" role="status" aria-live="polite">{copied ? "Email address copied" : ""}</p>
           </div>
         </div>
