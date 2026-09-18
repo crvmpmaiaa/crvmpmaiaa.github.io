@@ -8,6 +8,8 @@ import { FooterParallax } from "./Parallax";
 
 const MAIL = "jack@builddifferent.dev";
 const BOOKING = "https://calendar.app.google/nEeqRH1jn8LBGVUQ9";
+// wa.me wants the number in international form with no plus, spaces or leading zero
+const WHATSAPP = `https://wa.me/447961748420?text=${encodeURIComponent("Hi, I'd like to talk about a project")}`;
 
 /** One viewport at the end: Atlas turning, and how to reach us. Also the whole of the contact page. */
 export function Footer({ standalone = false }: { standalone?: boolean }) {
@@ -19,7 +21,7 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
     const phone = window.innerWidth < 820;
     setFlags({ waves: !qa("plain") && !qa("nowaves") && (!phone || qa("waves")), atlas: !qa("plain") && !qa("noatlas") && (!phone || qa("rig")), still: false });
   }, []);
-  // No form: a call booking, the mail app, and the address with a copy button for everyone without one.
+  // No form: a call booking, WhatsApp, the mail app, and the address with a copy button for everyone without one.
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try { await navigator.clipboard.writeText(MAIL); setCopied(true); setTimeout(() => setCopied(false), 2400); } catch { /* clipboard may be blocked; the address is on the page */ }
@@ -34,9 +36,10 @@ export function Footer({ standalone = false }: { standalone?: boolean }) {
         <div className="footer__copy">
           <Title className="footer__title">Let us take the weight<br />off your shoulders.</Title>
           <div className="footer__reach">
-            <p className="footer__lede">Tell us what you are building. Book a call and we will talk it through, or send a message if you would rather write.</p>
+            <p className="footer__lede">Tell us what you are building. Book a call and we will talk it through, or message us if you would rather write.</p>
             <div className="footer__actions">
               <a className="cta" href={BOOKING} target="_blank" rel="noopener">Book a call</a>
+              <a className="cta cta--quiet" href={WHATSAPP} target="_blank" rel="noopener">WhatsApp</a>
               <a className="cta cta--quiet" href={`mailto:${MAIL}?subject=${encodeURIComponent("New project")}`}>Email us</a>
             </div>
             <p className="footer__direct">
